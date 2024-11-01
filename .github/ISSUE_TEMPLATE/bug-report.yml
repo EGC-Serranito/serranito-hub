@@ -1,0 +1,106 @@
+name: "🐛 Bug Report"
+description: Create a new ticket for a bug.
+title: "[BUG]-<title>"
+labels:
+  - "bug"
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: "Summary"
+      description: Brief description (one-line) of the problem
+      placeholder: "E.g., The application crashes on startup."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: Provide step-by-step instructions to reproduce the issue.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_result
+    attributes:
+      label: "Expected result"
+      description: Describe in detail what you expected to happen. Please provide as much detail as possible.
+      placeholder: "E.g., The application should load the dashboard and display the user profile."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_result
+    attributes:
+      label: "Actual result"
+      description: Describe in detail what actually happened. Please provide as much detail as possible.
+      placeholder: "E.g., The application displays an error message and crashes after loading the initial screen."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: Select the priority level of this issue.
+      options:
+        - High
+        - Medium
+        - Low
+
+  - type: textarea
+    id: attachments
+    attributes:
+      label: "Attachments"
+      description: Provide any additional files or screenshots if necessary.
+      placeholder: "Attach any relevant screenshots or files."
+
+  - type: markdown
+    attributes:
+      value: "### Environment"
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: "Operating System"
+      description: Select the operating system you're using.
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - Mac
+
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: "Browser"
+      description: Select the browser(s) where you encountered the issue.
+      multiple: true
+      options:
+        - Firefox
+        - Chrome
+        - Safari
+        - Microsoft Edge
+        - Opera
+
+  - type: input
+    id: app_version
+    attributes:
+      label: "Application Version"
+      description: Specify the version of the application you're using.
+      placeholder: "E.g., 1.2.3"
+    validations:
+      required: true
+
+  - type: textarea
+    id: other_details
+    attributes:
+      label: "Other eenvironment details"
+      description: Include any other relevant details about your environment.
+      placeholder: "E.g., Plugins, network configuration, etc."
