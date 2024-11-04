@@ -6,6 +6,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 def initialize_driver():
     # Initializes the browser options
     options = webdriver.ChromeOptions()
+    options.add_argument("--headless")
 
     # Initialise the browser using WebDriver Manager
     service = Service('/usr/bin/chromedriver')
