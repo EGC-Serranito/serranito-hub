@@ -67,10 +67,12 @@ def test_my_profile_page(test_client):
 def test_edit_profile_page_unauthenticated(test_client):
     response = test_client.get("/profile/edit")
     assert response.status_code == 302, "Unauthenticated user should be redirected."
-    assert response.location == "/login?next=%2Fprofile%2Fedit", "Redirection location should be the login page with the next parameter."
+    assert response.location == "/login?next=%2Fprofile%2Fedit", \
+        "Redirection location should be the login page with the next parameter."
 
 
 def test_my_profile_page_unauthenticated(test_client):
     response = test_client.get("/profile/summary")
     assert response.status_code == 302, "Unauthenticated user should be redirected."
-    assert response.location == "/login?next=%2Fprofile%2Fsummary", "Redirection location should be the login page with the next parameter."
+    assert response.location == "/login?next=%2Fprofile%2Fsummary", \
+        "Redirection location should be the login page with the next parameter."

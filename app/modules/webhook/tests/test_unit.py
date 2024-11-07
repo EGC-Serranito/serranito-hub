@@ -1,8 +1,7 @@
 import pytest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 from app.modules.webhook.services import WebhookService
 from werkzeug.exceptions import InternalServerError
-from flask import abort
 import docker
 import subprocess
 
@@ -33,7 +32,8 @@ def test_get_web_container_found(webhook_service, mock_container):
 
 def test_get_web_container_not_found(webhook_service):
     # Parchea 'client' y 'abort' en el contexto de 'app.modules.webhook.services'
-    with patch("app.modules.webhook.services.client") as mock_client, patch("app.modules.webhook.services.abort") as mock_abort:
+    with patch("app.modules.webhook.services.client") as mock_client, \
+         patch("app.modules.webhook.services.abort") as mock_abort:
         mock_client.containers.get.side_effect = docker.errors.NotFound("Container not found")
         webhook_service.get_web_container()
         mock_abort.assert_called_once_with(404, description="Web container not found.")
