@@ -110,32 +110,33 @@
 
                 {% if dataset.ds_meta_data.dataset_doi %}
                 <div class="row mb-2">
-                    
-                        <div class="col-md-4 col-12">
-                            <span class=" text-secondary">
-                                Zenodo record
-                            </span>
-                        </div>
 
-                        {% if FLASK_ENV == 'production' %}
-                            <div class="col-md-8 col-12">
-                                <a href="https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}" target="_blank">
-                                    https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
-                                </a>
-                            </div>
-                        {% elif FLASK_ENV == 'development' %}
-                            <div class="col-md-8 col-12">
-                                <a href="https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}" target="_blank">
-                                    https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
-                                </a>
-                            </div>
-                        {% else %}
-                            <div class="col-md-8 col-12">
-                                <a href="https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}" target="_blank">
-                                    https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
-                                </a>
-                            </div>
-                        {% endif %}
+                    <div class="col-md-4 col-12">
+                        <span class=" text-secondary">
+                            Zenodo record
+                        </span>
+                    </div>
+
+                    {% if FLASK_ENV == 'production' %}
+                    <div class="col-md-8 col-12">
+                        <a href="https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}" target="_blank">
+                            https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
+                        </a>
+                    </div>
+                    {% elif FLASK_ENV == 'development' %}
+                    <div class="col-md-8 col-12">
+                        <a href="https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}"
+                            target="_blank">
+                            https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="col-md-8 col-12">
+                        <a href="https://zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}" target="_blank">
+                            https://sandbox.zenodo.org/records/{{ dataset.ds_meta_data.deposition_id }}
+                        </a>
+                    </div>
+                    {% endif %}
 
                 </div>
                 {% endif %}
@@ -154,7 +155,7 @@
 
                 </div>
 
-                
+
 
             </div>
 
@@ -174,11 +175,11 @@
                         {{ dataset.get_uvlhub_doi() }}
                     </span>
                 </button>
-                
+
                 <div id="dataset_doi_uvlhub" style="display: none">
                     {{ dataset.get_uvlhub_doi() }}
                 </div>
-                
+
             </div>
             {% endif %}
 
@@ -189,20 +190,22 @@
             <div class="card-body">
 
                 <h3> Related publication </h3>
-                
+
                 David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides,
                 <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
                 Journal of Systems and Software,
                 2024,
                 112150,
                 ISSN 0164-1212,
-                <a href="https://doi.org/10.1016/j.jss.2024.112150" target="_blank">https://doi.org/10.1016/j.jss.2024.112150</a>
+                <a href="https://doi.org/10.1016/j.jss.2024.112150"
+                    target="_blank">https://doi.org/10.1016/j.jss.2024.112150</a>
 
             </div>
 
             <div class="card-body mt-0 pt-0">
 
-                <button onclick="copyText('bibtex_cite')" class="btn btn-light btn-sm" style="border-radius: 5px; margin-right: 10px">
+                <button onclick="copyText('bibtex_cite')" class="btn btn-light btn-sm"
+                    style="border-radius: 5px; margin-right: 10px">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in BibTex
                 </button>
@@ -238,100 +241,114 @@
                 <div class="row">
                     <div class="col-12 d-flex justify-content-between align-items-center">
                         <h4 style="margin-bottom: 0px">UVL models</h4>
-                        <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count() }}</span></h4>
+                        <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count()
+                                }}</span></h4>
                     </div>
                 </div>
-                
+
 
             </div>
-            
+
 
             {% for feature_model in dataset.feature_models %}
-                {% for file in feature_model.files %}
-                    <div class="list-group-item">
-                        
+            {% for file in feature_model.files %}
+            <div class="list-group-item">
+
+                <div class="row">
+                    <div class="col-12">
+
                         <div class="row">
-                            <div class="col-12">
-
-                                <div class="row">
-                                    <div class="col-8">
-                                        <i data-feather="file"></i> {{ file.name }}
-                                        <br>
-                                        <small class="text-muted">({{ file.get_formatted_size() }})</small>
-                                    </div>
-                                    <div class="col-2">
-                                        <div id="check_{{ file.id }}">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                
+                            <div class="col-8">
+                                <i data-feather="file"></i> {{ file.name }}
+                                <br>
+                                <small class="text-muted">({{ file.get_formatted_size() }})</small>
                             </div>
-                            <div class="col-12 text-end" >
+                            <div class="col-2">
+                                <div id="check_{{ file.id }}">
+                                </div>
+                            </div>
+                        </div>
 
-                                <button onclick="viewFile('{{ file.id }}')" class="btn btn-outline-secondary btn-sm" style="border-radius: 5px;">
-                                    <i data-feather="eye"></i> View
-                                </button>
 
-                                <div class="btn-group" role="group">
-                                    <button id="btnGroupDrop{{ file.id }}" type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style=" border-radius: 5px;">
-                                        <i data-feather="check"></i> Check
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop{{ file.id }}">
-                                        <li>
-                                            <a class="dropdown-item" href="javascript:void(0);" onclick="checkUVL('{{ file.id }}')">Syntax check</a>
-                                        </li>
-                                        <!--
+                    </div>
+                    <div class="col-12 text-end">
+
+                        <button onclick="openEditFile('{{ file.id }}')" class="btn btn-outline-secondary btn-sm"
+                            style="border-radius: 5px; background-color: #28a745;; color: white;">
+                            <i data-feather="edit"></i> Edit
+                        </button>
+
+                        <button onclick="viewFile('{{ file.id }}')" class="btn btn-outline-secondary btn-sm"
+                            style="border-radius: 5px;">
+                            <i data-feather="eye"></i> View
+                        </button>
+
+                        <div class="btn-group" role="group">
+                            <button id="btnGroupDrop{{ file.id }}" type="button"
+                                class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown"
+                                aria-expanded="false" style=" border-radius: 5px;">
+                                <i data-feather="check"></i> Check
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="btnGroupDrop{{ file.id }}">
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0);"
+                                        onclick="checkUVL('{{ file.id }}')">Syntax check</a>
+                                </li>
+                                <!--
                                         <li>
                                             <a class="dropdown-item" href="{{ url_for('flamapy.valid', file_id=file.id) }}">SAT validity check</a>
                                         </li>
                                         -->
-                                    </ul>
-                                </div>
-                                
-                                <div class="btn-group" role="group">
-                                    <button id="btnGroupDropExport{{ file.id }}" type="button" class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style=" border-radius: 5px;">
-                                        <i data-feather="download"></i> Export
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="btnGroupDropExport{{ file.id }}">
-                                        <li>
-                                            <a class="dropdown-item" href="{{ url_for('hubfile.download_file', file_id=file.id) }}">
-                                                UVL
-                                            </a>
-                                            <a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=file.id) }}">
-                                                Glencoe
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ url_for('flamapy.to_cnf', file_id=file.id) }}">
-                                                DIMACS
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=file.id) }}">
-                                                SPLOT
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                
-                                
-
-                            </div>
+                            </ul>
                         </div>
+
+                        <div class="btn-group" role="group">
+                            <button id="btnGroupDropExport{{ file.id }}" type="button"
+                                class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown"
+                                aria-expanded="false" style=" border-radius: 5px;">
+                                <i data-feather="download"></i> Export
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="btnGroupDropExport{{ file.id }}">
+                                <li>
+                                    <a class="dropdown-item"
+                                        href="{{ url_for('hubfile.download_file', file_id=file.id) }}">
+                                        UVL
+                                    </a>
+                                    <a class="dropdown-item"
+                                        href="{{ url_for('flamapy.to_glencoe', file_id=file.id) }}">
+                                        Glencoe
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('flamapy.to_cnf', file_id=file.id) }}">
+                                        DIMACS
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=file.id) }}">
+                                        SPLOT
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+
+
                     </div>
-                {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
             {% endfor %}
         </div>
-        
-        
-    
+
+
+
         <a href="/dataset/download/{{ dataset.id }}" class="btn btn-primary mt-3" style="border-radius: 5px;">
             <i data-feather="download" class="center-button-icon"></i>
             Download all ({{ dataset.get_file_total_size_for_human() }})
         </a>
     </div>
-    
+
 </div>
 
 <!-- Modal-->
@@ -353,15 +370,134 @@
                 </div>
             </div>
             <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
-                <pre id="fileContent" style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; background-color: #f5f5f5; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
+                <pre id="fileContent"
+                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; background-color: #f5f5f5; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
 
             </div>
         </div>
     </div>
 </div>
 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<div class="modal fade" id="fileEditModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="height: 80vh; display: flex; align-items: center;">
+        <div class="modal-content" style="height: 80vh;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h5 class="modal-title" id="fileViewerModalLabel">Feature model edit</h5>
+                <div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
+                <div style="padding: 20px;">
+                    <h6>FEATURES</h6>
+                    <div id="features" class="feature-tree"></div>
 
+                    <h6 style="margin-top: 20px;">CONSTRAINTS</h6>
+                    <div id="constraints" class="constraints-list">
+                        <!-- Restricciones generadas dinámicamente -->
+                    </div>
+                    <button id="addConstraint" class="btn btn-outline-secondary mt-2" onclick="addConstraint()">Add
+                        constraint</button>
+                    <button id="applyChanges" class="btn btn-primary mt-2" data-bs-dismiss="modal" onclick="editFile()">Apply changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addFeatureModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="height: 30vh; width: 80vh;display: flex; align-items: center;">
+        <div class="modal-content" style="height: 30vh;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h5 class="modal-title" id="fileViewerModalLabel">Add feature</h5>
+                <div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
+                <div style="padding: 20px;">
+                    <input id="newFeatureName" type="text" style="width: 150px;">
+                </div>
+                <button id="applyChanges" class="btn btn-primary mt-2" data-bs-dismiss="modal" onclick="applyNewFeature()">Apply changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addConstraintModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="height: 30vh; width: 80vh;display: flex; align-items: center;">
+        <div class="modal-content" style="height: 30vh;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h5 class="modal-title" id="fileViewerModalLabel">Add constraint</h5>
+                <div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
+                <div style="padding: 20px;">
+
+                    <input id="antecedentConstraint" type="text" style="width: 150px;">
+                    <i data-feather="arrow-right"></i>
+                    <input id="consequentConstraint" type="text" style="width: 150px;">
+
+                </div>
+                <button id="applyConstraint" class="btn btn-primary mt-2" data-bs-dismiss="modal"
+                    onclick="applyNewConstraint()">Apply constraint</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS -->
+<style>
+    .feature-tree,
+    .constraints-list {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+    }
+
+    .feature-node {
+        margin-left: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .feature-label {
+        font-weight: bold;
+        margin-right: 8px;
+        width: 100px;
+    }
+
+    .feature-children {
+        margin-left: 20px;
+        padding-left: 15px;
+        border-left: 1px solid #ccc;
+    }
+
+    .constraint {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .constraint input {
+        margin: 0 5px;
+        width: 150px;
+    }
+
+    .btn-add {
+        margin-left: 8px;
+    }
+
+    .feature-button {
+        margin-left: 4px;
+        padding: 2px 6px;
+        cursor: pointer;
+    }
+</style>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 
 
 <script>
@@ -369,7 +505,218 @@
         feather.replace();
     });
 
-    var currentFileId;
+    let currentFileId;
+    let features;
+    let constraints;
+    var featureModal;
+    // UVL-EDITOR
+
+    function addConstraint() {
+        let modal = new bootstrap.Modal(document.getElementById("addConstraintModal"))
+        modal.show()
+    }
+
+    function isValidString(str) {
+        return str !== null && str !== undefined && str.trim() !== "";
+    }
+
+    function applyNewConstraint() {
+        const antecedent = document.getElementById("antecedentConstraint")
+        const consequent = document.getElementById("consequentConstraint")
+
+        if (isValidString(antecedent.value) && isValidString(consequent.value)) {
+            constraints.push([antecedent.value.trim(), consequent.value.trim()])
+            renderConstraints()
+        } else {
+            alert("Invalid constraint")
+        }
+    }
+
+    // Función para añadir el nuevo feature
+    function applyNewFeature() {
+        const newFeatureName = document.getElementById("newFeatureName").value.trim();
+        const {data} = featureModal
+        if(!(newFeatureName in data)){
+            data[newFeatureName] = {}
+            renderFeatureTree()
+        } else {
+            alert(`"${newFeatureName}" is alredy in UVL.`)
+        }
+    }
+
+    function editFile(){
+        
+        fetch(`/dataset/{{ dataset.id }}/file/${currentFileId}`, {
+            method: "POST", 
+            headers: {
+                'Content-Type': 'application/json'  // Indicamos que el cuerpo es JSON
+            },
+            body: JSON.stringify({features, constraints})
+        })
+        .then(data => data.json())
+        .then(json => console.log(json))
+        // const response = confirm("Do you want to save changes?")
+        // if(response) {
+        //     fetch(`/file/edit/${currentFileId}`, {
+        //         method: "POST", 
+        //         body: {features, constraints}
+        //     })
+        //     console.log(features)
+        //     console.log(constraints)
+        // }
+    }
+
+    function openEditFile(fileId) {
+        fetch(`/file/view/${fileId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('fileContent').textContent = data.content;
+                currentFileId = fileId;
+                var modal = new bootstrap.Modal(document.getElementById('fileEditModal'));
+                const { features_, constraints_ } = parseUVL(data.content)
+                features = features_;
+                constraints = constraints_;
+                renderFeatureTree()
+                renderConstraints()
+                modal.show();
+            })
+            .catch(error => console.error('Error loading file:', error));
+    }
+
+    function parseUVL(text) {
+        const features_ = {};
+        const constraints_ = [];
+
+        const lines = text.trim().split('\n');
+        let currentSection = null;
+        const stack = []; // Para manejar niveles de indentación y su contexto
+
+        lines.forEach(line => {
+            const trimmedLine = line.trim();
+            if (trimmedLine === "") return; // Ignorar líneas vacía
+
+            // Detectar si estamos en una nueva sección
+            if (trimmedLine.startsWith("features")) {
+                currentSection = "features"; return;
+            } else if (trimmedLine.startsWith("constraints")) {
+                currentSection = "constraints"; return;
+            }
+
+            if (currentSection === "features") {
+                // Obtener nivel de indentación
+                const indentationLevel = line.match(/^\s*/)[0].length;
+                // Actualizar el stack según el nivel de indentación
+                while (stack.length > 0 && stack[stack.length - 1].indentation >= indentationLevel) {
+                    stack.pop();
+                }
+
+                const parent = stack.length > 0 ? stack[stack.length - 1].object : features_;
+
+                const key = trimmedLine.trim();
+                parent[key] = {}; // Crear un nuevo objeto para almacenar valores
+                stack.push({ object: parent[key], key, indentation: indentationLevel });
+
+            } else if (currentSection === "constraints") {
+                const [left, right] = trimmedLine.split("=>").map(part => part.trim());
+                constraints_.push([left, right])
+            }
+        });
+
+        return { features_, constraints_ };
+    }
+
+    function renderFeatureTree(data = features, container = document.getElementById("features")) {
+        container.innerHTML = "";
+        const keys = Object.keys(data)
+        keys.forEach((key, index) => {
+            const node = document.createElement("div");
+            node.classList.add("feature-node");
+
+            const label = document.createElement("input");
+            label.classList.add("feature-label");
+            label.value = key;
+            node.appendChild(label);
+
+            // En caso de no ser la feature principal, se podrá borrar o no
+            if (data !== features) {
+                const deleteButton = document.createElement("button");
+                deleteButton.classList.add("feature-button");
+                deleteButton.textContent = "-";
+                deleteButton.onclick = () => {
+                    const response = confirm("Do you want to delete this feature branch?")
+                    if(response){
+                        delete data[key]; // Elimina el nodo actual
+                        renderFeatureTree(); // Vuelve a renderizar el árbol
+                    }
+                };
+                node.appendChild(deleteButton);
+            }
+
+            const addButton = document.createElement("button");
+            addButton.classList.add("feature-button");
+            addButton.textContent = "+";
+            addButton.onclick = () => {
+                featureModal = new bootstrap.Modal(document.getElementById("addFeatureModal"))
+                featureModal.data = data[key]
+                featureModal.show()
+                renderFeatureTree(); // Vuelve a renderizar el árbol
+            };
+
+            node.appendChild(addButton);
+
+            const childrenContainer = document.createElement("div");
+            childrenContainer.classList.add("feature-children");
+
+            if (Object.keys(data[key]).length > 0) {
+                renderFeatureTree(data[key], childrenContainer);
+            }
+
+            node.appendChild(childrenContainer);
+            container.appendChild(node);
+
+            if (index < keys.length - 1) {
+                const separator = document.createElement("hr");
+                separator.classList.add("feature-separator");
+                container.appendChild(separator);
+            }
+        });
+    }
+
+    function renderConstraints(data = constraints, container = document.getElementById("constraints")) {
+        container.innerHTML = "";
+        data.forEach((constraint, index) => {
+            const constraintDiv = document.createElement("div");
+            constraintDiv.classList.add("constraint");
+
+            const leftInput = document.createElement("input");
+            leftInput.type = "text";
+            leftInput.value = constraint[0];
+
+            const relationSpan = document.createElement("i");
+            relationSpan.setAttribute("data-feather", "arrow-right");
+
+            const rightInput = document.createElement("input");
+            rightInput.type = "text";
+            rightInput.value = constraint[1];
+
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("feature-button");
+            deleteButton.textContent = "-";
+            deleteButton.onclick = () => {
+                constraints = data.filter((value, index_) => index !== index_);
+                renderConstraints();
+            };
+
+            constraintDiv.appendChild(leftInput);
+            constraintDiv.appendChild(relationSpan);
+            constraintDiv.appendChild(rightInput);
+            constraintDiv.appendChild(deleteButton)
+
+            container.appendChild(constraintDiv);
+        });
+
+        feather.replace();
+    }
 
     function viewFile(fileId) {
         fetch(`/file/view/${fileId}`)
@@ -393,44 +740,44 @@
     }
 
     function checkUVL(file_id) {
-    const outputDiv = document.getElementById('check_' + file_id);
-    outputDiv.innerHTML = ''; // Clear previous output
+        const outputDiv = document.getElementById('check_' + file_id);
+        outputDiv.innerHTML = ''; // Clear previous output
 
-    fetch(`/flamapy/check_uvl/${file_id}`)
-        .then(response => {
-            return response.json().then(data => ({
-                status: response.status,
-                data
-            }));
-        })
-        .then(({ status, data }) => {
-            if (status === 400) {
-                // Display errors
-                if (data.errors) {
-                    outputDiv.innerHTML = '<span class="badge badge-danger">Errors:</span>';
-                    data.errors.forEach(error => {
-                        const errorElement = document.createElement('span');
-                        errorElement.className = 'badge badge-danger';
-                        errorElement.textContent = error;
-                        outputDiv.appendChild(errorElement);
-                        outputDiv.appendChild(document.createElement('br')); // Line break for better readability
-                    });
+        fetch(`/flamapy/check_uvl/${file_id}`)
+            .then(response => {
+                return response.json().then(data => ({
+                    status: response.status,
+                    data
+                }));
+            })
+            .then(({ status, data }) => {
+                if (status === 400) {
+                    // Display errors
+                    if (data.errors) {
+                        outputDiv.innerHTML = '<span class="badge badge-danger">Errors:</span>';
+                        data.errors.forEach(error => {
+                            const errorElement = document.createElement('span');
+                            errorElement.className = 'badge badge-danger';
+                            errorElement.textContent = error;
+                            outputDiv.appendChild(errorElement);
+                            outputDiv.appendChild(document.createElement('br')); // Line break for better readability
+                        });
+                    } else {
+                        outputDiv.innerHTML = `<span class="badge badge-danger">Error: ${data.error}</span>`;
+                    }
+                } else if (status === 200) {
+                    // Display success message
+                    outputDiv.innerHTML = '<span class="badge badge-success">Valid Model</span>';
                 } else {
-                    outputDiv.innerHTML = `<span class="badge badge-danger">Error: ${data.error}</span>`;
+                    // Handle unexpected status
+                    outputDiv.innerHTML = `<span class="badge badge-warning">Unexpected response status: ${status}</span>`;
                 }
-            } else if (status === 200) {
-                // Display success message
-                outputDiv.innerHTML = '<span class="badge badge-success">Valid Model</span>';
-            } else {
-                // Handle unexpected status
-                outputDiv.innerHTML = `<span class="badge badge-warning">Unexpected response status: ${status}</span>`;
-            }
-        })
-        .catch(error => {
-            // Handle fetch errors
-            outputDiv.innerHTML = `<span class="badge badge-danger">An unexpected error occurred: ${error.message}</span>`;
-        });
-}
+            })
+            .catch(error => {
+                // Handle fetch errors
+                outputDiv.innerHTML = `<span class="badge badge-danger">An unexpected error occurred: ${error.message}</span>`;
+            });
+    }
 
 
     /*
