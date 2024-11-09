@@ -8,4 +8,7 @@ datasetservice = DataSetService()
 
 @dashboard_bp.route('/dashboard', methods=['GET'])
 def index():
-    return render_template('dashboard/index.html')
+    
+    author_names, dataset_counts = datasetservice.get_all_author_names_and_dataset_counts()
+
+    return render_template('dashboard/index.html', author_names=author_names, datasets_count=dataset_counts)

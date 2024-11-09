@@ -4,71 +4,115 @@
 
 {% block content %}
 
-    <h1 class="h3 mb-3"><b>Dashboard</b></h1>
+<h1 class="h3 mb-3"><b>Dashboard</b></h1>
 
+<p>Para ver los diferentes Dashboard de UVLHub, pulse cualquier botón:</p>
 
-    <div class="row row-cols-1 row-cols-lg-3 row-cols-md-2 row-cols-12 g-4">
+<div class="custom-buttons">
+    <button type="button" class="btn-dashboard" onclick="showGraph()">Ver gráfica de datasets por autor</button>
+</div>
 
-        <div class="col">
+<!-- Contenedor donde se mostrará el número de datasets o autores -->
+<div id="dataset-count" style="margin-top: 20px; font-weight: bold;"></div>
 
-            <div class="card h-100">
-                <img src="{{ url_for('static', filename='img/logos/university_of_seville.svg') }}"
-                     class="card-img-top custom-img" alt="University of Seville">
-                <div class="card-body custom-card-body">
-                    <h5 class="card-title">University of Seville, Spain</h5>
-                    <p class="card-text">
-                        Performs active development of the application and is responsible for code maintenance,
-                        deployment, operation of services and new functionalities.
-                    </p>
-                </div>
-                <div class="card-footer">
-                    <a href="http://www.us.es" target="_blank">www.us.es</a>
-                </div>
-            </div>
+<!-- Contenedor para la gráfica de datasets por autor -->
+<canvas id="datasetsChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
 
-        </div>
+<!-- Div oculto para almacenar los datos de autores y cantidad de datasets -->
+<div id="data-container"
+     data-author-names='{{ author_names | tojson | safe }}'
+     data-datasets-count='{{ datasets_count | tojson | safe }}'
+     style="display: none;">
+</div>
 
-        <div class="col">
+{% endblock %}
 
-            <div class="card h-100">
-                <img src="{{ url_for('static', filename='img/logos/university_of_malaga.svg') }}"
-                     class="card-img-top custom-img" alt="University of Malaga">
-                <div class="card-body custom-card-body">
-                    <h5 class="card-title">University of Malaga, Spain</h5>
-                    <p class="card-text">
-                        Responsible for active research, technical support
-                    </p>
-                </div>
-                <div class="card-footer">
-                    <a href="http://www.uma.es" target="_blank">www.uma.es</a>
-                </div>
-            </div>
+{% block styles %}
+<style>
+    .custom-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
 
-        </div>
+    .btn-dashboard {
+        padding: 10px 20px;
+        border: 2px solid #0056b3; 
+        background-color: #f8f9fa; 
+        color: #0056b3; 
+        font-weight: bold;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+    }
 
-        <div class="col">
-
-            <div class="card h-100">
-                <img src="{{ url_for('static', filename='img/logos/university_of_ulm.svg') }}"
-                     class="card-img-top custom-img" alt="University of Ulm">
-                <div class="card-body custom-card-body">
-                    <h5 class="card-title">University of Ulm, Germany</h5>
-                    <p class="card-text">
-                        Provides population of consistent datasets with rich metadata for initial loading of models into
-                        UVL. Responsible for the UVL parser. Active research.
-                    </p>
-                </div>
-                <div class="card-footer">
-                    <a href="http://www.uni-ulm.de" target="_blank">www.uni-ulm.de</a>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
+    .btn-dashboard:hover {
+        background-color: #0056b3;
+        color: #ffffff;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('team.scripts') }}"></script>
+    <!-- Incluye Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        function showDatasetCount() {
+            document.getElementById('dataset-count').innerText = "Total Datasets: {{ ndatasets }}";
+            document.getElementById('dataset-count').style.display = "block";
+            document.getElementById('datasetsChart').style.display = "none"; // Oculta la gráfica
+        }
+
+        function showAuthorCount() {
+            document.getElementById('dataset-count').innerText = "Total Authors: {{ nauthors }}";
+            document.getElementById('dataset-count').style.display = "block";
+            document.getElementById('datasetsChart').style.display = "none"; // Oculta la gráfica
+        }
+
+        function showGraph() {
+            document.getElementById('dataset-count').style.display = "none"; // Oculta el conteo de datasets o autores
+            document.getElementById('datasetsChart').style.display = "block"; // Muestra la gráfica
+        }
+
+        // Extraer los datos del elemento oculto
+        const dataContainer = document.getElementById('data-container');
+        const authorNames = JSON.parse(dataContainer.getAttribute('data-author-names'));
+        const datasetsCount = JSON.parse(dataContainer.getAttribute('data-datasets-count'));
+
+        // Configuración de la gráfica
+        const ctx = document.getElementById('datasetsChart').getContext('2d');
+        const datasetsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: authorNames,
+                datasets: [{
+                    label: 'Número de Datasets',
+                    data: datasetsCount,
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Número de Datasets'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Autores'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 {% endblock %}
+
