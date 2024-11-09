@@ -89,28 +89,63 @@
                     </div>
 
                     <div class="row">
-
                         <div class="col-6">
-
-                            <div>
-                                Sort results by creation date
-                                <label class="form-check">
-                                    <input class="form-check-input" type="radio" value="newest" name="sorting"
-                                           checked="">
-                                    <span class="form-check-label">
-                                      Newest first
-                                    </span>
-                                </label>
-                                <label class="form-check">
-                                    <input class="form-check-input" type="radio" value="oldest" name="sorting">
-                                    <span class="form-check-label">
-                                      Oldest first
-                                    </span>
-                                </label>
+                            <div class="dropdown">
+                                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Sort results
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="newest" name="sorting" checked="">
+                                            <span class="form-check-label">
+                                                Newest first
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="oldest" name="sorting">
+                                            <span class="form-check-label">
+                                                Oldest first
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="name_asc" name="sorting">
+                                            <span class="form-check-label">
+                                                Name A-Z
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="name_desc" name="sorting">
+                                            <span class="form-check-label">
+                                                Name Z-A
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="feature_models_asc" name="sorting">
+                                            <span class="form-check-label">
+                                                Fewest feature models first
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="feature_models_desc" name="sorting">
+                                            <span class="form-check-label">
+                                                Most feature models first
+                                            </span>
+                                        </label>
+                                    </li>
+                                </ul>
                             </div>
-
                         </div>
-
                     </div>
 
                     <div class="row">
