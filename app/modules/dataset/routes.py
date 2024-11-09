@@ -288,6 +288,6 @@ def download_all_dataset():
     current_date = datetime.now().strftime("%Y_%m_%d")
 
     # Crear el nombre del archivo con la fecha
-    zip_filename = f"uvlhub_bulk_{current_date}.zip"
+    zip_filename = f"serranitohub_datasets_{current_date}.zip"
 
     return send_file(zip_path, as_attachment=True, download_name=zip_filename)
