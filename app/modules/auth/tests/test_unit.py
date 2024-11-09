@@ -5,7 +5,7 @@ from app.modules.auth.repositories import UserRepository
 from app.modules.profile.repositories import UserProfileRepository
 
 
-def test_service_create_with_profie_success(clean_database):
+def test_service_create_with_profie_success(test_app,clean_database):
     data = {
         "name": "Test",
         "surname": "Foo",
@@ -19,7 +19,7 @@ def test_service_create_with_profie_success(clean_database):
     assert UserProfileRepository().count() == 1
 
 
-def test_service_create_with_profile_fail_no_email(clean_database):
+def test_service_create_with_profile_fail_no_email(test_app,clean_database):
     data = {
         "name": "Test",
         "surname": "Foo",
@@ -34,7 +34,7 @@ def test_service_create_with_profile_fail_no_email(clean_database):
     assert UserProfileRepository().count() == 0
 
 
-def test_service_create_with_profile_fail_no_password(clean_database):
+def test_service_create_with_profile_fail_no_password(test_app,clean_database):
     data = {
         "name": "Test",
         "surname": "Foo",
