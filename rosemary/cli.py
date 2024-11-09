@@ -20,6 +20,7 @@ from rosemary.commands.make_module import make_module
 from rosemary.commands.env import env
 from rosemary.commands.test import test
 from rosemary.commands.run_app import run_app
+from rosemary.commands.coverage_all import coverage_all
 
 
 class RosemaryCLI(click.Group):
@@ -60,6 +61,8 @@ cli.add_command(stop)
 cli.add_command(selenium)
 cli.add_command(module_list)
 cli.add_command(run_app)
+cli.add_command(coverage_all)
+
 
 if __name__ == '__main__':
     cli()
