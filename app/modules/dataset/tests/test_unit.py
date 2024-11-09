@@ -1,14 +1,25 @@
+import hashlib
 import pytest
-from unittest.mock import patch, MagicMock
-from app.modules.dataset.services import DataSetService
+from unittest.mock import mock_open, patch, MagicMock
+from app.modules.dataset.services import DataSetService, calculate_checksum_and_size, SizeService, DOIMappingService
 from app.modules.dataset.models import DataSet, DSMetaData
 from app.modules.auth.models import User
 import os
 
 
 @pytest.fixture
+def size_service():
+    return SizeService()
+
+
+@pytest.fixture
 def dataset_service():
     return DataSetService()
+
+
+@pytest.fixture
+def doi_mapping_service():
+    return DOIMappingService()
 
 
 @pytest.fixture
@@ -122,3 +133,66 @@ def test_total_dataset_views(dataset_service):
 
         assert result == 200
         mock_total_views.assert_called_once()
+
+
+def test_calculate_checksum_and_size():
+    with patch("builtins.open", mock_open(read_data=b"test content")) as mock_file, \
+         patch("os.path.getsize", return_value=12) as mock_getsize:
+        checksum, size = calculate_checksum_and_size("/mock/path/to/file")
+        mock_file.assert_called_once_with("/mock/path/to/file", "rb")
+        mock_getsize.assert_called_once_with("/mock/path/to/file")
+        assert checksum == hashlib.md5(b"test content").hexdigest()
+        assert size == 12
+
+
+def test_update_dsmetadata(dataset_service):
+    with patch.object(dataset_service.dsmetadata_repository, 'update') as mock_update:
+        mock_update.return_value = True
+
+        result = dataset_service.update_dsmetadata(1, title="Updated Title")
+
+        assert result is True
+        mock_update.assert_called_once_with(1, title="Updated Title")
+
+
+def test_get_human_readable_size(size_service):
+    assert size_service.get_human_readable_size(500) == '500 bytes'
+    assert size_service.get_human_readable_size(1024) == '1.0 KB'
+    assert size_service.get_human_readable_size(1024 ** 2) == '1.0 MB'
+    assert size_service.get_human_readable_size(1024 ** 3) == '1.0 GB'
+
+
+def test_get_unsynchronized(dataset_service):
+    with patch.object(dataset_service.repository, 'get_unsynchronized') as mock_get_unsynchronized:
+        mock_dataset = MagicMock(spec=DataSet)
+        mock_get_unsynchronized.return_value = mock_dataset
+
+        user_id = 1
+        result = dataset_service.get_unsynchronized(user_id)
+
+        assert result == mock_dataset
+        mock_get_unsynchronized.assert_called_once_with(user_id)
+
+
+def test_get_unsynchronized_dataset(dataset_service):
+    with patch.object(dataset_service.repository, 'get_unsynchronized_dataset') as mock_get_unsynchronized_dataset:
+        mock_dataset = MagicMock(spec=DataSet)
+        mock_get_unsynchronized_dataset.return_value = mock_dataset
+
+        user_id = 1
+        dataset_id = 2
+        result = dataset_service.get_unsynchronized_dataset(user_id, dataset_id)
+
+        assert result == mock_dataset
+        mock_get_unsynchronized_dataset.assert_called_once_with(user_id, dataset_id)
+
+
+def test_get_new_doi(doi_mapping_service):
+    with patch.object(doi_mapping_service.repository, 'get_new_doi') as mock_get_new_doi:
+        mock_get_new_doi.return_value = MagicMock(dataset_doi_new="10.5678/new-doi")
+
+        old_doi = "10.1234/old-doi"
+        result = doi_mapping_service.get_new_doi(old_doi)
+
+        assert result == "10.5678/new-doi"
+        mock_get_new_doi.assert_called_once_with(old_doi)
