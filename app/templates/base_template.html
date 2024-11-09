@@ -71,6 +71,14 @@ chico sundermann">
                     </a>
                 </li>
 
+                <li class="sidebar-item {{ 'active' if request.endpoint == 'dashboard.index' else '' }}">
+                    <a class="sidebar-link" href="{{ url_for('dashboard.index') }}">
+                        <i class="align-middle" data-feather="grid"></i> <span
+                            class="align-middle">Dashboard</span>
+                    </a>
+                </li>
+                
+
                 {% if current_user.is_anonymous %}
 
                     <li class="sidebar-header">

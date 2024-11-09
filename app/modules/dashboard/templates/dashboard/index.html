@@ -1,0 +1,118 @@
+{% extends "base_template.html" %}
+
+{% block title %}View dataset{% endblock %}
+
+{% block content %}
+
+<h1 class="h3 mb-3"><b>Dashboard</b></h1>
+
+<p>Para ver los diferentes Dashboard de UVLHub, pulse cualquier botón:</p>
+
+<div class="custom-buttons">
+    <button type="button" class="btn-dashboard" onclick="showGraph()">Ver gráfica de datasets por autor</button>
+</div>
+
+<!-- Contenedor donde se mostrará el número de datasets o autores -->
+<div id="dataset-count" style="margin-top: 20px; font-weight: bold;"></div>
+
+<!-- Contenedor para la gráfica de datasets por autor -->
+<canvas id="datasetsChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
+
+<!-- Div oculto para almacenar los datos de autores y cantidad de datasets -->
+<div id="data-container"
+     data-author-names='{{ author_names | tojson | safe }}'
+     data-datasets-count='{{ datasets_count | tojson | safe }}'
+     style="display: none;">
+</div>
+
+{% endblock %}
+
+{% block styles %}
+<style>
+    .custom-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-dashboard {
+        padding: 10px 20px;
+        border: 2px solid #0056b3; 
+        background-color: #f8f9fa; 
+        color: #0056b3; 
+        font-weight: bold;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .btn-dashboard:hover {
+        background-color: #0056b3;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+    <!-- Incluye Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        function showDatasetCount() {
+            document.getElementById('dataset-count').innerText = "Total Datasets: {{ ndatasets }}";
+            document.getElementById('dataset-count').style.display = "block";
+            document.getElementById('datasetsChart').style.display = "none"; // Oculta la gráfica
+        }
+
+        function showAuthorCount() {
+            document.getElementById('dataset-count').innerText = "Total Authors: {{ nauthors }}";
+            document.getElementById('dataset-count').style.display = "block";
+            document.getElementById('datasetsChart').style.display = "none"; // Oculta la gráfica
+        }
+
+        function showGraph() {
+            document.getElementById('dataset-count').style.display = "none"; // Oculta el conteo de datasets o autores
+            document.getElementById('datasetsChart').style.display = "block"; // Muestra la gráfica
+        }
+
+        // Extraer los datos del elemento oculto
+        const dataContainer = document.getElementById('data-container');
+        const authorNames = JSON.parse(dataContainer.getAttribute('data-author-names'));
+        const datasetsCount = JSON.parse(dataContainer.getAttribute('data-datasets-count'));
+
+        // Configuración de la gráfica
+        const ctx = document.getElementById('datasetsChart').getContext('2d');
+        const datasetsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: authorNames,
+                datasets: [{
+                    label: 'Número de Datasets',
+                    data: datasetsCount,
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Número de Datasets'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Autores'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
+
