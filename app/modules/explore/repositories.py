@@ -66,5 +66,4 @@ class ExploreRepository(BaseRepository):
         elif sorting == "feature_models_desc":
             datasets = datasets.group_by(DataSet.id).order_by(func.count(FeatureModel.id).desc())
 
-
         return datasets.all()
