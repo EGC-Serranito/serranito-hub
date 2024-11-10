@@ -165,13 +165,13 @@
                 {% endif %}
             {% endif %}
             {% if node.name == "0" %}
-                <form method="POST" action="{{ url_for('botintegration.merge_config', node_id=node.id) }}" style="display: inline;">
+                <form method="POST" action="{{ url_for('botintegration.delete_node', node_id=node.id) }}" style="display: inline;">
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="config_action" value="run">
                     <button type="submit" class="run-stop-btn">Run</button>
                 </form>
             {% elif node.name == "1" %}
-                <form method="POST" action="{{ url_for('botintegration.merge_config', node_id=node.id) }}" style="display: inline;">
+                <form method="POST" action="{{ url_for('botintegration.delete_node', node_id=node.id) }}" style="display: inline;">
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="config_action" value="stop">
                     <button type="submit" class="run-stop-btn">Stop</button>
@@ -200,7 +200,7 @@
                             {{ form.name(class_="form-control", placeholder="Enter your chat ID (check it using Telegram bot @userinfobot)") }}
                         {% elif node.name == "TELEGRAM BOTS" %}
                             <select name="name" id="bot-selection" class="form-control">
-                                <option value="" disabled selected>Seleccione un bot</option>
+                                <option value="" disabled selected>Select a telegram bot</option>
                                 {% for value, label in [
                                     ("5610517330:AAFmH2yl8YXRRN-mqSiIKVTSTvVykBwZNCw", "@uvlhub_bot1"),
                                     ("7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI", "@uvlhub_bot2")
@@ -210,7 +210,7 @@
                             </select>
                         {% elif node.name == "FEATURES" %}
                             <select name="name" id="features-selection" class="form-control">
-                                <option value="" disabled selected>Seleccione una característica</option>
+                                <option value="" disabled selected>Select a feature</option>
                                 {% for value, label in [
                                     ("EXPLORE", "EXPLORE"),
                                     ("AUTORESPONDER", "AUTORESPONDER"),
@@ -221,7 +221,7 @@
                             </select>
                         {% elif node.name in ["SYSTEM ERRORS", "NEW MESSAGES"] %}
                             <select name="name" id="errors-selection" class="form-control">
-                                <option value="" disabled selected>Seleccione una frecuencia</option>
+                                <option value="" disabled selected>Select a frequency</option>
                                 {% for value, label in [
                                     ("DAILY", "DAILY"),
                                     ("WEEKLY", "WEEKLY"),
@@ -262,7 +262,7 @@
             <label">TELEGRAM BOTS</label>
             <div class="form-container">
                 <select name="name" id="bot-selection" class="form-control">
-                    <option value="" disabled selected>Seleccione un bot</option>
+                    <option value="" disabled selected>Select a telegram bot</option>
                         {% for value, label in [
                             ("5610517330:AAFmH2yl8YXRRN-mqSiIKVTSTvVykBwZNCw", "@uvlhub_bot1"),
                             ("7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI", "@uvlhub_bot2")
