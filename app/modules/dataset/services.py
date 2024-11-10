@@ -91,7 +91,7 @@ class DataSetService(BaseService):
         author_names = [data.name for data in author_data]
         dataset_counts = [data.dataset_count for data in author_data]
         return author_names, dataset_counts
-    
+
     def get_all_author_names_and_view_counts(self):
         author_data = self.author_repository.get_author_names_and_view_counts()
         author_names = [data.name for data in author_data]
