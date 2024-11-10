@@ -9,8 +9,6 @@ from app import db
 # Instancia del servicio de nodos
 tree_node_service = NodeService()
 
-# Rutas de integración de bots
-
 
 @botintegration_bp.route('/botintegration', methods=['GET'])
 @login_required

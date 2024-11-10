@@ -1,15 +1,19 @@
-from app import db
-from app.modules.auth.models import User
-from app.modules.botintegration.models import TreeNode
 from core.seeders.BaseSeeder import BaseSeeder
 
+
 class TreeNodeSeeder(BaseSeeder):
-    priority = 1  # Prioridad alta
+    """
+    Seeder for creating TreeNode records with high priority.
+    """
+    priority = 1  # High priority
 
     def run(self):
-
+        """
+        Defines the data to be seeded and seeds it.
+        """
         data = [
-            # Create any Model object you want to make seed
+            # Add the model objects or dictionaries representing the seed data here
         ]
 
+        # Call the seed method from the parent class to persist the data
         self.seed(data)
