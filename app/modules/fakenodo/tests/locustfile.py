@@ -2,20 +2,20 @@ from locust import HttpUser, TaskSet, task
 from core.environment.host import get_host_for_locust_testing
 
 
-class BotintegrationBehavior(TaskSet):
+class FakenodoBehavior(TaskSet):
     def on_start(self):
         self.index()
 
     @task
     def index(self):
-        response = self.client.get("/botintegration")
+        response = self.client.get("/fakenodo")
 
         if response.status_code != 200:
-            print(f"Botintegration index failed: {response.status_code}")
+            print(f"Fakenodo index failed: {response.status_code}")
 
 
-class BotintegrationUser(HttpUser):
-    tasks = [BotintegrationBehavior]
+class FakenodoUser(HttpUser):
+    tasks = [FakenodoBehavior]
     min_wait = 5000
     max_wait = 9000
     host = get_host_for_locust_testing()
