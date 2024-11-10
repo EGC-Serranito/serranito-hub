@@ -16,13 +16,12 @@ from flask import (
     make_response,
     abort,
     url_for,
+    send_file,
 )
 from flask_login import login_required, current_user
 
 from app.modules.dataset.forms import DataSetForm
-from app.modules.dataset.models import (
-    DSDownloadRecord
-)
+from app.modules.dataset.models import DSDownloadRecord
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.services import (
     AuthorService,
@@ -30,7 +29,7 @@ from app.modules.dataset.services import (
     DSMetaDataService,
     DSViewRecordService,
     DataSetService,
-    DOIMappingService
+    DOIMappingService,
 )
 from app.modules.zenodo.services import ZenodoService
 
@@ -58,12 +57,17 @@ def create_dataset():
 
         try:
             logger.info("Creating dataset...")
-            dataset = dataset_service.create_from_form(form=form, current_user=current_user)
+            dataset = dataset_service.create_from_form(
+                form=form, current_user=current_user
+            )
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
         except Exception as exc:
             logger.exception(f"Exception while create dataset data in local {exc}")
-            return jsonify({"Exception while create dataset data in local: ": str(exc)}), 400
+            return (
+                jsonify({"Exception while create dataset data in local: ": str(exc)}),
+                400,
+            )
 
         # send dataset as deposition to Zenodo
         data = {}
@@ -80,7 +84,9 @@ def create_dataset():
             deposition_id = data.get("id")
 
             # update dataset with deposition id in Zenodo
-            dataset_service.update_dsmetadata(dataset.ds_meta_data_id, deposition_id=deposition_id)
+            dataset_service.update_dsmetadata(
+                dataset.ds_meta_data_id, deposition_id=deposition_id
+            )
 
             try:
                 # iterate for each feature model (one feature model = one request to Zenodo)
@@ -92,7 +98,9 @@ def create_dataset():
 
                 # update DOI
                 deposition_doi = zenodo_service.get_doi(deposition_id)
-                dataset_service.update_dsmetadata(dataset.ds_meta_data_id, dataset_doi=deposition_doi)
+                dataset_service.update_dsmetadata(
+                    dataset.ds_meta_data_id, dataset_doi=deposition_doi
+                )
             except Exception as e:
                 msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
                 return jsonify({"message": msg}), 200
@@ -226,7 +234,7 @@ def download_dataset(dataset_id):
     existing_record = DSDownloadRecord.query.filter_by(
         user_id=current_user.id if current_user.is_authenticated else None,
         dataset_id=dataset_id,
-        download_cookie=user_cookie
+        download_cookie=user_cookie,
     ).first()
 
     if not existing_record:
@@ -248,7 +256,7 @@ def subdomain_index(doi):
     new_doi = doi_mapping_service.get_new_doi(doi)
     if new_doi:
         # Redirect to the same path with the new DOI
-        return redirect(url_for('dataset.subdomain_index', doi=new_doi), code=302)
+        return redirect(url_for("dataset.subdomain_index", doi=new_doi), code=302)
 
     # Try to search the dataset by the provided DOI (which should already be the new one)
     ds_meta_data = dsmetadata_service.filter_by_doi(doi)
@@ -278,3 +286,16 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     return render_template("dataset/view_dataset.html", dataset=dataset)
+
+
+@dataset_bp.route("/dataset/download/all", methods=["GET"])
+def download_all_dataset():
+    zip_path = dataset_service.zip_all_datasets()
+
+    # Obtener la fecha actual en el formato deseado (por ejemplo, YYYYMMDD)
+    current_date = datetime.now().strftime("%Y_%m_%d")
+
+    # Crear el nombre del archivo con la fecha
+    zip_filename = f"serranitohub_datasets_{current_date}.zip"
+
+    return send_file(zip_path, as_attachment=True, download_name=zip_filename)
