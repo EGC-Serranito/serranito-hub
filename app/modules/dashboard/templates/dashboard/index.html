@@ -4,24 +4,33 @@
 
 {% block content %}
 
-<h1 class="h3 mb-3"><b>Dashboard</b></h1>
+<h1 class="h3 mb-3"><b>Dashboards</b></h1>
 
-<p>Para ver los diferentes Dashboard de UVLHub, pulse cualquier botón:</p>
+<p>Para ver los diferentes Dashboards de UVLHub, seleccione una opción:</p>
 
+<!-- Botón para mostrar/ocultar el dropdown y la gráfica -->
 <div class="custom-buttons">
-    <button type="button" class="btn-dashboard" onclick="showGraph()">Ver gráfica de datasets por autor</button>
+    <button type="button" class="btn-dashboard" onclick="toggleDropdownAndChart()">Ver gráfica por autor</button>
 </div>
 
-<!-- Contenedor donde se mostrará el número de datasets o autores -->
-<div id="dataset-count" style="margin-top: 20px; font-weight: bold;"></div>
+<!-- Dropdown para seleccionar el tipo de datos (inicialmente oculto) -->
+<div class="custom-dropdown" id="data-type-container" style="display: none;">
+    <label for="data-type">Selecciona el tipo de datos: </label>
+    <select id="data-type" onchange="updateChart()">
+        <option value="datasets">Datasets por autor</option>
+        <option value="views">Visualizaciones por autor</option>
+    </select>
+</div>
 
-<!-- Contenedor para la gráfica de datasets por autor -->
-<canvas id="datasetsChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
+<!-- Contenedor para la gráfica -->
+<canvas id="chartCanvas" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
 
-<!-- Div oculto para almacenar los datos de autores y cantidad de datasets -->
+<!-- Div oculto para almacenar los datos de autores, cantidad de datasets y cantidad de visualizaciones -->
 <div id="data-container"
-     data-author-names='{{ author_names | tojson | safe }}'
+     data-author-names-datasets='{{ author_names_dataset | tojson | safe }}'
      data-datasets-count='{{ datasets_count | tojson | safe }}'
+     data-author-names-views='{{ author_names_view | tojson | safe }}'
+     data-view-counts='{{ view_counts | tojson | safe }}'
      style="display: none;">
 </div>
 
@@ -35,60 +44,74 @@
         margin-top: 10px;
     }
 
-    .btn-dashboard {
-        padding: 10px 20px;
-        border: 2px solid #0056b3; 
-        background-color: #f8f9fa; 
-        color: #0056b3; 
+    .custom-dropdown {
+        margin-top: 10px;
         font-weight: bold;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s, color 0.3s;
-    }
-
-    .btn-dashboard:hover {
-        background-color: #0056b3;
-        color: #ffffff;
     }
 </style>
 {% endblock %}
 
 {% block scripts %}
-    <!-- Incluye Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Incluye Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script>
-        function showDatasetCount() {
-            document.getElementById('dataset-count').innerText = "Total Datasets: {{ ndatasets }}";
-            document.getElementById('dataset-count').style.display = "block";
-            document.getElementById('datasetsChart').style.display = "none"; // Oculta la gráfica
+<script>
+    const dataContainer = document.getElementById('data-container');
+    let chartInstance;
+
+    function toggleDropdownAndChart() {
+        const dropdownContainer = document.getElementById('data-type-container');
+        const chartCanvas = document.getElementById('chartCanvas');
+
+        // Alternar visibilidad del dropdown y el canvas de la gráfica
+        if (dropdownContainer.style.display === "none") {
+            dropdownContainer.style.display = "block";
+            chartCanvas.style.display = "block";
+
+            // Inicializar la gráfica solo si no existe aún
+            if (!chartInstance) {
+                initializeChart();
+            }
+        } else {
+            dropdownContainer.style.display = "none";
+            chartCanvas.style.display = "none";
+        }
+    }
+
+    function updateChart() {
+        const selectedType = document.getElementById('data-type').value;
+        
+        let labels, data, label;
+
+        if (selectedType === 'datasets') {
+            labels = JSON.parse(dataContainer.getAttribute('data-author-names-datasets'));
+            data = JSON.parse(dataContainer.getAttribute('data-datasets-count'));
+            label = 'Número de Datasets por Autor';
+        } else {
+            labels = JSON.parse(dataContainer.getAttribute('data-author-names-views'));
+            data = JSON.parse(dataContainer.getAttribute('data-view-counts'));
+            label = 'Número de Visualizaciones por Autor';
         }
 
-        function showAuthorCount() {
-            document.getElementById('dataset-count').innerText = "Total Authors: {{ nauthors }}";
-            document.getElementById('dataset-count').style.display = "block";
-            document.getElementById('datasetsChart').style.display = "none"; // Oculta la gráfica
-        }
+        // Actualizar los datos de la gráfica
+        chartInstance.data.labels = labels;
+        chartInstance.data.datasets[0].data = data;
+        chartInstance.data.datasets[0].label = label;
+        chartInstance.update();
+    }
 
-        function showGraph() {
-            document.getElementById('dataset-count').style.display = "none"; // Oculta el conteo de datasets o autores
-            document.getElementById('datasetsChart').style.display = "block"; // Muestra la gráfica
-        }
-
-        // Extraer los datos del elemento oculto
-        const dataContainer = document.getElementById('data-container');
-        const authorNames = JSON.parse(dataContainer.getAttribute('data-author-names'));
-        const datasetsCount = JSON.parse(dataContainer.getAttribute('data-datasets-count'));
-
-        // Configuración de la gráfica
-        const ctx = document.getElementById('datasetsChart').getContext('2d');
-        const datasetsChart = new Chart(ctx, {
+    function initializeChart() {
+        const labels = JSON.parse(dataContainer.getAttribute('data-author-names-datasets'));
+        const data = JSON.parse(dataContainer.getAttribute('data-datasets-count'));
+        
+        const ctx = document.getElementById('chartCanvas').getContext('2d');
+        chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: authorNames,
+                labels: labels,
                 datasets: [{
-                    label: 'Número de Datasets',
-                    data: datasetsCount,
+                    label: 'Número de Datasets por Autor',
+                    data: data,
                     backgroundColor: 'rgba(0, 123, 255, 0.5)',
                     borderColor: 'rgba(0, 123, 255, 1)',
                     borderWidth: 1
@@ -101,7 +124,7 @@
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Número de Datasets'
+                            text: 'Cantidad'
                         }
                     },
                     x: {
@@ -113,6 +136,6 @@
                 }
             }
         });
-    </script>
+    }
+</script>
 {% endblock %}
-
