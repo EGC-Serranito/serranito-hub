@@ -65,70 +65,33 @@ function send_query() {
                                     </div>
                                     <p class="text-secondary">${formatDate(dataset.created_at)}</p>
 
-                                    <div class="row mb-2">
-
-                                        <div class="col-md-4 col-12">
-                                            <span class=" text-secondary">
-                                                Description
-                                            </span>
-                                        </div>
-                                        <div class="col-md-8 col-12">
-                                            <p class="card-text">${dataset.description}</p>
-                                        </div>
-
+                                    <div class="col-12">
+                                        <p class="card-text">${dataset.description}</p>
                                     </div>
 
-                                    <div class="row mb-2">
-
-                                        <div class="col-md-4 col-12">
-                                            <span class=" text-secondary">
-                                                Authors
-                                            </span>
+                                    <div class="row mb-2 mt-4">
+                                        <div class="col-12">
+                                        <p class="p-0 m-0">${dataset.authors.map(author => `<p class="p-0 m-0">${author.name}${author.affiliation ? ` (${author.affiliation})` : ''}${author.orcid ? ` (${author.orcid})` : ''}</p>`).join('')}</p>
+                                        <p class="p-0 m-0">${dataset.tags.map(tag => `<span class="badge bg-primary me-1" style="cursor: pointer;" onclick="set_tag_as_query('${tag}')">${tag}</span>`).join('')}</p>
                                         </div>
-                                        <div class="col-md-8 col-12">
-                                            ${dataset.authors.map(author => `
-                                                <p class="p-0 m-0">${author.name}${author.affiliation ? ` (${author.affiliation})` : ''}${author.orcid ? ` (${author.orcid})` : ''}</p>
-                                            `).join('')}
-                                        </div>
-
                                     </div>
 
-                                    <div class="row mb-2">
-
-                                        <div class="col-md-4 col-12">
-                                            <span class=" text-secondary">
-                                                Tags
-                                            </span>
-                                        </div>
-                                        <div class="col-md-8 col-12">
-                                            ${dataset.tags.map(tag => `<span class="badge bg-primary me-1" style="cursor: pointer;" onclick="set_tag_as_query('${tag}')">${tag}</span>`).join('')}
-                                        </div>
-
-                                    </div>
-
-                                    <div class="row">
-
-                                        <div class="col-md-4 col-12">
-
-                                        </div>
-                                        <div class="col-md-8 col-12">
-                                            <a href="${dataset.url}" class="btn btn-outline-primary btn-sm" id="search" style="border-radius: 5px;">
-                                                View dataset
-                                            </a>
+                                    <div class="row  mt-4">
+                                        <div class="col-12">
                                             <a href="/dataset/download/${dataset.id}" class="btn btn-outline-primary btn-sm" id="search" style="border-radius: 5px;">
+                                                <i data-feather="download" class="center-button-icon"></i>
                                                 Download (${dataset.total_size_in_human_format})
                                             </a>
                                         </div>
-
-
                                     </div>
-
-                                </div>
                             </div>
                         `;
 
                         document.getElementById('results').appendChild(card);
                     });
+
+                    feather.replace();
+
                 });
         });
     });

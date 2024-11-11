@@ -60,23 +60,6 @@
                         <div class="row mb-2">
 
                             <div class="col-12">
-                                <a href="{{ dataset.get_uvlhub_doi() }}">{{ dataset.get_uvlhub_doi() }}</a>
-                                 <div id="dataset_doi_uvlhub_{{ dataset.id }}" style="display: none">
-                                {{ dataset.get_uvlhub_doi() }}
-                            </div>
-
-                            <i data-feather="clipboard" class="center-button-icon"
-                               style="cursor: pointer"
-                               onclick="copyText('dataset_doi_uvlhub_{{ dataset.id }}')"></i>
-                            </div>
-
-
-
-                        </div>
-
-                        <div class="row mb-2">
-
-                            <div class="col-12">
                                 {% for tag in dataset.ds_meta_data.tags.split(',') %}
                                     <span class="badge bg-secondary">{{ tag.strip() }}</span>
                                 {% endfor %}
@@ -86,11 +69,6 @@
 
                         <div class="row  mt-4">
                             <div class="col-12">
-                                <a href="{{ dataset.get_uvlhub_doi() }}" class="btn btn-outline-primary btn-sm"
-                                   style="border-radius: 5px;">
-                                    <i data-feather="eye" class="center-button-icon"></i>
-                                    View dataset
-                                </a>
 
                                 <a href="/dataset/download/{{ dataset.id }}" class="btn btn-outline-primary btn-sm"
                                    style="border-radius: 5px;">
