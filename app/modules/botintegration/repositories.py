@@ -303,16 +303,35 @@ class BotIntegrationRepository(BaseRepository):
 
     def delete_node(self, node_id):
         """
-        Elimina un nodo, sus descendientes y sus registros asociados en TreeNodeBot.
+        Elimina un nodo, sus descendientes y sus registros asociados en TreeNodeBot basados en el path del nodo.
 
         :param node_id: ID del nodo a eliminar.
         :return: True si se eliminó correctamente, False en caso de error.
         """
         try:
-            db.session.query(TreeNode).filter(TreeNode.id == node_id).delete()
-            db.session.commit()
-            return True
+            # Recuperar el nodo con el node_id
+            node_to_delete = db.session.query(TreeNode).filter(TreeNode.id == node_id).first()
+
+            if node_to_delete:
+                # Obtener el path del nodo
+                node_path = node_to_delete.path
+
+                # Eliminar los registros en TreeNodeBot con el mismo path
+                db.session.query(TreeNodeBot).filter(TreeNodeBot.path == node_path).delete()
+
+                # Eliminar el nodo de la tabla TreeNode
+                db.session.query(TreeNode).filter(TreeNode.id == node_id).delete()
+
+                # Confirmar cambios
+                db.session.commit()
+                return True
+            else:
+                # Si no se encuentra el nodo
+                print(f"Node with ID {node_id} not found.")
+                return False
+
         except SQLAlchemyError as e:
+            # Si hay algún error, revertimos la transacción
             db.session.rollback()
             print(f"Error deleting node: {e}")
             return False

@@ -251,7 +251,7 @@
                     </form>
                 {% endif %}
 
-                {% if node.name not in ["CHATS", "TELEGRAM BOTS", "FEATURES", "SYSTEM ERRORS", "NEW MESSAGES", "0", "1", "NOTIFICATION PREFERENCE", "TYPES OF NOTIFICATION"] %}
+                {% if node.name not in ["CHATS", "TELEGRAM BOTS", "FEATURES", "SYSTEM ERRORS", "NEW MESSAGES", "0", "1", "NOTIFICATION PREFERENCE", "TYPES OF NOTIFICATION", "DAILY", "WEEKLY", "IMMEDIATELY"] %}
                     <form method="POST" action="{{ url_for('botintegration.delete_node', node_id=node.id) }}" style="display: inline;">
                         {{ form.hidden_tag() }}
                         <button type="submit" class="delete-button">Eliminar</button>
