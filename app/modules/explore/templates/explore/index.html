@@ -3,16 +3,22 @@
 {% block title %}Explore{% endblock %}
 
 {% block content %}
+
     <h1 class="h2 mb-3"><b>Explore</b></h1>
 
     <div class="row">
+
         <h3 class="h3 mb-3">
-            <span id="results_number"></span>
-        </h3>
+                <span id="results_number"></span>
+            </h3>
 
         <div class="col-lg-7 scrollable-column">
+
+
             <div class="row">
+
                 <div id="results"></div>
+
                 <div class="col text-center" id="results_not_found">
                     <img src="{{ url_for('static', filename='img/items/not_found.svg') }}"
                          style="width: 50%; max-width: 100px; height: auto; margin-top: 30px"/>
@@ -20,22 +26,29 @@
                         We have not found any datasets that meet your search criteria. <br>How about trying some others?
                     </p>
                 </div>
+
+                <div id="results_not_found" style="text-align: center;"></div>
+
+
             </div>
         </div>
 
         <div class="col-lg-5 fixed-column" id="filters">
+
             {{ form.hidden_tag() }}
 
             <div class="row">
+
                 <div class="col-12">
+
                     <div class="row">
+
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label" for="query">
                                     Search for datasets by title, description, authors, tags, UVL files...
                                 </label>
-                                <input class="form-control" id="query" name="query" required="" type="text"
-                                       value="" autofocus>
+                                <input class="form-control" id="query" name="query" required="" type="text" value="" autofocus>
                             </div>
                         </div>
 
@@ -43,8 +56,7 @@
                             <div class="mb-3">
                                 <label class="form-label" for="publication_type">Filter by publication
                                     type</label>
-                                <select class="form-control" id="publication_type" name="publication_type"
-                                        required="">
+                                <select class="form-control" id="publication_type" name="publication_type" required="">
                                     <option value="any">Any</option>
                                     <option value="none">None</option>
                                     <option value="annotationcollection">Annotation Collection</option>
@@ -67,7 +79,9 @@
                                     <option value="other">Other</option>
                                 </select>
                             </div>
+
                         </div>
+
                     </div>
 
                     <div class="row">
@@ -80,20 +94,52 @@
                                     <li>
                                         <label class="dropdown-item">
                                             <input class="form-check-input" type="radio" value="newest" name="sorting" checked="">
-                                            <span class="form-check-label">Newest first</span>
+                                            <span class="form-check-label">
+                                                Newest first
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="oldest" name="sorting">
+                                            <span class="form-check-label">
+                                                Oldest first
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="name_asc" name="sorting">
+                                            <span class="form-check-label">
+                                                Name A-Z
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="name_desc" name="sorting">
+                                            <span class="form-check-label">
+                                                Name Z-A
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="feature_models_asc" name="sorting">
+                                            <span class="form-check-label">
+                                                Fewest feature models first
+                                            </span>
+                                        </label>
+                                    </li>
+                                    <li>
+                                        <label class="dropdown-item">
+                                            <input class="form-check-input" type="radio" value="feature_models_desc" name="sorting">
+                                            <span class="form-check-label">
+                                                Most feature models first
+                                            </span>
                                         </label>
                                     </li>
                                 </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Nueva sección de nube de etiquetas -->
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h5>Tag Cloud</h5>
-                            <div id="tag-cloud" class="mb-3 tag-cloud">
-                                <!-- Las etiquetas se cargarán aquí -->
                             </div>
                         </div>
                     </div>
@@ -109,34 +155,23 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Nueva sección de nube de etiquetas, justo debajo de "Clear filters" -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5>Tag Cloud</h5>
+                            <div id="tag-cloud" class="mb-3 tag-cloud">
+                                <!-- Las etiquetas se cargarán aquí -->
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
 
             <div class="row"></div>
         </div>
     </div>
-{% endblock %}
-
-{% block styles %}
-<style>
-    .tag-cloud {
-        position: relative;
-        width: 100%;
-        height: 300px; /* Altura de la nube */
-        overflow: hidden;
-        border: 1px solid #ddd; /* Opcional, para ver los límites de la nube */
-    }
-    .tag-cloud .tag {
-        position: absolute; /* Para posicionar de forma dispersa */
-        text-decoration: none;
-        font-weight: bold;
-        transition: transform 0.2s;
-        color: inherit;
-    }
-    .tag-cloud .tag:hover {
-        transform: scale(1.1);
-    }
-</style>
 {% endblock %}
 
 {% block scripts %}
@@ -177,4 +212,26 @@
                 }
             });
     </script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .tag-cloud {
+        position: relative;
+        width: 100%;
+        height: 300px; /* Altura de la nube */
+        overflow: hidden;
+        border: 1px solid #ddd; /* Opcional, para ver los límites de la nube */
+    }
+    .tag-cloud .tag {
+        position: absolute; /* Para posicionar de forma dispersa */
+        text-decoration: none;
+        font-weight: bold;
+        transition: transform 0.2s;
+        color: inherit;
+    }
+    .tag-cloud .tag:hover {
+        transform: scale(1.1);
+    }
+</style>
 {% endblock %}
