@@ -40,9 +40,9 @@ chico sundermann">
 </head>
 
 <body>
-<div class="wrapper closed">
+<div class="wrapper">
 
-    <nav id="sidebar" class="sidebar js-sidebar">
+    <nav id="sidebar" class="sidebar js-sidebar closed">
         <div class="sidebar-content js-simplebar">
             <a class="sidebar-brand" href="{{ url_for('public.index') }}">
                 <img src="{{ url_for("static", filename="img/logos/logo-dark.svg") }}" class="d-block"
@@ -299,21 +299,20 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        const wrapper = document.querySelector(".wrapper");
+        const sidebar = document.querySelector(".sidebar");
         const sidebarToggleBtn = document.querySelector(".js-sidebar-toggle");
         const logoButton = document.querySelector(".sidebar-toggle[href='{{ url_for('public.index') }}']");
     
         function toggleSidebar() {
-            wrapper.classList.toggle("closed");
-            if (wrapper.classList.contains("closed")) {
+            sidebar.classList.toggle("closed");
+            if (sidebar.classList.contains("closed")) {
                 logoButton.classList.add("d-none");
             } else {
                 logoButton.classList.remove("d-none");
             }
         }
     
-        // Inicializa el estado del sidebar
-        if (wrapper.classList.contains("closed")) {
+        if (sidebar.classList.contains("closed")) {
             logoButton.classList.add("d-none");
         }
     
