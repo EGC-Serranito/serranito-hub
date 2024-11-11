@@ -4,6 +4,7 @@ import unidecode
 from app.modules.dataset.models import Author, DSMetaData, DataSet, PublicationType
 from app.modules.featuremodel.models import FMMetaData, FeatureModel
 from core.repositories.BaseRepository import BaseRepository
+from app import db
 
 
 class ExploreRepository(BaseRepository):
@@ -67,3 +68,29 @@ class ExploreRepository(BaseRepository):
             datasets = datasets.group_by(DataSet.id).order_by(func.count(FeatureModel.id).desc())
 
         return datasets.all()
+
+    def filter_feature_models(self, tags=[]):
+        """Filtra y devuelve Feature Models según etiquetas."""
+        feature_models_query = (
+            FeatureModel.query
+            .join(FeatureModel.fm_meta_data)
+            .filter(or_(FMMetaData.tags.ilike(f"%{tag}%") for tag in tags))
+        )
+        return feature_models_query.all()
+
+    def get_tag_cloud(self):
+        """Genera la nube de etiquetas con la frecuencia de uso de cada tag."""
+        tag_counts = (
+            db.session.query(FMMetaData.tags)
+            .filter(FMMetaData.tags.isnot(None))
+            .all()
+        )
+        tag_frequency = {}
+        for tag_list in tag_counts:
+            tags = tag_list[0].split(',')
+            for tag in tags:
+                tag = tag.strip().lower()
+                if tag:
+                    tag_frequency[tag] = tag_frequency.get(tag, 0) + 1
+
+        return tag_frequency
