@@ -9,5 +9,5 @@ def index(tag):
         feature_models = FeatureModel.query.filter(FeatureModel.fm_meta_data.tags.contains(tag)).all()
     else:
         feature_models = FeatureModel.query.all()
-    
+
     return render_template('featuremodel/index.html', feature_models=feature_models, tag=tag)
