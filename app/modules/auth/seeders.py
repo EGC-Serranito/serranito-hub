@@ -11,8 +11,8 @@ class AuthSeeder(BaseSeeder):
 
         # Seeding users
         users = [
-            User(email='user1@example.com', password='1234'),
-            User(email='user2@example.com', password='1234'),
+            User(email='user1@example.com', password='1234', email_verified=True),
+            User(email='user2@example.com', password='1234', email_verified=True),
         ]
 
         # Inserted users with their assigned IDs are returned by `self.seed`.

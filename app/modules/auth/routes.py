@@ -23,7 +23,7 @@ def show_signup_form():
             if not authentication_service.is_email_verified(email):
                 authentication_service.send_confirmation_email(email)
                 return render_template("auth/signup_form.html", form=form,
-                                       error=f'Email {email} not verified. Please check your email')
+                                       error='Check your email to verify your account')
             return render_template("auth/signup_form.html", form=form, error=f'Email {email} in use')
 
         try:

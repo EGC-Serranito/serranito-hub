@@ -121,7 +121,7 @@ class AuthenticationService(BaseService):
         user.email_verified = True
         self.repository.session.commit()
         return user
-    
+
     def is_email_verified(self, email: str) -> bool:
         user = self.repository.get_by_email(email)
-        return user.email_verified
+        return user.email_verified if user else False
