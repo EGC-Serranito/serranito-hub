@@ -4,7 +4,6 @@ import hashlib
 import shutil
 from typing import Optional
 import uuid
-import tempfile
 import io
 import zipfile
 
