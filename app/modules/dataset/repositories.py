@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 import logging
 from flask_login import current_user
 from typing import Optional
+from core.repositories.BaseRepository import BaseRepository
+from app import db
 
 from sqlalchemy import desc, func
 
@@ -11,9 +13,10 @@ from app.modules.dataset.models import (
     DSDownloadRecord,
     DSMetaData,
     DSViewRecord,
-    DataSet
+    DataSet,
+    DatasetUserRate
 )
-from core.repositories.BaseRepository import BaseRepository
+
 
 logger = logging.getLogger(__name__)
 
@@ -80,11 +83,11 @@ class DSViewRecordRepository(BaseRepository):
 
     def create_new_record(self, dataset: DataSet, user_cookie: str) -> DSViewRecord:
         return self.create(
-                user_id=current_user.id if current_user.is_authenticated else None,
-                dataset_id=dataset.id,
-                view_date=datetime.now(timezone.utc),
-                view_cookie=user_cookie,
-            )
+            user_id=current_user.id if current_user.is_authenticated else None,
+            dataset_id=dataset.id,
+            view_date=datetime.now(timezone.utc),
+            view_cookie=user_cookie,
+        )
 
 
 class DataSetRepository(BaseRepository):
@@ -144,3 +147,23 @@ class DOIMappingRepository(BaseRepository):
 
     def get_new_doi(self, old_doi: str) -> str:
         return self.model.query.filter_by(dataset_doi_old=old_doi).first()
+
+
+class DatasetUserRateRepository(BaseRepository):
+    def __init__(self):
+        super().__init__(DatasetUserRate)
+
+    def find_user_rating(self, dataset_id, user_id):
+        return self.model.query.filter_by(dataset_id=dataset_id, user_id=user_id).first()
+
+    def add_rating(self, dataset_id, user_id, rate):
+        new_rating = DatasetUserRate(dataset_id=dataset_id, user_id=user_id, rate=rate)
+        db.session.add(new_rating)
+        db.session.commit()
+
+    def update_rating(self, rating, rate):
+        rating.rate = rate
+        db.session.commit()
+
+    def get_all_ratings(self, dataset_id):
+        return self.model.query.filter_by(dataset_id=dataset_id).all()

@@ -18,6 +18,7 @@ from app.modules.dataset.repositories import (
     DSMetaDataRepository,
     DSViewRecordRepository,
     DataSetRepository,
+    DatasetUserRateRepository
 )
 from app.modules.featuremodel.repositories import (
     FMMetaDataRepository,
@@ -267,6 +268,33 @@ class DOIMappingService(BaseService):
             return doi_mapping.dataset_doi_new
         else:
             return None
+
+
+class DatasetRatingService(BaseService):
+    def __init__(self):
+        self.repository = DatasetUserRateRepository()
+
+    def submit_rating(self, dataset_id, user_id, rate):
+        if not 1 <= rate <= 5:
+            raise ValueError("Rate must be between 1 and 5")
+
+        existing_rating = self.repository.find_user_rating(dataset_id, user_id)
+        if existing_rating:
+            self.repository.update_rating(existing_rating, rate)
+        else:
+            self.repository.add_rating(dataset_id, user_id, rate)
+
+    def get_average_rating(self, dataset_id):
+        ratings = self.repository.get_all_ratings(dataset_id)
+        if not ratings:
+            return None
+        return sum(r.rate for r in ratings) / len(ratings)
+
+    def find_rating_by_user_and_dataset(self, dataset_id, user_id):
+        return self.repository.find_user_rating(dataset_id, user_id)
+
+    def update_rate(self, rating, rate):
+        self.repository.update_rating(rating, rate)
 
 
 class SizeService:
