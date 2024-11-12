@@ -290,12 +290,8 @@ def get_unsynchronized_dataset(dataset_id):
 
 @dataset_bp.route("/dataset/download/all", methods=["GET"])
 def download_all_dataset():
-    zip_path = dataset_service.zip_all_datasets()
+    dataset_service = DataSetService()
+    ids = dataset_service.get_all_dataset_ids()
 
-    # Obtener la fecha actual en el formato deseado (por ejemplo, YYYYMMDD)
-    current_date = datetime.now().strftime("%Y_%m_%d")
-
-    # Crear el nombre del archivo con la fecha
-    zip_filename = f"serranitohub_datasets_{current_date}.zip"
-
-    return send_file(zip_path, as_attachment=True, download_name=zip_filename)
+    return jsonify({"ids": ids})
+        
