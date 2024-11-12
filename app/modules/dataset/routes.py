@@ -17,7 +17,6 @@ from flask import (
     abort,
     url_for,
     send_file,
-    make_response,
 )
 from flask_login import login_required, current_user
 
@@ -329,5 +328,3 @@ def rate_dataset(dataset_id):
     else:
         dataset_rating_service.create(dataset_id=dataset_id, user_id=user_id, rate=rate)
         return render_template("dataset/view_dataset.html", dataset=dataset)
-
-        
