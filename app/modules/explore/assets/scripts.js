@@ -90,8 +90,11 @@ function send_query() {
                         document.getElementById('results').appendChild(card);
                     });
 
-                    feather.replace();
-
+                    if (typeof feather !== 'undefined') {
+                        feather.replace();
+                    } else {
+                        console.warn("feather-icons not loaded");
+                    }
                 });
         });
     });
