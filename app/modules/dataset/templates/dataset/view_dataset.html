@@ -185,6 +185,27 @@
 
         </div>
 
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5>Rate this Dataset</h5>
+                
+                <!-- Desplegable para seleccionar la calificación -->
+                <div class="mb-3">
+                    <label for="rating-select" class="form-label">Select rating (1 to 5):</label>
+                    <select id="rating-select" class="form-select">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                
+                <!-- Botón para enviar la calificación -->
+                <button class="btn btn-primary" onclick="rateDataset()">Rate</button>
+            </div>
+        </div>
+
         <div class="card">
 
             <div class="card-body">
