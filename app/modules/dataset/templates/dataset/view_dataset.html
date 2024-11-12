@@ -36,7 +36,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h1><b>{{ dataset.ds_meta_data.title }}</b></h1>
+                    <h1><b style="color:white">{{ dataset.ds_meta_data.title }}</b></h1>
                     <div>
                         <span class="badge bg-secondary">{{ dataset.get_cleaned_publication_type() }}</span>
                     </div>
@@ -185,11 +185,32 @@
 
         </div>
 
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5>Rate this Dataset</h5>
+                
+                <!-- Desplegable para seleccionar la calificación -->
+                <div class="mb-3">
+                    <label for="rating-select" class="form-label">Select rating (1 to 5):</label>
+                    <select id="rating-select" class="form-select">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+                
+                <!-- Botón para enviar la calificación -->
+                <button class="btn btn-primary" onclick="rateDataset()">Rate</button>
+            </div>
+        </div>
+
         <div class="card">
 
             <div class="card-body">
 
-                <h3> Related publication </h3>
+                <h3 style="color:white"> Related publication </h3>
 
                 David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides,
                 <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
@@ -236,11 +257,11 @@
 
         <div class="list-group">
 
-            <div class="list-group-item">
+            <div class="list-group-item"  style="background-color:#161b22">
 
                 <div class="row">
                     <div class="col-12 d-flex justify-content-between align-items-center">
-                        <h4 style="margin-bottom: 0px">UVL models</h4>
+                        <h4 style="margin-bottom: 0px; color:white">UVL models</h4>
                         <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count()
                                 }}</span></h4>
                     </div>
@@ -252,7 +273,7 @@
 
             {% for feature_model in dataset.feature_models %}
             {% for file in feature_model.files %}
-            <div class="list-group-item">
+            <div class="list-group-item" style="color:white; background-color:#161b22">
 
                 <div class="row">
                     <div class="col-12">
@@ -289,9 +310,9 @@
                                 aria-expanded="false" style=" border-radius: 5px;">
                                 <i data-feather="check"></i> Check
                             </button>
-                            <ul class="dropdown-menu" aria-labelledby="btnGroupDrop{{ file.id }}">
+                            <ul class="dropdown-menu custom-navbar" aria-labelledby="btnGroupDrop{{ file.id }}">
                                 <li>
-                                    <a class="dropdown-item" href="javascript:void(0);"
+                                    <a class="dropdown-item custom-navbar" href="javascript:void(0);"
                                         onclick="checkUVL('{{ file.id }}')">Syntax check</a>
                                 </li>
                                 <!--
@@ -308,24 +329,24 @@
                                 aria-expanded="false" style=" border-radius: 5px;">
                                 <i data-feather="download"></i> Export
                             </button>
-                            <ul class="dropdown-menu" aria-labelledby="btnGroupDropExport{{ file.id }}">
+                            <ul class="dropdown-menu custom-navbar" aria-labelledby="btnGroupDropExport{{ file.id }}">
                                 <li>
-                                    <a class="dropdown-item"
+                                    <a class="dropdown-item custom-navbar"
                                         href="{{ url_for('hubfile.download_file', file_id=file.id) }}">
                                         UVL
                                     </a>
-                                    <a class="dropdown-item"
+                                    <a class="dropdown-item custom-navbar"
                                         href="{{ url_for('flamapy.to_glencoe', file_id=file.id) }}">
                                         Glencoe
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ url_for('flamapy.to_cnf', file_id=file.id) }}">
+                                    <a class="dropdown-item custom-navbar" href="{{ url_for('flamapy.to_cnf', file_id=file.id) }}">
                                         DIMACS
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=file.id) }}">
+                                    <a class="dropdown-item custom-navbar" href="{{ url_for('flamapy.to_splot', file_id=file.id) }}">
                                         SPLOT
                                     </a>
                                 </li>

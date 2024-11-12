@@ -4,7 +4,7 @@
 
 {% block content %}
 
-    <h1 class="h2 mb-3">
+    <h1 class="h2 mb-3" style="color: white">
 
         <b>Latest</b> datasets
     </h1>
@@ -60,23 +60,6 @@
                         <div class="row mb-2">
 
                             <div class="col-12">
-                                <a href="{{ dataset.get_uvlhub_doi() }}">{{ dataset.get_uvlhub_doi() }}</a>
-                                 <div id="dataset_doi_uvlhub_{{ dataset.id }}" style="display: none">
-                                {{ dataset.get_uvlhub_doi() }}
-                            </div>
-
-                            <i data-feather="clipboard" class="center-button-icon"
-                               style="cursor: pointer"
-                               onclick="copyText('dataset_doi_uvlhub_{{ dataset.id }}')"></i>
-                            </div>
-
-
-
-                        </div>
-
-                        <div class="row mb-2">
-
-                            <div class="col-12">
                                 {% for tag in dataset.ds_meta_data.tags.split(',') %}
                                     <span class="badge bg-secondary">{{ tag.strip() }}</span>
                                 {% endfor %}
@@ -86,11 +69,6 @@
 
                         <div class="row  mt-4">
                             <div class="col-12">
-                                <a href="{{ dataset.get_uvlhub_doi() }}" class="btn btn-outline-primary btn-sm"
-                                   style="border-radius: 5px;">
-                                    <i data-feather="eye" class="center-button-icon"></i>
-                                    View dataset
-                                </a>
 
                                 <a href="/dataset/download/{{ dataset.id }}" class="btn btn-outline-primary btn-sm"
                                    style="border-radius: 5px;">
@@ -122,37 +100,37 @@
 
                     <div class="card-body">
 
-                        <h2> <b>Hub statistics</b> </h2>
+                        <h2 style="color: white"> <b>Hub statistics</b> </h2>
                     
                         <h1 class="h2 mb-3">
                     
                             <h4 class="h4 mb-3" class="stats-color">
-                                <i data-feather="database" class="align-middle mr-2 stats-color"></i>&nbsp;{{ datasets_counter }} datasets
+                                <i data-feather="database" class="align-middle mr-2 stats-color"></i>&nbsp;<b style="color:white">{{ datasets_counter }} datasets</b>
                             </h4>
                     
                             <h4 class="h4 mb-3" class="stats-color">
-                                <i data-feather="file" class="align-middle mr-2 stats-color"></i>&nbsp;{{ feature_models_counter }} feature models
+                                <i data-feather="file" class="align-middle mr-2 stats-color"></i>&nbsp;<b style="color:white">{{ feature_models_counter }} feature models</b>
                             </h4>
                     
                             <h4 class="h4 mb-3" class="stats-color">
-                                <i data-feather="eye" class="align-middle mr-2 stats-color"></i>&nbsp;{{ total_dataset_views }} datasets viewed
+                                <i data-feather="eye" class="align-middle mr-2 stats-color"></i>&nbsp;<b style="color:white">{{ total_dataset_views }} datasets viewed</b>
                             </h4>
                     
                             <h4 class="h4 mb-3" class="stats-color">
-                                <i data-feather="eye" class="align-middle mr-2 stats-color"></i>&nbsp;{{ total_feature_model_views }} feature models viewed
+                                <i data-feather="eye" class="align-middle mr-2 stats-color"></i>&nbsp;<b style="color:white">{{ total_feature_model_views }} feature models viewed</b>
                             </h4>
                     
                             <h4 class="h4 mb-3" class="stats-color">
-                                <i data-feather="download" class="align-middle mr-2 stats-color"></i>&nbsp;{{ total_dataset_downloads }} datasets downloaded
+                                <i data-feather="download" class="align-middle mr-2 stats-color"></i>&nbsp;<b style="color:white">{{ total_dataset_downloads }} datasets downloaded</b>
                             </h4>
                     
                             <h4 class="h4" class="stats-color">
-                                <i data-feather="download" class="align-middle mr-2 stats-color"></i>&nbsp;{{ total_feature_model_downloads }} feature models downloaded
+                                <i data-feather="download" class="align-middle mr-2 stats-color"></i>&nbsp;<b style="color:white">{{ total_feature_model_downloads }} feature models downloaded</b>
                             </h4>
                     
                         </h1>
                     
-                    </div>                    
+                    </div>
 
                 </div>
             </div>
@@ -165,7 +143,7 @@
                     
 
                     
-                            <h2> <b>Related publication</b> </h2>
+                            <h2> <b style="color:white">Related publication</b> </h2>
                             
                             David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides. 
                             <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
@@ -222,7 +200,7 @@
 
                                     <div class="col-12 mt-2">
                                         <a href="/login"
-                                           class="btn btn-outline-dark" style=" border-color: #0662A6">
+                                           class="btn btn-outline-dark" style=" border-color: #0662A6; color: white">
                                             <i data-feather="log-in" class="center-button-icon"></i>
                                             I am already registered!
                                         </a>

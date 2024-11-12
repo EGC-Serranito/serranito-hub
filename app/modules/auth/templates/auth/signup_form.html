@@ -4,7 +4,7 @@
 
 {% block content %}
 
-    <h1 class="h2 mb-3"><b>Sign</b> Up</h1>
+    <h1 class="h2 mb-3" style="color:white"><b>Sign</b> Up</h1>
 
     <div class="row">
         <div class="col-5">
@@ -17,7 +17,7 @@
                     <div class="col-md-6 col-lg-6 col-xs-12">
                         <div class="mb-3">
                             {{ form.name.label(class="form-label") }} *
-                            {{ form.name(class="form-control",placeholder="Enter name") }}
+                            {{ form.name(class="form-control custom-search",placeholder="Enter name") }}
                             {% for error in form.name.errors %}
                                 <span style="color: red;">{{ error }}</span>
                             {% endfor %}
@@ -27,7 +27,7 @@
                     <div class="col-md-6 col-lg-6 col-xs-12">
                         <div class="mb-3">
                             {{ form.surname.label(class="form-label") }} *
-                            {{ form.surname(class="form-control",placeholder="Enter surname") }}
+                            {{ form.surname(class="form-control custom-search",placeholder="Enter surname") }}
                             {% for error in form.surname.errors %}
                                 <span style="color: red;">{{ error }}</span>
                             {% endfor %}
@@ -46,7 +46,7 @@
                     <div class="col-md-6 col-lg-6 col-xs-12">
                         <div class="mb-3">
                             {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control",placeholder="Enter email") }}
+                            {{ form.email(class="form-control custom-search",placeholder="Enter email") }}
                             {% for error in form.email.errors %}
                                 <span style="color: red;">{{ error }}</span>
                             {% endfor %}
@@ -61,7 +61,7 @@
                     <div class="col-md-6 col-lg-6 col-xs-12">
                         <div class="mb-3">
                             {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control",placeholder="Enter password") }}
+                            {{ form.password(class="form-control custom-search",placeholder="Enter password") }}
                             {% for error in form.password.errors %}
                                 <span style="color: red;">{{ error }}</span>
                             {% endfor %}

@@ -29,20 +29,13 @@ class TreeNode(db.Model):
 
     user = db.relationship("User", backref="tree_nodes", lazy=True)
 
-    def __repr__(self):
-        return (
-            f"TreeNode<"
-            f"id={self.id}, "
-            f"name={self.name}, "
-            f"user={self.user.username if self.user else None}, "
-            f"parent={self.parent_id}>"
-        )
-
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "path": self.path,
             "parent_id": self.parent_id,
+            "single_child": self.single_child,
             "children": [child.to_dict() for child in self.children],
         }
 
@@ -68,18 +61,12 @@ class TreeNodeBot(db.Model):
         single_parent=True
     )
 
-    def __repr__(self):
-        return (
-            f"TreeNodeBot<"
-            f"id={self.id}, "
-            f"name={self.name}, "
-            f"parent={self.parent_id}>"
-        )
-
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "path": self.path,
             "parent_id": self.parent_id,
+            "single_child": self.single_child,
             "children": [child.to_dict() for child in self.children],
         }
