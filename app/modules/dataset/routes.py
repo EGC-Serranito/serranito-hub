@@ -317,14 +317,13 @@ def download_all_datasets():
 @dataset_bp.route("/rate_dataset/<int:dataset_id>", methods=["POST"])
 @login_required
 def rate_dataset(dataset_id):
-    dataset = dataset_service.get_or_404(dataset_id)
     data = request.get_json()
 
     if not data:
         return jsonify({"message": "Invalid JSON data"}), 400
 
     user_id = current_user.id
-    rate = data.get("rate")
+    rate = int(data.get('rate'))
 
     if rate is None:
         return jsonify({"message": "Rate is required"}), 400
@@ -337,7 +336,7 @@ def rate_dataset(dataset_id):
 
     if same_rate is not None:
         dataset_rating_service.update_rate(same_rate, rate)
-        render_template("dataset/view_dataset.html", dataset=dataset)
+        return jsonify({"message": "Rating updated"})
     else:
         dataset_rating_service.create(dataset_id=dataset_id, user_id=user_id, rate=rate)
-        return render_template("dataset/view_dataset.html", dataset=dataset)
+        return jsonify({"message": "Rating created"})

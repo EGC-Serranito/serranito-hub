@@ -88,9 +88,7 @@
                             {% endif %}
                         </p>
                         {% endfor %}
-                    </div>
-
-
+                    </div>        // Insertar el mensaje debajo del botón de calificación
                 </div>
 
                 {% if dataset.ds_meta_data.publication_doi %}
@@ -187,8 +185,9 @@
 
         <div class="card mt-4">
             <div class="card-body">
-                <h5>Rate this Dataset</h5>
+                <h4 style="color:cadetblue">Rate this Dataset</h4>
                 
+                {% if current_user.is_authenticated %}
                 <!-- Desplegable para seleccionar la calificación -->
                 <div class="mb-3">
                     <label for="rating-select" class="form-label">Select rating (1 to 5):</label>
@@ -203,6 +202,9 @@
                 
                 <!-- Botón para enviar la calificación -->
                 <button class="btn btn-primary" onclick="rateDataset()">Rate</button>
+                {% else %}
+                <p class="text-muted">Please log in to rate this dataset.</p>
+                {% endif %}
             </div>
         </div>
 
@@ -852,6 +854,44 @@
         }
     }
     */
+    /*quiero sacar el nombre del dataset de la url*/
+
+    function rateDataset() {
+    const ratingSelect = document.getElementById('rating-select');
+    const selectedRating = ratingSelect.value;
+
+    console.log("Calificación seleccionada:", selectedRating);
+    console.log("Dataset ID:", "{{ dataset.id }}");
+
+    fetch(`/rate_dataset/{{ dataset.id }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rate: selectedRating })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Respuesta del servidor:", data);
+        // Mostrar mensaje de éxito
+        const successMessage = document.createElement('div');
+        successMessage.className = 'alert alert-success mt-3';
+        successMessage.textContent = "Calificación enviada con éxito.";
+        
+        document.querySelector('.card-body').appendChild(successMessage);
+
+        // Ocultar el mensaje después de 3 segundos
+        setTimeout(() => {
+            successMessage.remove();
+        }, 3000);
+    })
+    .catch(error => {
+        console.error('Error al enviar la calificación:', error);
+    });
+}
+
+
+
     function copyToClipboard() {
         const text = document.getElementById('fileContent').textContent;
         navigator.clipboard.writeText(text).then(() => {
