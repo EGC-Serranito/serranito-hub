@@ -5,18 +5,16 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description"
-          content="Repository of feature models in UVL format integrated with Zenodo and FlamaPy">
+    <meta name="description" content="Repository of feature models in UVL format integrated with Zenodo and FlamaPy">
     <meta name="author" content="University of Seville">
-    <meta name="keywords"
-          content="diversolab, uvl, feature models, software product line, university of seville,
-           university of malaga, university of ulm, david romero, david benavides, jose a galindo, jose miguel horcas,
+    <meta name="keywords" content="diversolab, uvl, feature models, software product line, university of seville,
+        university of malaga, university of ulm, david romero, david benavides, jose a galindo, jose miguel horcas,
 chico sundermann">
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="shortcut icon" href="{{ url_for("static", filename="img/icons/icon-250x250.png") }}"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-  
+
     <link rel="canonical" href="https://www.uvlhub.io"/>
 
     <title>{{ FLASK_APP_NAME }} - Repository of feature models in UVL </title>
@@ -42,11 +40,11 @@ chico sundermann">
 <body>
 <div class="wrapper">
 
-    <nav id="sidebar" class="sidebar js-sidebar closed">
+    <nav id="sidebar" class="sidebar js-sidebar closed custom-sidebar">
         <div class="sidebar-content js-simplebar">
             <a class="sidebar-brand" href="{{ url_for('public.index') }}">
                 <img src="{{ url_for("static", filename="img/logos/logo-dark.svg") }}" class="d-block"
-                     style="max-width: 100%; height: auto;">
+                    style="max-width: 100%; height: auto;">
             </a>
 
 
@@ -135,11 +133,10 @@ chico sundermann">
     </nav>
 
     <div class="main">
-        <nav class="navbar navbar-expand navbar-light navbar-bg">
-
+        <nav class="navbar navbar-expand navbar-light navbar-bg custom-navbar">
             <a class="sidebar-toggle" href="{{ url_for('public.index') }}">
                 <img src="{{ url_for("static", filename="img/icons/icon-250x250.png") }}" class="d-block"
-                     style="max-width: 100%; height: auto;">
+                    style="max-width: 100%; height: auto;">
             </a>
 
             <a class="sidebar-toggle js-sidebar-toggle">
@@ -148,8 +145,8 @@ chico sundermann">
 
             <form class="d-none d-sm-inline-block" onsubmit="submitSearchForm(event)">
                 <div class="input-group input-group-navbar">
-                    <input type="text" id="search-query" class="form-control rounded-search"
-                           placeholder="Search datasets..." aria-label="Search">
+                    <input type="text" id="search-query" class="form-control rounded-search custom-search"
+                        placeholder="Search datasets..." aria-label="Search">
                 </div>
             </form>
 
@@ -193,8 +190,8 @@ chico sundermann">
             </div>
         </nav>
 
-        <main class="content">
-            <div class="container p-0">
+        <main class="content custom-content">
+            <div class="container p-0 custom-container">
 
                 {% block content %}{% endblock %}
 
@@ -214,7 +211,7 @@ chico sundermann">
                         <ul class="list-inline">
                             <li class="list-inline-item">
                                 <a class="text-muted" href="https://github.com/diverso-lab/uvlhub"
-                                   target="_blank">
+                                target="_blank">
                                     <i class="align-middle" data-feather="github"></i>
                                     Repository on GitHub</a>
                             </li>
@@ -326,3 +323,39 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
 </body>
 
 </html>
+
+<style>
+    .custom-search {
+        background-color: #21262d;
+        color: white;
+        border: 1px solid #444444;
+    }
+
+    .custom-search:focus {
+        background-color: #21262d;
+        color: white;
+    }
+
+    .custom-content {
+        background-color: #21262d;
+        color: white;
+
+    }
+
+    .custom-navbar {
+        background-color: #161b22;
+        color: white;
+    }
+
+    .custom-navbar .navbar-nav .nav-link,
+    .custom-navbar .navbar-brand,
+    .custom-navbar .navbar-text {
+        color: white;
+    }
+
+    .custom-navbar .navbar-nav .nav-link:hover,
+    .custom-navbar .navbar-brand:hover,
+    .custom-navbar .navbar-text:hover {
+        color: #cccccc;
+    }
+</style>
