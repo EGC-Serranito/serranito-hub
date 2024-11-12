@@ -1,3 +1,4 @@
+/* global feather */
 document.addEventListener('DOMContentLoaded', () => {
     send_query();
 });
@@ -90,11 +91,8 @@ function send_query() {
                         document.getElementById('results').appendChild(card);
                     });
 
-                    if (typeof feather !== 'undefined') {
-                        feather.replace();
-                    } else {
-                        console.warn("feather-icons not loaded");
-                    }
+                    feather.replace();
+
                 });
         });
     });
