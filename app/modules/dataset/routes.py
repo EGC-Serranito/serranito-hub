@@ -291,19 +291,30 @@ def get_unsynchronized_dataset(dataset_id):
 
 
 @dataset_bp.route("/dataset/download/all", methods=["GET"])
-def download_all_dataset():
-    zip_path = dataset_service.zip_all_datasets()
+def download_all_datasets():
 
-    # Obtener la fecha actual en el formato deseado (por ejemplo, YYYYMMDD)
-    current_date = datetime.now().strftime("%Y_%m_%d")
+    try:
+        # Create a zip buffer with all datasets
+        master_zip_buffer = dataset_service.zip_all_datasets()
 
-    # Crear el nombre del archivo con la fecha
-    zip_filename = f"serranitohub_datasets_{current_date}.zip"
+        # Generate a unique filename for the download
+        localtime = datetime.now().strftime("%Y%m%d")
+        download_filename = f"serranitohub_datasets_{localtime}.zip"
 
-    return send_file(zip_path, as_attachment=True, download_name=zip_filename)
+        # Return the zip buffer as a file download
+        return send_file(
+            master_zip_buffer,
+            as_attachment=True,
+            mimetype="application/zip",
+            download_name=download_filename,
+        )
+
+    except Exception as e:
+        logging.error(f"Error while downloading all datasets: {e}")
+        abort(500, description="An error occurred while downloading the datasets")
 
 
-@dataset_bp.route('/rate_dataset/<int:dataset_id>', methods=['POST'])
+@dataset_bp.route("/rate_dataset/<int:dataset_id>", methods=["POST"])
 @login_required
 def rate_dataset(dataset_id):
     dataset = dataset_service.get_or_404(dataset_id)
@@ -313,14 +324,16 @@ def rate_dataset(dataset_id):
         return jsonify({"message": "Invalid JSON data"}), 400
 
     user_id = current_user.id
-    rate = data.get('rate')
+    rate = data.get("rate")
 
     if rate is None:
         return jsonify({"message": "Rate is required"}), 400
     elif rate < 1 or rate > 5:
         return jsonify({"message": "Invalid rate, rate must be between 1 and 5"}), 400
 
-    same_rate = dataset_rating_service.find_rating_by_user_and_dataset(user_id=user_id, dataset_id=dataset_id)
+    same_rate = dataset_rating_service.find_rating_by_user_and_dataset(
+        user_id=user_id, dataset_id=dataset_id
+    )
 
     if same_rate is not None:
         dataset_rating_service.update_rate(same_rate, rate)

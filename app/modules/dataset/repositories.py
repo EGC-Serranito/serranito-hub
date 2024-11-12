@@ -27,9 +27,10 @@ class AuthorRepository(BaseRepository):
 
     def get_author_names_and_dataset_counts(self):
         result = (
-            Author.query
-            .outerjoin(DSMetaData, Author.ds_meta_data_id == DSMetaData.id)
-            .with_entities(Author.name, func.count(DSMetaData.id).label('dataset_count'))
+            Author.query.outerjoin(DSMetaData, Author.ds_meta_data_id == DSMetaData.id)
+            .with_entities(
+                Author.name, func.count(DSMetaData.id).label("dataset_count")
+            )
             .group_by(Author.name)
             .order_by(func.count(DSMetaData.id).desc())
             .all()
@@ -38,10 +39,9 @@ class AuthorRepository(BaseRepository):
 
     def get_author_names_and_view_counts(self):
         result = (
-            Author.query
-            .join(DSMetaData, Author.ds_meta_data_id == DSMetaData.id)
+            Author.query.join(DSMetaData, Author.ds_meta_data_id == DSMetaData.id)
             .outerjoin(DSViewRecord, DSMetaData.id == DSViewRecord.dataset_id)
-            .with_entities(Author.name, func.count(DSViewRecord.id).label('view_count'))
+            .with_entities(Author.name, func.count(DSViewRecord.id).label("view_count"))
             .group_by(Author.name)
             .order_by(func.count(DSViewRecord.id).desc())
             .all()
@@ -78,7 +78,7 @@ class DSViewRecordRepository(BaseRepository):
         return self.model.query.filter_by(
             user_id=current_user.id if current_user.is_authenticated else None,
             dataset_id=dataset.id,
-            view_cookie=user_cookie
+            view_cookie=user_cookie,
         ).first()
 
     def create_new_record(self, dataset: DataSet, user_cookie: str) -> DSViewRecord:
@@ -97,7 +97,9 @@ class DataSetRepository(BaseRepository):
     def get_synchronized(self, current_user_id: int) -> DataSet:
         return (
             self.model.query.join(DSMetaData)
-            .filter(DataSet.user_id == current_user_id, DSMetaData.dataset_doi.isnot(None))
+            .filter(
+                DataSet.user_id == current_user_id, DSMetaData.dataset_doi.isnot(None)
+            )
             .order_by(self.model.created_at.desc())
             .all()
         )
@@ -105,15 +107,23 @@ class DataSetRepository(BaseRepository):
     def get_unsynchronized(self, current_user_id: int) -> DataSet:
         return (
             self.model.query.join(DSMetaData)
-            .filter(DataSet.user_id == current_user_id, DSMetaData.dataset_doi.is_(None))
+            .filter(
+                DataSet.user_id == current_user_id, DSMetaData.dataset_doi.is_(None)
+            )
             .order_by(self.model.created_at.desc())
             .all()
         )
 
-    def get_unsynchronized_dataset(self, current_user_id: int, dataset_id: int) -> DataSet:
+    def get_unsynchronized_dataset(
+        self, current_user_id: int, dataset_id: int
+    ) -> DataSet:
         return (
             self.model.query.join(DSMetaData)
-            .filter(DataSet.user_id == current_user_id, DataSet.id == dataset_id, DSMetaData.dataset_doi.is_(None))
+            .filter(
+                DataSet.user_id == current_user_id,
+                DataSet.id == dataset_id,
+                DSMetaData.dataset_doi.is_(None),
+            )
             .first()
         )
 
@@ -139,6 +149,9 @@ class DataSetRepository(BaseRepository):
             .limit(5)
             .all()
         )
+
+    def get_all_datasets(self):
+        return self.session.query(DataSet).all()
 
 
 class DOIMappingRepository(BaseRepository):
