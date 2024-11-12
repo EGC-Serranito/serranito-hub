@@ -3,6 +3,7 @@ from enum import Enum
 
 from flask import request
 from sqlalchemy import Enum as SQLAlchemyEnum
+from sqlalchemy import func
 
 from app import db
 
@@ -77,6 +78,10 @@ class DataSet(db.Model):
 
     ds_meta_data = db.relationship('DSMetaData', backref=db.backref('data_set', uselist=False))
     feature_models = db.relationship('FeatureModel', backref='data_set', lazy=True, cascade="all, delete")
+
+    def get_average_rating(self):
+        average_rating = db.session.query(func.avg(DatasetUserRate.rate)).filter_by(dataset_id=self.id).scalar()
+        return round(average_rating, 1) if average_rating else 0
 
     def name(self):
         return self.ds_meta_data.title
