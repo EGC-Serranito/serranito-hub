@@ -36,11 +36,10 @@ class AuthorRepository(BaseRepository):
             .all()
         )
         return result
-      
+
     def get_author_names_and_view_counts(self):
         result = (
-          Author.query
-            .join(DSMetaData, Author.ds_meta_data_id == DSMetaData.id)
+            Author.query.join(DSMetaData, Author.ds_meta_data_id == DSMetaData.id)
             .join(DataSet, DSMetaData.id == DataSet.ds_meta_data_id)
             .outerjoin(DSViewRecord, DataSet.id == DSViewRecord.dataset_id)
             .with_entities(Author.name, func.count(DSViewRecord.id).label('view_count'))
