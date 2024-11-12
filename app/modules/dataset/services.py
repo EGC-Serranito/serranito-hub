@@ -204,7 +204,7 @@ class DataSetService(BaseService):
             raise e
 
     def zip_all_datasets(self):
-        """Create a ZIP file containing all datasets and return its content in BytesIO."""
+        """Create a single ZIP file containing all files from all datasets and return its content in BytesIO."""
         dataset_ids = self.get_all_dataset_ids()
         try:
             master_zip_buffer = io.BytesIO()
@@ -213,14 +213,20 @@ class DataSetService(BaseService):
             ) as master_zip:
                 for dataset_id in dataset_ids:
                     try:
-                        individual_zip_buffer = self.create_zip_for_dataset(dataset_id)
-                        individual_zip_name = f"dataset_{dataset_id}.zip"
-                        master_zip.writestr(
-                            individual_zip_name, individual_zip_buffer.read()
+                        dataset = self.get_or_404(dataset_id)
+                        file_base_path = (
+                            f"uploads/user_{dataset.user_id}/dataset_{dataset.id}/"
                         )
+
+                        for subdir, dirs, files in os.walk(file_base_path):
+                            for file in files:
+                                full_path = os.path.join(subdir, file)
+                                # Crear una ruta relativa que incluya el ID del dataset para evitar conflictos
+                                relative_path = os.path.relpath(full_path, "uploads/")
+                                master_zip.write(full_path, arcname=relative_path)
                     except Exception as e:
                         logging.error(
-                            f"Error while creating ZIP for dataset {dataset_id}: {e}"
+                            f"Error while processing dataset {dataset_id}: {e}"
                         )
                         continue
             master_zip_buffer.seek(0)
