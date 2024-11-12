@@ -185,8 +185,9 @@
 
         <div class="card mt-4">
             <div class="card-body">
-                <h5>Rate this Dataset</h5>
+                <h4 style="color:cadetblue">Rate this Dataset</h4>
                 
+                {% if current_user.is_authenticated %}
                 <!-- Desplegable para seleccionar la calificación -->
                 <div class="mb-3">
                     <label for="rating-select" class="form-label">Select rating (1 to 5):</label>
@@ -201,6 +202,9 @@
                 
                 <!-- Botón para enviar la calificación -->
                 <button class="btn btn-primary" onclick="rateDataset()">Rate</button>
+                {% else %}
+                <p class="text-muted">Please log in to rate this dataset.</p>
+                {% endif %}
             </div>
         </div>
 
