@@ -162,16 +162,27 @@
 <div id="tree" class="tree">
     {% macro render_tree(node, form) %}
         <div class="node">
+
+            {% set name_mapping = {
+                "3": "TELEGRAM BOTS",
+                "4": "CHATS",
+                "5": "TYPES OF NOTIFICATIONS",
+                "6": "NEW MESSAGES",
+                "7": "SYSTEM ERRORS",
+                "8": "FEATURES",
+                "9": "NOTIFICATION PREFERENCE"
+            } %}
+            
             {% if node.children and node.children|length > 0 %}
                 <input type="checkbox" id="node-{{ node.id }}">    
                 {% if node.name != "0" and node.name != "1" %}
-                    <label for="node-{{ node.id }}">{{ node.name }}</label>
+                    <label for="node-{{ node.id }}">{{ name_mapping.get(node.name, node.name) }}</label>
                 {% else %}
                     <label for="node-{{ node.id }}"></label>
                 {% endif %}
             {% else %}
                 {% if node.name != "0" and node.name != "1" %}
-                    <h2>{{ node.name }}</h2>
+                    <h2>{{ name_mapping.get(node.name, node.name) }}</h2>
                 {% endif %}
             {% endif %}
             {% if node.name == "0" %}
@@ -190,15 +201,15 @@
 
 
             <div class="form-container">
-                {% if node.name in ["CHATS", "TELEGRAM BOTS", "FEATURES", "SYSTEM ERRORS", "NEW MESSAGES"] %}
+                {% if node.name in ["4", "3", "8", "7", "6"] %}
                     <form method="POST" action="
-                        {% if node.name == 'CHATS' %}
+                        {% if node.name == '4' %}
                             {{ url_for('botintegration.create_node_route_add_chat') }}
-                        {% elif node.name == 'TELEGRAM BOTS' %}
+                        {% elif node.name == '3' %}
                             {{ url_for('botintegration.create_node_route_add_bot') }}
-                        {% elif node.name == 'FEATURES' %}
+                        {% elif node.name == '8' %}
                             {{ url_for('botintegration.create_node_route_add_feature') }}
-                        {% elif node.name in ['SYSTEM ERRORS', 'NEW MESSAGES'] %}
+                        {% elif node.name in ['7', '6'] %}
                             {{ url_for('botintegration.create_node_route_add_types_notification') }}
                         {% endif %}" 
                         style="display: inline;">
@@ -206,9 +217,9 @@
                         
                         <input type="hidden" name="parent_id" value="{{ node.id }}">
                         
-                        {% if node.name == "CHATS" %}
-                            {{ form.name(class_="form-control", placeholder="Enter your chat ID (check it using Telegram bot @userinfobot)", pattern="^(?!CHATS$|TELEGRAM BOTS$|NEW MESSAGES$|SYSTEM ERRORS$|FEATURES$).*") }}
-                        {% elif node.name == "TELEGRAM BOTS" %}
+                        {% if node.name == "4" %}
+                            {{ form.name(class_="form-control", placeholder="Enter your telegram chat id") }}
+                        {% elif node.name == "3" %}
                             <select name="name" id="bot-selection" class="form-control">
                                 <option value="" disabled selected>Select a telegram bot</option>
                                 {% for value, label in [
@@ -218,7 +229,7 @@
                                     <option value="{{ value }}">{{ label }}</option>
                                 {% endfor %}
                             </select>
-                        {% elif node.name == "FEATURES" %}
+                        {% elif node.name == "8" %}
                             <select name="name" id="features-selection" class="form-control">
                                 <option value="" disabled selected>Select a feature</option>
                                 {% for value, label in [
@@ -233,7 +244,7 @@
                                     <option value="{{ value }}">{{ label }}</option>
                                 {% endfor %}
                             </select>
-                        {% elif node.name in ["SYSTEM ERRORS", "NEW MESSAGES"] %}
+                        {% elif node.name in ["7", "6"] %}
                             <select name="name" id="errors-selection" class="form-control">
                                 <option value="" disabled selected>Select a frequency</option>
                                 {% for value, label in [
@@ -251,7 +262,7 @@
                     </form>
                 {% endif %}
 
-                {% if node.name not in ["CHATS", "TELEGRAM BOTS", "FEATURES", "SYSTEM ERRORS", "NEW MESSAGES", "0", "1", "NOTIFICATION PREFERENCE", "TYPES OF NOTIFICATION", "DAILY", "WEEKLY", "IMMEDIATELY"] %}
+                {% if node.name not in ["4", "3", "8", "7", "6", "0", "1", "9", "5", "DAILY", "WEEKLY", "IMMEDIATELY"] %}
                     <form method="POST" action="{{ url_for('botintegration.delete_node', node_id=node.id) }}" style="display: inline;">
                         {{ form.hidden_tag() }}
                         <button type="submit" class="delete-button">Eliminar</button>
