@@ -86,6 +86,11 @@ class DSViewRecordRepository(BaseRepository):
                 view_date=datetime.now(timezone.utc),
                 view_cookie=user_cookie,
             )
+            user_id=current_user.id if current_user.is_authenticated else None,
+            dataset_id=dataset.id,
+            view_date=datetime.now(timezone.utc),
+            view_cookie=user_cookie,
+        )
 
 
 class DataSetRepository(BaseRepository):
