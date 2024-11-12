@@ -31,7 +31,7 @@ def create_node_route_add_bot():
     user_id = current_user.id
     single_child = False
 
-    path = f"{user_id}/{name}"
+    path = "TELEGRAM BOTS"
     if parent_id:
         parent = TreeNode.query.get(parent_id)
         if parent:
@@ -107,7 +107,7 @@ def create_node_route_add_types_notification():
     parent_id = form.parent_id.data
     name = form.name.data
     user_id = current_user.id
-    single_child = False
+    single_child = True
 
     path = f"{user_id}/{name}"
     if parent_id:
@@ -188,6 +188,25 @@ def delete_node(node_id):
             return redirect(url_for('botintegration.index'))
 
         result = tree_node_service.delete_node(node_id)
+        flash('Node deleted successfully!' if result else 'Error deleting node', 'success' if result else 'error')
+        return redirect(url_for('botintegration.index'))
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error: {str(e)}", 'danger')
+        return redirect(url_for('botintegration.index'))
+
+
+@botintegration_bp.route('/botintegration/merge/<int:node_id>', methods=['POST'])
+@login_required
+def merge_node(node_id):
+    """Elimina un nodo específico y sus descendientes."""
+    try:
+        node = tree_node_service.get_or_404(node_id)
+        if node.user_id != current_user.id:
+            flash('You are not authorized to delete this node', 'error')
+            return redirect(url_for('botintegration.index'))
+
+        result = tree_node_service.merge_node(node_id, current_user.id)
         flash('Node deleted successfully!' if result else 'Error deleting node', 'success' if result else 'error')
         return redirect(url_for('botintegration.index'))
     except Exception as e:

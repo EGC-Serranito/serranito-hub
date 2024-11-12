@@ -132,8 +132,18 @@
         color: #3498db; /* Cambiado a azul */
     }
 
-    .run-stop-btn {
-        background-color: #3498db; /* Azul para el botón */
+    .run-btn {
+        background-color: #999999; /* Azul para el botón */
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .stop-btn {
+        background-color: #665f5e; /* Azul para el botón */
         color: white;
         border: none;
         padding: 5px 15px;
@@ -165,16 +175,16 @@
                 {% endif %}
             {% endif %}
             {% if node.name == "0" %}
-                <form method="POST" action="{{ url_for('botintegration.delete_node', node_id=node.id) }}" style="display: inline;">
+                <form method="POST" action="{{ url_for('botintegration.merge_node', node_id=node.id) }}" style="display: inline;">
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="config_action" value="run">
-                    <button type="submit" class="run-stop-btn">Run</button>
+                    <button type="submit" class="run-btn">Run ►</button>
                 </form>
             {% elif node.name == "1" %}
-                <form method="POST" action="{{ url_for('botintegration.delete_node', node_id=node.id) }}" style="display: inline;">
+                <form method="POST" action="{{ url_for('botintegration.merge_node', node_id=node.id) }}" style="display: inline;">
                     {{ form.hidden_tag() }}
                     <input type="hidden" name="config_action" value="stop">
-                    <button type="submit" class="run-stop-btn">Stop</button>
+                    <button type="submit" class="stop-btn">Stop ■</button>
                 </form>
             {% endif %}
 
@@ -212,9 +222,13 @@
                             <select name="name" id="features-selection" class="form-control">
                                 <option value="" disabled selected>Select a feature</option>
                                 {% for value, label in [
+                                    ("AUTH", "AUTH"),
+                                    ("DATASET", "DATASET"),
                                     ("EXPLORE", "EXPLORE"),
-                                    ("AUTORESPONDER", "AUTORESPONDER"),
-                                    ("DASHBOARD", "DASHBOARD")
+                                    ("FLAMAPY", "FLAMAPY"),
+                                    ("HUBFILE", "HUBFILE"),
+                                    ("FEATURE MODEL", "FEATURE MODEL"),
+                                    ("FAKENODO", "FAKENODO"),
                                 ] %}
                                     <option value="{{ value }}">{{ label }}</option>
                                 {% endfor %}
@@ -237,7 +251,7 @@
                     </form>
                 {% endif %}
 
-                {% if node.name not in ["CHATS", "TELEGRAM BOTS", "FEATURES", "SYSTEM ERRORS", "NEW MESSAGES", "0", "1", "NOTIFICATION PREFERENCE", "TYPES OF NOTIFICATION"] %}
+                {% if node.name not in ["CHATS", "TELEGRAM BOTS", "FEATURES", "SYSTEM ERRORS", "NEW MESSAGES", "0", "1", "NOTIFICATION PREFERENCE", "TYPES OF NOTIFICATION", "DAILY", "WEEKLY", "IMMEDIATELY"] %}
                     <form method="POST" action="{{ url_for('botintegration.delete_node', node_id=node.id) }}" style="display: inline;">
                         {{ form.hidden_tag() }}
                         <button type="submit" class="delete-button">Eliminar</button>
