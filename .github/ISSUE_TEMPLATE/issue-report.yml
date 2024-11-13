@@ -1,6 +1,6 @@
 name: "Issue template"
 description: Create a new ticket for a new feature or a change in our application.
-title: "WI-<title of the change or the new feature you woould like to have>"
+title: "WI-<title of the change or the new feature you would like to have>"
 labels:
   - "WI"
 body:
@@ -9,7 +9,7 @@ body:
     attributes:
       label: "Summary"
       description: Brief description (one-line) of the change
-      placeholder: "E.g., The app doesnt support multiple login"
+      placeholder: "E.g., The app doesn’t support multiple login"
     validations:
       required: true
 
@@ -19,9 +19,9 @@ body:
       label: "Detailed description"
       description: Provide instructions to understand what you want to have in the app.
       placeholder: |
-      "I'd like to be able to login using google and/or github. I don't want to be forced to create
-      an account. My idea is having some options such as 'continue with github' or 'continue with 
-      google' in the sign in/up view."
+        I'd like to be able to login using Google and/or GitHub. I don't want to be forced to create
+        an account. My idea is having some options such as 'continue with GitHub' or 'continue with 
+        Google' in the sign-in/up view.
     validations:
       required: true
 
