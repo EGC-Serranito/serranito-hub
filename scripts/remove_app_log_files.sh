@@ -1,1 +1,2 @@
- rm app.log.[0-9]*
+#!/bin/bash
+rm app.log.[0-9]*
