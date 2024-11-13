@@ -25,7 +25,7 @@ class AuthorRepository(BaseRepository):
     def __init__(self):
         super().__init__(Author)
 
-    def get_author_names_and_dataset_counts():
+    def get_author_names_and_dataset_counts(self):
         result = (
             Author.query.outerjoin(DSMetaData, Author.ds_meta_data_id == DSMetaData.id)
             .with_entities(
