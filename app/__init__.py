@@ -28,7 +28,6 @@ bots = {}
 
 def set_bot_handlers(bot, token):
     """Configura los manejadores para un bot dado."""
-
     @bot.message_handler(commands=["start"])
     def send_welcome(message):
         bot.reply_to(message, f"¡Hola! Bienvenido al Bot con token {token}")
@@ -40,9 +39,7 @@ def set_bot_handlers(bot, token):
 
 def start_bot(token, webhook_url):
     """Inicializa y comienza el bot para un token dado usando Webhook."""
-    print(
-        f"Iniciando bot con token: {token}"
-    )  # Para verificar que la función se está ejecutando
+    print(f"Iniciando bot con token: {token}")
     bot = telebot.TeleBot(token)
     bots[token] = bot
 
@@ -56,35 +53,32 @@ def start_bot(token, webhook_url):
             bot.remove_webhook()  # Elimina cualquier webhook anterior
             time.sleep(1)  # Pausa de 1 segundo para evitar el error 429
             bot.set_webhook(url=webhook_url)  # Establece el webhook
-            print(f"Webhook establecido para el bot con token {token}.")
             break  # Si tiene éxito, rompe el bucle
         except telebot.apihelper.ApiTelegramException as e:
             if e.result_json.get("error_code") == 429:  # Si es el error 429
-                retry_after = int(
-                    e.result_json.get("parameters", {}).get("retry_after", 1)
-                )
+                retry_after = int(e.result_json.get("parameters", {}).get("retry_after", 1))
                 print(f"Error 429 recibido. Esperando {retry_after} segundos...")
-                time.sleep(
-                    retry_after
-                )  # Espera según el tiempo recomendado por Telegram
+                time.sleep(retry_after)  # Espera según el tiempo recomendado por Telegram
             else:
                 print(f"Error al establecer el webhook para el bot {token}: {e}")
                 break  # Si es otro tipo de error, termina los reintentos
 
 
 def start_bots():
-    """Iniciar los bots y configurar los webhooks."""
-    bot_tokens = [os.getenv("TELEGRAM_BOT_1")]  # Reemplaza con los tokens reales
+    """Iniciar los bots y configurar los webhooks si está permitido por la variable de entorno."""
+    # Solo ejecutar si la variable START_BOTS está en 'True'
+    if os.getenv("START_BOTS", "True") == "True":
+        bot_tokens = [os.getenv("TELEGRAM_BOT_1")]  # Reemplaza con los tokens reales
 
-    webhook_url = os.getenv(
-        "WEBHOOK_URL"
-    )
+        webhook_url = os.getenv("WEBHOOK_URL")
 
-    for token in bot_tokens:
-        # Crear un hilo para cada bot
-        thread = threading.Thread(target=start_bot, args=(token, webhook_url))
-        thread.daemon = True
-        thread.start()
+        for token in bot_tokens:
+            # Crear un hilo para cada bot
+            thread = threading.Thread(target=start_bot, args=(token, webhook_url))
+            thread.daemon = True
+            thread.start()
+    else:
+        print("Los bots no se inician debido a la configuración de la variable START_BOTS.")
 
 
 def create_app(config_name="development"):
@@ -134,7 +128,7 @@ def create_app(config_name="development"):
             "APP_VERSION": get_app_version(),
         }
 
-    # Iniciar los bots cuando la app se inicie
+    # Iniciar los bots solo si la variable de entorno lo permite
     start_bots()
 
     # Crear un endpoint de webhook
