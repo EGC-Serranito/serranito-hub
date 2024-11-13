@@ -13,8 +13,8 @@ venv/
 ubuntu-bionic-18.04-cloudimg-console.log
 .vagrant/
 nginx.prod.ssl.conf
-.version
 entrypoint.sh
 deployments.log
 test_file.txt
 app.log.*
+migrations/versions/*

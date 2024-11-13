@@ -4,11 +4,11 @@
 
 {% block content %}
 
-    <h1 class="h2 mb-3"><b>Explore</b></h1>
+    <h1 class="h2 mb-3"><b style="color:white">Explore</b></h1>
 
     <div class="row">
 
-        <h3 class="h3 mb-3">
+        <h3 class="h3 mb-3" style="color:white">
                 <span id="results_number"></span>
             </h3>
 
@@ -21,7 +21,7 @@
 
                 <div class="col text-center" id="results_not_found">
                     <img src="{{ url_for('static', filename='img/items/not_found.svg') }}"
-                         style="width: 50%; max-width: 100px; height: auto; margin-top: 30px"/>
+                        style="width: 50%; max-width: 100px; height: auto; margin-top: 30px"/>
                     <p style="margin-top: 20px">
                         We have not found any datasets that meet your search criteria. <br>How about trying some others?
                     </p>
@@ -37,58 +37,49 @@
 
             {{ form.hidden_tag() }}
 
+            <div class="col-12">
+                <div class="mb-3">
+                    <label class="form-label" for="query">
+                        Search for datasets by title, description, authors, tags, UVL files...
+                    </label>
+                    <input class="form-control custom-search" id="query" name="query" required="" type="text" value="" autofocus>
+                </div>
+            </div>
+
             <div class="row">
-
                 <div class="col-12">
-
-                    <div class="row">
-
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <label class="form-label" for="query">
-                                    Search for datasets by title, description, authors, tags, UVL files...
-                                </label>
-                                <input class="form-control" id="query" name="query" required="" type="text" value="" autofocus>
-                            </div>
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <select class="btn btn-primary dropdown-toggle no-arrow" type="button" id="publication_type" name="publication_type" required="" style="width: 70%; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: none;">                                <option value="any" selected disabled>Filter by</option>
+                                <option value="any">Any</option>
+                                <option value="none">None</option>
+                                <option value="annotationcollection">Annotation Collection</option>
+                                <option value="book">Book</option>
+                                <option value="section">Book Section</option>
+                                <option value="conferencepaper">Conference Paper</option>
+                                <option value="datamanagementplan">Data Management Plan</option>
+                                <option value="article">Journal Article</option>
+                                <option value="patent">Patent</option>
+                                <option value="preprint">Preprint</option>
+                                <option value="deliverable">Project Deliverable</option>
+                                <option value="milestone">Project Milestone</option>
+                                <option value="proposal">Proposal</option>
+                                <option value="report">Report</option>
+                                <option value="softwaredocumentation">Software Documentation</option>
+                                <option value="taxonomictreatment">Taxonomic Treatment</option>
+                                <option value="technicalnote">Technical Note</option>
+                                <option value="thesis">Thesis</option>
+                                <option value="workingpaper">Working Paper</option>
+                                <option value="other">Other</option>
+                            </select>
                         </div>
-
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label class="form-label" for="publication_type">Filter by publication
-                                    type</label>
-                                <select class="form-control" id="publication_type" name="publication_type" required="">
-                                    <option value="any">Any</option>
-                                    <option value="none">None</option>
-                                    <option value="annotationcollection">Annotation Collection</option>
-                                    <option value="book">Book</option>
-                                    <option value="section">Book Section</option>
-                                    <option value="conferencepaper">Conference Paper</option>
-                                    <option value="datamanagementplan">Data Management Plan</option>
-                                    <option value="article">Journal Article</option>
-                                    <option value="patent">Patent</option>
-                                    <option value="preprint">Preprint</option>
-                                    <option value="deliverable">Project Deliverable</option>
-                                    <option value="milestone">Project Milestone</option>
-                                    <option value="proposal">Proposal</option>
-                                    <option value="report">Report</option>
-                                    <option value="softwaredocumentation">Software Documentation</option>
-                                    <option value="taxonomictreatment">Taxonomic Treatment</option>
-                                    <option value="technicalnote">Technical Note</option>
-                                    <option value="thesis">Thesis</option>
-                                    <option value="workingpaper">Working Paper</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-
-                        </div>
-
                     </div>
 
-                    <div class="row">
-                        <div class="col-6">
+                    <div class="col-12">
+                        <div class="mt-3">
                             <div class="dropdown">
-                                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Sort results
+                                <button class="btn btn-primary dropdown-toggle no-arrow" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="width: 35%;">
+                                    Sort by
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                     <li>
@@ -144,6 +135,12 @@
                         </div>
                     </div>
 
+                    <style>
+                        .no-arrow::after {
+                            display: none;
+                        }
+                    </style>
+
                     <div class="row">
                         <div class="col-12">
                             <div class="mt-3">
@@ -159,7 +156,7 @@
                     <!-- Nueva sección de nube de etiquetas, justo debajo de "Clear filters" -->
                     <div class="row mt-4">
                         <div class="col-12">
-                            <h5>Tag Cloud</h5>
+                            <h5 style="color:white">Tag Cloud</h5>
                             <div id="tag-cloud" class="mb-3 tag-cloud">
                                 <!-- Las etiquetas se cargarán aquí -->
                             </div>
@@ -168,8 +165,6 @@
                     
                 </div>
             </div>
-
-            <div class="row"></div>
         </div>
     </div>
 {% endblock %}
