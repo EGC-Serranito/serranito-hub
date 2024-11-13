@@ -60,6 +60,23 @@ jobs:
             const prTitle = 'Merge cambios de develop a main';
             const prBody = 'Esta PR integra todos los cambios de la rama develop en main para mantener la rama principal actualizada.';
             
+            // Función para esperar hasta que 'mergeable' no sea null
+            async function waitForMergeable(owner, repo, pull_number, retries = 5, delay = 3000) {
+              for (let i = 0; i < retries; i++) {
+                const { data: pr } = await github.rest.pulls.get({
+                  owner,
+                  repo,
+                  pull_number,
+                });
+                if (pr.mergeable !== null) {
+                  return pr.mergeable;
+                }
+                console.log(`Esperando a que GitHub determine si la PR es mergeable... Intento ${i + 1}/${retries}`);
+                await new Promise(res => setTimeout(res, delay));
+              }
+              return null;
+            }
+            
             // Verificar si ya existe una PR abierta desde develop a main
             const { data: existingPRs } = await github.rest.pulls.list({
               owner: context.repo.owner,
@@ -70,21 +87,34 @@ jobs:
             });
             
             if (existingPRs.length > 0) {
-              console.log(`Ya existe una PR abierta: #${existingPRs[0].number}. Procediendo a mergearla.`);
-              // Mergear la PR existente
-              const mergeResponse = await github.rest.pulls.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: existingPRs[0].number,
-                commit_title: `chore: merge changes from ${sourceBranch} into ${targetBranch}`,
-                commit_message: `Merging updates from ${sourceBranch} into ${targetBranch} to keep production up-to-date.`,
-                merge_method: 'squash',
-              });
+              console.log(`Ya existe una PR abierta: #${existingPRs[0].number}. Verificando si es mergeable.`);
               
-              if (mergeResponse.status === 200) {
-                console.log(`PR #${existingPRs[0].number} mergeada exitosamente.`);
+              const pr = existingPRs[0];
+              let mergeable = pr.mergeable;
+              
+              if (mergeable === null) {
+                // Esperar hasta que GitHub determine si es mergeable
+                mergeable = await waitForMergeable(context.repo.owner, context.repo.repo, pr.number);
+              }
+              
+              if (mergeable) {
+                console.log(`La PR #${pr.number} es mergeable. Procediendo a mergearla.`);
+                const mergeResponse = await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  commit_title: `chore: merge changes from ${sourceBranch} into ${targetBranch}`,
+                  commit_message: `Merging updates from ${sourceBranch} into ${targetBranch} to keep production up-to-date.`,
+                  merge_method: 'squash',
+                });
+                
+                if (mergeResponse.status === 200) {
+                  console.log(`PR #${pr.number} mergeada exitosamente.`);
+                } else {
+                  console.log(`No se pudo mergear la PR #${pr.number}. Estado: ${mergeResponse.status}`);
+                }
               } else {
-                console.log(`No se pudo mergear la PR #${existingPRs[0].number}. Estado: ${mergeResponse.status}`);
+                console.log(`La PR #${pr.number} no es mergeable. Revisar manualmente.`);
               }
               return;
             }
@@ -117,23 +147,39 @@ jobs:
               body: prBody,
             });
             
-            console.log(`PR creada: #${pr.number}. Procediendo a mergearla.`);
+            console.log(`PR creada: #${pr.number}. Verificando si es mergeable.`);
             
-            // Mergear la PR recién creada
-            const mergeNewPR = await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr.number,
-              commit_title: `chore: merge changes from ${sourceBranch} into ${targetBranch}`,
-              commit_message: `Merging updates from ${sourceBranch} into ${targetBranch} to keep production up-to-date.`,
-              merge_method: 'squash',
-            });
+            let newMergeable = pr.mergeable;
             
-            if (mergeNewPR.status === 200) {
-              console.log(`PR #${pr.number} mergeada exitosamente.`);
-            } else {
-              console.log(`No se pudo mergear la PR #${pr.number}. Estado: ${mergeNewPR.status}`);
+            if (newMergeable === null) {
+              newMergeable = await waitForMergeable(context.repo.owner, context.repo.repo, pr.number);
             }
+            
+            if (newMergeable) {
+              console.log(`La PR #${pr.number} es mergeable. Procediendo a mergearla.`);
+              const mergeNewPR = await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                commit_title: `chore: merge changes from ${sourceBranch} into ${targetBranch}`,
+                commit_message: `Merging updates from ${sourceBranch} into ${targetBranch} to keep production up-to-date.`,
+                merge_method: 'squash',
+              });
+              
+              if (mergeNewPR.status === 200) {
+                console.log(`PR #${pr.number} mergeada exitosamente.`);
+              } else {
+                console.log(`No se pudo mergear la PR #${pr.number}. Estado: ${mergeNewPR.status}`);
+              }
+            } else {
+              console.log(`La PR #${pr.number} no es mergeable. Revisar manualmente.`);
+            }
+            
+          debug: false
+          user-agent: actions/github-script
+          result-encoding: json
+          retries: 0
+          retry-exempt-status-codes: 400,401,403,404,422
 
       - name: Verificar Merge
         uses: actions/github-script@v6
