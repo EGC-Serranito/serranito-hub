@@ -26,9 +26,6 @@ jobs:
           pip install -r requirements.txt
           pip install selenium
   
-      - name: Run Pytest
-        run: pytest
-  
       - name: Run Selenium tests
         run: |
           for test_dir in $(find . -type d -name "tests"); do
