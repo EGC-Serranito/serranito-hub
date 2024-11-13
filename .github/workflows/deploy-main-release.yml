@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.12"
 
@@ -25,12 +25,13 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install selenium
-  
-      #- name: Run Selenium tests
-        #run: |
-          #for test_file in $(find app/modules -type f -path "*/tests/test_*.py"); do
-            #python "$test_file"
-          #done
+
+      # Descomenta y ajusta este paso si tienes pruebas Selenium
+      # - name: Run Selenium tests
+      #   run: |
+      #     for test_file in $(find app/modules -type f -path "*/tests/test_*.py"); do
+      #       python "$test_file"
+      #     done
 
       - name: Debug GitHub Token
         env:
@@ -40,77 +41,134 @@ jobs:
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/EGC-Serranito/serranito-hub
 
-  create_pull_request:
+  create_and_merge_pr:
     needs: test
-    if: success()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Create Pull Request to main
-        id: create_pr
-        uses: repo-sync/pull-request@v2
         with:
-          source_branch: develop
-          destination_branch: main
-          pr_title: "Merge pull request from develop"
-          pr_body: "This PR merges changes from the develop branch into the main branch for the latest updates."
-        env:
-          GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          fetch-depth: 0  # Asegura que se obtenga todo el historial de Git
 
-  merge_pull_request:
-    needs: create_pull_request
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Crear y Mergear Pull Request
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.ADMIN_TOKEN }}
+          script: |
+            const sourceBranch = 'develop';
+            const targetBranch = 'main';
+            const prTitle = 'Merge cambios de develop a main';
+            const prBody = 'Esta PR integra todos los cambios de la rama develop en main para mantener la rama principal actualizada.';
+            
+            // Verificar si ya existe una PR abierta desde develop a main
+            const { data: existingPRs } = await github.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${sourceBranch}`,
+              base: targetBranch,
+              state: 'open',
+            });
 
-      - name: Merge Pull Request
-        env:
-          GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
-        run: |
-          PR_NUMBER=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/EGC-Serranito/serranito-hub/pulls?state=open | \
-          jq -r '.[] | select(.head.ref=="develop") | .number')
+            if (existingPRs.length > 0) {
+              console.log(`Ya existe una PR abierta: #${existingPRs[0].number}. Procediendo a mergearla.`);
+              // Mergear la PR existente
+              await github.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: existingPRs[0].number,
+                commit_title: `chore: merge changes from ${sourceBranch} into ${targetBranch}`,
+                commit_message: `Merging updates from ${sourceBranch} into ${targetBranch} to keep production up-to-date.`,
+                merge_method: 'squash',
+              });
+              return;
+            }
 
-          if [ -n "$PR_NUMBER" ]; then
-            curl -X PUT -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/EGC-Serranito/serranito-hub/pulls/$PR_NUMBER/merge \
-            -d '{"commit_title": "chore: merge changes from develop into main", "commit_message": "Merging updates from develop into main to keep production up-to-date", "merge_method": "squash"}'
-          else
-            echo "No PR found to merge."
-          fi
+            // Comparar las ramas para verificar si hay commits que no están en main
+            const comparison = await github.repos.compareCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              base: targetBranch,
+              head: sourceBranch,
+            });
+
+            if (comparison.data.behind_by === 0 && comparison.data.ahead_by === 0) {
+              console.log('No hay cambios nuevos para mergear.');
+              return;
+            }
+
+            if (comparison.data.ahead_by === 0) {
+              console.log('La rama develop no tiene nuevos commits respecto a main.');
+              return;
+            }
+
+            // Crear una nueva PR
+            const { data: pr } = await github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: prTitle,
+              head: sourceBranch,
+              base: targetBranch,
+              body: prBody,
+            });
+
+            console.log(`PR creada: #${pr.number}. Procediendo a mergearla.`);
+
+            // Mergear la PR recién creada
+            await github.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              commit_title: `chore: merge changes from ${sourceBranch} into ${targetBranch}`,
+              commit_message: `Merging updates from ${sourceBranch} into ${targetBranch} to keep production up-to-date.`,
+              merge_method: 'squash',
+            });
+
+      - name: Verificar Merge
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.ADMIN_TOKEN }}
+          script: |
+            const targetBranch = 'main';
+            const commits = await github.repos.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: targetBranch,
+            });
+
+            console.log(`Últimos commits en ${targetBranch}:`);
+            commits.data.slice(0, 5).forEach(commit => {
+              console.log(`- ${commit.commit.message} (${commit.sha})`);
+            });
 
   create_release:
-            needs: merge_pull_request
-            runs-on: ubuntu-latest
-            steps:
-              - name: Checkout code
-                uses: actions/checkout@v3
-                with:
-                  fetch-depth: 0 
-        
-              - name: Generate changelog
-                id: generate_changelog
-                run: |
-                  PREV_TAG=$(git describe --tags `git rev-list --tags --skip=1 --max-count=1`)
-                  CURR_TAG=${{ github.ref_name }}
-                  
-                  echo "Generating changelog from commits between $PREV_TAG and $CURR_TAG"
-                  CHANGELOG=$(git log $PREV_TAG..$CURR_TAG --pretty=format:"- %s")
-        
-                  echo "::set-output name=changelog::$CHANGELOG"
-        
-              - name: Create GitHub release
-                uses: softprops/action-gh-release@v1
-                with:
-                  tag_name: ${{ github.ref_name }}
-                  name: Release ${{ github.ref_name }}
-                  body: |
-                    ${{ steps.generate_changelog.outputs.changelog }}
-                    Full Changelog: https://github.com/EGC-Serranito/serranito-hub/commits/${{ github.ref_name }}
-                env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    needs: create_and_merge_pr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 
+
+      - name: Generar changelog
+        id: generate_changelog
+        run: |
+          PREV_TAG=$(git describe --tags `git rev-list --tags --skip=1 --max-count=1`)
+          CURR_TAG=${{ github.ref_name }}
+          
+          echo "Generating changelog from commits between $PREV_TAG and $CURR_TAG"
+          CHANGELOG=$(git log $PREV_TAG..$CURR_TAG --pretty=format:"- %s")
+          
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Crear Release en GitHub
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ${{ steps.generate_changelog.outputs.changelog }}
+            Full Changelog: https://github.com/EGC-Serranito/serranito-hub/commits/${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
