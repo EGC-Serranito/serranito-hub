@@ -61,18 +61,18 @@ jobs:
             const prBody = 'Esta PR integra todos los cambios de la rama develop en main para mantener la rama principal actualizada.';
             
             // Verificar si ya existe una PR abierta desde develop a main
-            const { data: existingPRs } = await github.pulls.list({
+            const { data: existingPRs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
               head: `${context.repo.owner}:${sourceBranch}`,
               base: targetBranch,
               state: 'open',
             });
-
+            
             if (existingPRs.length > 0) {
               console.log(`Ya existe una PR abierta: #${existingPRs[0].number}. Procediendo a mergearla.`);
               // Mergear la PR existente
-              await github.pulls.merge({
+              const mergeResponse = await github.rest.pulls.merge({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: existingPRs[0].number,
@@ -80,29 +80,35 @@ jobs:
                 commit_message: `Merging updates from ${sourceBranch} into ${targetBranch} to keep production up-to-date.`,
                 merge_method: 'squash',
               });
+              
+              if (mergeResponse.status === 200) {
+                console.log(`PR #${existingPRs[0].number} mergeada exitosamente.`);
+              } else {
+                console.log(`No se pudo mergear la PR #${existingPRs[0].number}. Estado: ${mergeResponse.status}`);
+              }
               return;
             }
-
+            
             // Comparar las ramas para verificar si hay commits que no están en main
-            const comparison = await github.repos.compareCommits({
+            const comparison = await github.rest.repos.compareCommits({
               owner: context.repo.owner,
               repo: context.repo.repo,
               base: targetBranch,
               head: sourceBranch,
             });
-
+            
             if (comparison.data.behind_by === 0 && comparison.data.ahead_by === 0) {
               console.log('No hay cambios nuevos para mergear.');
               return;
             }
-
+            
             if (comparison.data.ahead_by === 0) {
               console.log('La rama develop no tiene nuevos commits respecto a main.');
               return;
             }
-
+            
             // Crear una nueva PR
-            const { data: pr } = await github.pulls.create({
+            const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: prTitle,
@@ -110,11 +116,11 @@ jobs:
               base: targetBranch,
               body: prBody,
             });
-
+            
             console.log(`PR creada: #${pr.number}. Procediendo a mergearla.`);
-
+            
             // Mergear la PR recién creada
-            await github.pulls.merge({
+            const mergeNewPR = await github.rest.pulls.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: pr.number,
@@ -122,6 +128,12 @@ jobs:
               commit_message: `Merging updates from ${sourceBranch} into ${targetBranch} to keep production up-to-date.`,
               merge_method: 'squash',
             });
+            
+            if (mergeNewPR.status === 200) {
+              console.log(`PR #${pr.number} mergeada exitosamente.`);
+            } else {
+              console.log(`No se pudo mergear la PR #${pr.number}. Estado: ${mergeNewPR.status}`);
+            }
 
       - name: Verificar Merge
         uses: actions/github-script@v6
@@ -129,15 +141,16 @@ jobs:
           github-token: ${{ secrets.ADMIN_TOKEN }}
           script: |
             const targetBranch = 'main';
-            const commits = await github.repos.listCommits({
+            const commits = await github.rest.repos.listCommits({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: targetBranch,
+              per_page: 5,
             });
-
+            
             console.log(`Últimos commits en ${targetBranch}:`);
-            commits.data.slice(0, 5).forEach(commit => {
-              console.log(`- ${commit.commit.message} (${commit.sha})`);
+            commits.data.forEach(commit => {
+              console.log(`- ${commit.commit.message} (${commit.sha.substring(0, 7)})`);
             });
 
   create_release:
@@ -153,7 +166,7 @@ jobs:
         id: generate_changelog
         run: |
           PREV_TAG=$(git describe --tags `git rev-list --tags --skip=1 --max-count=1`)
-          CURR_TAG=${{ github.ref_name }}
+          CURR_TAG=${GITHUB_REF#refs/tags/}
           
           echo "Generating changelog from commits between $PREV_TAG and $CURR_TAG"
           CHANGELOG=$(git log $PREV_TAG..$CURR_TAG --pretty=format:"- %s")
