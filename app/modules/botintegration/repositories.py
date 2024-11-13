@@ -119,10 +119,10 @@ class BotIntegrationRepository(BaseRepository):
             db.session.commit()
 
             # Agregar más nodos hijos en cadena
-            path_child = f"{path_child}/NOTIFICATION PREFERENCE"
+            path_child = f"{path_child}/9"
             notification_node = TreeNode(
                 user_id=user_id,
-                name="NOTIFICATION PREFERENCE",
+                name="9",
                 parent_id=child_one_node.id,
                 path=path_child,
                 single_child=single_child
@@ -131,10 +131,10 @@ class BotIntegrationRepository(BaseRepository):
             db.session.commit()
 
             # Continuar agregando más nodos hijos en la jerarquía
-            path_child = f"{path_child}/TYPES OF NOTIFICATION"
+            path_child = f"{path_child}/5"
             types_node = TreeNode(
                 user_id=user_id,
-                name="TYPES OF NOTIFICATION",
+                name="5",
                 parent_id=notification_node.id,
                 path=path_child,
                 single_child=single_child
@@ -142,10 +142,10 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(types_node)
             db.session.commit()
 
-            path_child = f"{path_child}/NEW MESSAGES"
+            path_child = f"{path_child}/6"
             new_messages_node = TreeNode(
                 user_id=user_id,
-                name="NEW MESSAGES",
+                name="6",
                 parent_id=types_node.id,
                 path=path_child,
                 single_child=True
@@ -164,10 +164,10 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(immediately_node)
             db.session.commit()
 
-            path_child = f"{path_child}/SYSTEM ERRORS"
+            path_child = f"{path_child}/7"
             system_errors_node = TreeNode(
                 user_id=user_id,
-                name="SYSTEM ERRORS",
+                name="7",
                 parent_id=types_node.id,
                 path=path_child,
                 single_child=True
@@ -186,10 +186,10 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(system_immediately_node)
             db.session.commit()
 
-            path_child = f"{path_child}/FEATURES"
+            path_child = f"{path_child}/8"
             features_node = TreeNode(
                 user_id=user_id,
-                name="FEATURES",
+                name="8",
                 parent_id=child_one_node.id,
                 path=path_child,
                 single_child=single_child
@@ -208,9 +208,9 @@ class BotIntegrationRepository(BaseRepository):
             if not parent_id:
                 new_node = TreeNode(
                     user_id=user_id,
-                    name="TELEGRAM BOTS",
+                    name="3",
                     parent_id=None,
-                    path="TELEGRAM BOTS",
+                    path="3",
                     single_child=single_child
                 )
                 db.session.add(new_node)
@@ -227,10 +227,10 @@ class BotIntegrationRepository(BaseRepository):
                 db.session.add(child_bot_node)
                 db.session.commit()
 
-                chat_path = f"{bot_path}/CHATS"
+                chat_path = f"{bot_path}/4"
                 child_one_node = TreeNode(
                     user_id=user_id,
-                    name="CHATS",
+                    name="4",
                     parent_id=child_bot_node.id,
                     path=chat_path,
                     single_child=single_child
@@ -248,10 +248,10 @@ class BotIntegrationRepository(BaseRepository):
                 db.session.add(new_node)
                 db.session.commit()
 
-                chat_path = f"{path}/CHATS"
+                chat_path = f"{path}/4"
                 child_one_node = TreeNode(
                     user_id=user_id,
-                    name="CHATS",
+                    name="4",
                     parent_id=new_node.id,
                     path=chat_path,
                     single_child=single_child

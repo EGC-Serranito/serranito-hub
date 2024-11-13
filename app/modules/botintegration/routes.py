@@ -31,7 +31,7 @@ def create_node_route_add_bot():
     user_id = current_user.id
     single_child = False
 
-    path = "TELEGRAM BOTS"
+    path = "3"
     if parent_id:
         parent = TreeNode.query.get(parent_id)
         if parent:

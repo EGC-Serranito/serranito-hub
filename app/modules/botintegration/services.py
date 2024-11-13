@@ -205,13 +205,13 @@ class NodeService(BaseService):
 
     def remove_stopped_chats(self, node):
         """
-        Elimina los nodos de chat que tienen un estado "0" bajo nodos 'CHATS'.
+        Elimina los nodos de chat que tienen un estado "0" bajo nodos '4'.
 
         :param node: Nodo del árbol para procesar.
         """
         # Procesar los hijos del nodo actual
         for child in node.get("children", []):
-            if child["name"] == "CHATS":
+            if child["name"] == "4":
                 # Filtrar los chats que no tienen hijos con nombre "0"
                 child["children"] = [
                     chat for chat in child.get("children", [])

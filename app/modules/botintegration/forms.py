@@ -10,7 +10,7 @@ class BotIntegrationForm(FlaskForm):
     )
     name = StringField(
         "Name",
-        validators=[Length(min=1, max=255)]
+        validators=[Length(min=2, max=255)]
     )
     option = SelectField(
         "Options",
