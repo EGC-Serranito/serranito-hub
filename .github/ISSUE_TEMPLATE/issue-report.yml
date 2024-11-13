@@ -1,6 +1,6 @@
 name: "Issue template"
 description: Create a new ticket for a new feature or a change in our application.
-title: "WI-<title of the change or the new feature you would like to have>"
+title: "WI-<title of the change or the new feature you would like to have> -feature <specific funcionality related with the change or the feature>"
 labels:
   - "WI"
 body:
