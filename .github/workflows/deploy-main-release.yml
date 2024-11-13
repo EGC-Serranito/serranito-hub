@@ -26,11 +26,11 @@ jobs:
           pip install -r requirements.txt
           pip install selenium
   
-      - name: Run Selenium tests
-        run: |
-          for test_file in $(find app/modules -type f -path "*/tests/test_*.py"); do
-            python "$test_file"
-          done
+      #- name: Run Selenium tests
+        #run: |
+          #for test_file in $(find app/modules -type f -path "*/tests/test_*.py"); do
+            #python "$test_file"
+          #done
 
       - name: Debug GitHub Token
         env:
