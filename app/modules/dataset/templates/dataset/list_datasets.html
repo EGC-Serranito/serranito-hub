@@ -4,21 +4,21 @@
 
 {% block content %}
 
-    <h1 class="h3 mb-3">My datasets</h1>
+    <h1 class="h3 mb-3" style="color:white">My datasets</h1>
 
     {% if datasets %}
         <div class=" col-12">
             <div class="card">
 
                 <div class="card-body">
-                    <table class="table">
+                    <table class="table" style="color:white">
                         <thead>
                         <tr>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Publication type</th>
-                            <th>Dataset DOI</th>
-                            <th>Options</th>
+                            <th style="color:white">Title</th>
+                            <th style="color:white">Description</th>
+                            <th style="color:white">Publication type</th>
+                            <th style="color:white">Dataset DOI</th>
+                            <th style="color:white">Options</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -29,8 +29,8 @@
                                         {{ dataset.ds_meta_data.title }}
                                     </a>
                                 </td>
-                                <td>{{ dataset.ds_meta_data.description }}</td>
-                                <td>{{ dataset.ds_meta_data.publication_type.name.replace('_', ' ').title() }}</td>
+                                <td style="color:white">{{ dataset.ds_meta_data.description }}</td>
+                                <td style="color:white">{{ dataset.ds_meta_data.publication_type.name.replace('_', ' ').title() }}</td>
                                 <td><a href="{{ dataset.get_uvlhub_doi() }}"
                                        target="_blank">{{ dataset.get_uvlhub_doi() }}</a></td>
                                 <td>

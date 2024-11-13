@@ -28,8 +28,10 @@ def test_client(test_app):
             The test suite always includes the following user in order to avoid repetition
             of its creation
             """
-            user_test = User(email='test@example.com', password='test1234')
+            user_test = User(email='test@example.com', password='test1234', email_verified=True)
+            user_test2 = User(email='test2@example.com', password='test1234', email_verified=False)
             db.session.add(user_test)
+            db.session.add(user_test2)
             db.session.commit()
 
             print("Rutas registradas:")

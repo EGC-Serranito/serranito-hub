@@ -4,7 +4,7 @@
 
 {% block content %}
 
-    <h1 class="h2 mb-3"><b>Upload</b> dataset</h1>
+    <h1 class="h2 mb-3" style="color:white"><b>Upload</b> dataset</h1>
 
     <div class="row">
         <div class="col-12 mb-3">
@@ -44,14 +44,14 @@
 
                     <div class="col-12">
 
-                        <h1 class="h3 mb-3">Basic info</h1>
+                        <h1 class="h3 mb-3" style="color:white">Basic info</h1>
 
                         <div class="row" style="padding-left: 2rem">
 
                             <div class="col-lg-6 col-xs-12 col-md-12">
                                 <div class="mb-3">
                                     {{ form.title.label(class="form-label") }} *
-                                    {{ form.title(class="form-control") }}
+                                    {{ form.title(class="form-control custom-search") }}
                                     {% for error in form.title.errors %}
                                         <span style="color: red;">{{ error }}</span>
                                     {% endfor %}
@@ -61,7 +61,7 @@
                             <div class="col-12">
                                 <div class="mb-3">
                                     {{ form.desc.label(class="form-label") }} *
-                                    {{ form.desc(rows=4, class="form-control") }}
+                                    {{ form.desc(rows=4, class="form-control custom-search") }}
                                     {% for error in form.desc.errors %}
                                         <span style="color: red;">{{ error }}</span>
                                     {% endfor %}
@@ -71,7 +71,7 @@
                             <div class="col-lg-6 col-6">
                                 <div class="mb-3">
                                     {{ form.publication_type.label(class="form-label") }}
-                                    {{ form.publication_type(class="form-control") }}
+                                    {{ form.publication_type(class="form-control custom-search") }}
                                 </div>
 
                             </div>
@@ -79,7 +79,7 @@
                             <div class="col-lg-6 col-6">
                                 <div class="mb-3">
                                     {{ form.publication_doi.label(class="form-label") }}
-                                    {{ form.publication_doi(class="form-control") }}
+                                    {{ form.publication_doi(class="form-control custom-search") }}
                                     {% for error in form.publication_doi.errors %}
                                         <span style="color: red;">{{ error }}</span>
                                     {% endfor %}
@@ -89,7 +89,7 @@
                             <div class="col-6">
                                 <div class="mb-3">
                                     {{ form.tags.label(class="form-label") }}
-                                    {{ form.tags(class="form-control") }}
+                                    {{ form.tags(class="form-control custom-search") }}
                                     {% for error in form.tags.errors %}
                                         <span style="color: red;">{{ error }}</span>
                                     {% endfor %}
@@ -98,7 +98,7 @@
 
                         </div>
 
-                        <h1 class="h3 mb-3 mt-4">
+                        <h1 class="h3 mb-3 mt-4" style="color:white">
                           Authors
                           <a href="#" data-toggle="modal" data-target="#infoModal">
                             <i data-feather="info"></i> <!-- Usamos "info" porque Feather no tiene un ícono específico llamado "feather" para más info -->
@@ -129,21 +129,21 @@
 
                             <div class="col-lg-6 col-12 mb-3">
                                 <label class="form-label">Author name</label>
-                                <input class="form-control"
-                                       disabled
-                                       value="{{ current_user.profile.surname }}, {{ current_user.profile.name }}">
+                                <input class="form-control custom-search"
+                                    disabled
+                                    value="{{ current_user.profile.surname }}, {{ current_user.profile.name }}">
                             </div>
 
                             <div class="col-lg-6 col-12 mb-3">
                                 <label class="form-label">Author affiliation</label>
-                                <input class="form-control"
-                                       disabled value="{{ current_user.profile.affiliation }}">
+                                <input class="form-control custom-search"
+                                    disabled value="{{ current_user.profile.affiliation }}">
                             </div>
 
                             <div class="col-lg-6 col-12 mb-3">
                                 <label class="form-label">Author ORCID</label>
-                                <input class="form-control"
-                                       disabled value="{{ current_user.profile.orcid }}">
+                                <input class="form-control custom-search"
+                                    disabled value="{{ current_user.profile.orcid }}">
                             </div>
 
                             <div class="col-12">
@@ -158,7 +158,7 @@
                                         >
                                             <div class="col-lg-6 col-12 mb-3">
                                                 {{ subform.form.name.label(class="form-label") }}
-                                                {{ subform.form.name(class="form-control", disabled=loop.first) }}
+                                                {{ subform.form.name(class="form-control custom-search", disabled=loop.first) }}
                                                 {% for error in subform.name.errors %}
                                                     <span style="color: red;">{{ error }}</span>
                                                 {% endfor %}
@@ -166,7 +166,7 @@
 
                                             <div class="col-lg-6 col-12 mb-3">
                                                 {{ subform.form.affiliation.label(class="form-label") }}
-                                                {{ subform.form.affiliation(class="form-control", disabled=loop.first) }}
+                                                {{ subform.form.affiliation(class="form-control custom-search", disabled=loop.first) }}
                                                 {% for error in subform.name.errors %}
                                                     <span style="color: red;">{{ error }}</span>
                                                 {% endfor %}
@@ -174,7 +174,7 @@
 
                                             <div class="col-lg-6 col-12 mb-3">
                                                 {{ subform.orcid.label(class="form-label") }}
-                                                {{ subform.orcid(class="form-control", disabled=loop.first) }}
+                                                {{ subform.orcid(class="form-control custom-search", disabled=loop.first) }}
                                                 {% for error in subform.orcid.errors %}
                                                     <span style="color: red;">{{ error }}</span>
                                                 {% endfor %}
@@ -214,11 +214,11 @@
 
         <div class="col-xl-6 col-lg-12 col-md-12 col-sm-12">
 
-            <h1 class="h3 mb-3 mt-2">UVL models</h1>
+            <h1 class="h3 mb-3 mt-2" style="color:white">UVL models</h1>
 
             <div id="uploaded_models_form" style="padding-left: 2rem">
 
-                <form action="{{ url_for('dataset.upload') }}" class="dropzone" id="myDropzone">
+                <form action="{{ url_for('dataset.upload') }}" class="dropzone" style="background-color:#161b22" id="myDropzone">
                     <div id="dropzone-text"></div>
                 </form>
 

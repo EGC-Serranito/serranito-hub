@@ -1,0 +1,49 @@
+{% extends "base_template.html" %}
+
+{% block title %}Feature Models for tag: "{{ tag }}"{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-3"><b>Feature Models for tag: "{{ tag }}"</b></h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="mb-4">
+            <span class="text-secondary">Filtered Feature Models: {{ feature_models|length }}</span>
+            <div class="mt-2">
+                {% for tag_option in tags %}
+                    <button class="btn btn-secondary tag-button" onclick="loadFeatureModelsForTag('{{ tag_option }}')">
+                        {{ tag_option }}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="list-group" id="featureModelsForTag">
+            {% if feature_models %}
+                {% for fm in feature_models %}
+                    <div class="list-group-item">
+                        <div class="row">
+                            <div class="col-8">
+                                <i data-feather="file"></i> {{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title' }}
+                                <br>
+                                <small class="text-muted">{{ fm.fm_meta_data.description if fm.fm_meta_data else 'No Description' }}</small>
+                            </div>
+                            <div class="col-4 text-end">
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No feature models found for this tag.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('explore.index') }}" class="btn btn-secondary mt-3">Back to Explore</a>
+
+
+
+{% endblock %}

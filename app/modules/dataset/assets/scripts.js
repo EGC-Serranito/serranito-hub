@@ -47,13 +47,13 @@ var currentId = 0;
         function createAuthorBlock(idx, suffix) {
             let newAuthor = document.createElement('div');
             newAuthor.className = 'author row';
-            newAuthor.style.cssText = "border:2px dotted #ccc;border-radius:10px;padding:10px;margin:10px 0; background-color: white";
-
+            newAuthor.style.cssText = "border:2px dotted #444;border-radius:10px;padding:10px;margin:10px 0; background-color: #21262d; color: white";
+        
             addField(newAuthor, `${suffix}authors-${idx}-name`, 'Name *');
             addField(newAuthor, `${suffix}authors-${idx}-affiliation`, 'Affiliation');
             addField(newAuthor, `${suffix}authors-${idx}-orcid`, 'ORCID');
             addRemoveButton(newAuthor);
-
+        
             return newAuthor;
         }
 
