@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, flash
 from flask_login import current_user, login_user, logout_user
 
 from app.modules.auth import auth_bp
@@ -20,18 +20,32 @@ def show_signup_form():
     if form.validate_on_submit():
         email = form.email.data
         if not authentication_service.is_email_available(email):
+            if not authentication_service.is_email_verified(email):
+                authentication_service.send_confirmation_email(email)
+                return render_template("auth/signup_form.html", form=form,
+                                       error='Check your email to verify your account')
             return render_template("auth/signup_form.html", form=form, error=f'Email {email} in use')
 
         try:
             user = authentication_service.create_with_profile(**form.data)
+            authentication_service.send_confirmation_email(user.email)
+            flash("Please confirm your email", "info")
         except Exception as exc:
             return render_template("auth/signup_form.html", form=form, error=f'Error creating user: {exc}')
 
-        # Log user
-        login_user(user, remember=True)
-        return redirect(url_for('public.index'))
-
     return render_template("auth/signup_form.html", form=form)
+
+
+@auth_bp.route("/confirm_user/<token>", methods=["GET"])
+def confirm_user(token):
+    try:
+        user = authentication_service.confirm_user_with_token(token)
+    except Exception as exc:
+        flash(exc.args[0], "danger")
+        return redirect(url_for("auth.show_signup_form"))
+
+    login_user(user, remember=True)
+    return redirect(url_for("public.index"))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -43,6 +57,10 @@ def login():
     if request.method == 'POST' and form.validate_on_submit():
         if authentication_service.login(form.email.data, form.password.data):
             return redirect(url_for('public.index'))
+        if not authentication_service.is_email_verified(form.email.data):
+            authentication_service.send_confirmation_email(form.email.data)
+            return render_template("auth/login_form.html", form=form,
+                                   error='Email not verified. Please check your email')
 
         return render_template("auth/login_form.html", form=form, error='Invalid credentials')
 
