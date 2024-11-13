@@ -1,0 +1,119 @@
+name: Deploy to Main
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install selenium
+  
+      - name: Run Pytest
+        run: pytest
+  
+      - name: Run Selenium tests
+        run: |
+          for test_dir in $(find . -type d -name "tests"); do
+            python -m unittest discover "$test_dir"
+          done
+
+      - name: Debug GitHub Token
+        env:
+          GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          curl -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/EGC-Serranito/serranito-hub
+
+  create_pull_request:
+    needs: test
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create Pull Request to main
+        id: create_pr
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: develop
+          destination_branch: main
+          pr_title: "Merge pull request from develop"
+          pr_body: "This PR merges changes from the develop branch into the main branch for the latest updates."
+        env:
+          GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+
+  merge_pull_request:
+    needs: create_pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Merge Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          PR_NUMBER=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/EGC-Serranito/serranito-hub/pulls?state=open | \
+          jq -r '.[] | select(.head.ref=="develop") | .number')
+
+          if [ -n "$PR_NUMBER" ]; then
+            curl -X PUT -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/EGC-Serranito/serranito-hub/pulls/$PR_NUMBER/merge \
+            -d '{"commit_title": "chore: merge changes from develop into main", "commit_message": "Merging updates from develop into main to keep production up-to-date", "merge_method": "squash"}'
+          else
+            echo "No PR found to merge."
+          fi
+
+  create_release:
+            needs: merge_pull_request
+            runs-on: ubuntu-latest
+            steps:
+              - name: Checkout code
+                uses: actions/checkout@v3
+                with:
+                  fetch-depth: 0 
+        
+              - name: Generate changelog
+                id: generate_changelog
+                run: |
+                  PREV_TAG=$(git describe --tags `git rev-list --tags --skip=1 --max-count=1`)
+                  CURR_TAG=${{ github.ref_name }}
+                  
+                  echo "Generating changelog from commits between $PREV_TAG and $CURR_TAG"
+                  CHANGELOG=$(git log $PREV_TAG..$CURR_TAG --pretty=format:"- %s")
+        
+                  echo "::set-output name=changelog::$CHANGELOG"
+        
+              - name: Create GitHub release
+                uses: softprops/action-gh-release@v1
+                with:
+                  tag_name: ${{ github.ref_name }}
+                  name: Release ${{ github.ref_name }}
+                  body: |
+                    ${{ steps.generate_changelog.outputs.changelog }}
+                    Full Changelog: https://github.com/EGC-Serranito/serranito-hub/commits/${{ github.ref_name }}
+                env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
