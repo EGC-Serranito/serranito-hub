@@ -1,5 +1,5 @@
 import click
-
+import os
 from rosemary.commands.module_list import module_list
 from rosemary.commands.locust import locust, stop
 from rosemary.commands.compose_env import compose_env
@@ -21,6 +21,8 @@ from rosemary.commands.env import env
 from rosemary.commands.test import test
 from rosemary.commands.run_app import run_app
 from rosemary.commands.coverage_all import coverage_all
+
+os.environ["START_BOTS"] = "False"
 
 
 class RosemaryCLI(click.Group):
