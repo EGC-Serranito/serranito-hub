@@ -29,11 +29,8 @@ class DashBoardService(BaseService):
         total_sizes = []
 
         for dataset in datasets:
-            # Calcula el tamaño total en bytes sin convertirlo a KB o MB
             total_size = sum(file.size for fm in dataset.feature_models for file in fm.files)
-            
-            # Agrega el nombre del dataset y su tamaño en bytes
             dataset_names.append(dataset.name())
-            total_sizes.append(total_size)  # Pasa el tamaño en bytes directamente
-        
+            total_sizes.append(total_size)
+
         return dataset_names, total_sizes
