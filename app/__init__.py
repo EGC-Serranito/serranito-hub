@@ -36,7 +36,7 @@ def send_messages_bot(bot_token, chat_id, features):
     payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
 
     try:
-        response = requests.post(url, data=payload)
+        response = requests.post(url, data=payload, timeout=10)
         if response.status_code == 200:
             print(f"Mensaje enviado a {chat_id} exitosamente.")
         else:

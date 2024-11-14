@@ -143,7 +143,7 @@ class NodeService(BaseService):
 
         try:
             # Realizar la solicitud POST a la API de Telegram
-            response = requests.post(url, data=payload)
+            response = requests.post(url, data=payload, timeout=10)
 
             # Comprobar si la solicitud fue exitosa
             if response.status_code == 200:
