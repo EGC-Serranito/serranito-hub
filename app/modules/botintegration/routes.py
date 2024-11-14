@@ -234,4 +234,3 @@ def save_node_states():
     # O hacer cualquier otro procesamiento que desees
 
     return jsonify({"status": "success", "message": "Estado guardado correctamente"})
-
