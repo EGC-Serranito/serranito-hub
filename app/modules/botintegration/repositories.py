@@ -118,24 +118,12 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(child_one_node)
             db.session.commit()
 
-            # Agregar más nodos hijos en cadena
-            path_child = f"{path_child}/9"
-            notification_node = TreeNode(
-                user_id=user_id,
-                name="9",
-                parent_id=child_one_node.id,
-                path=path_child,
-                single_child=single_child
-            )
-            db.session.add(notification_node)
-            db.session.commit()
-
             # Continuar agregando más nodos hijos en la jerarquía
             path_child = f"{path_child}/5"
             types_node = TreeNode(
                 user_id=user_id,
                 name="5",
-                parent_id=notification_node.id,
+                parent_id=child_one_node.id,
                 path=path_child,
                 single_child=single_child
             )
@@ -153,37 +141,15 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(new_messages_node)
             db.session.commit()
 
-            path_child = f"{path_child}/IMMEDIATELY"
+            path_child = f"{path_child}/7"
             immediately_node = TreeNode(
                 user_id=user_id,
-                name="IMMEDIATELY",
+                name="7",
                 parent_id=new_messages_node.id,
                 path=path_child,
                 single_child=True
             )
             db.session.add(immediately_node)
-            db.session.commit()
-
-            path_child = f"{path_child}/7"
-            system_errors_node = TreeNode(
-                user_id=user_id,
-                name="7",
-                parent_id=types_node.id,
-                path=path_child,
-                single_child=True
-            )
-            db.session.add(system_errors_node)
-            db.session.commit()
-
-            path_child = f"{path_child}/IMMEDIATELY"
-            system_immediately_node = TreeNode(
-                user_id=user_id,
-                name="IMMEDIATELY",
-                parent_id=system_errors_node.id,
-                path=path_child,
-                single_child=True
-            )
-            db.session.add(system_immediately_node)
             db.session.commit()
 
             path_child = f"{path_child}/8"
