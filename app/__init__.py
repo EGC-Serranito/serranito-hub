@@ -22,13 +22,13 @@ mail_service = MailService()
 scheduler = APScheduler()
 
 
-# Función que envia el mensaje al bot
+# Function to send a message to the bot
 def send_messages_bot(bot_token, chat_id, features):
     message = (
-        "*🔍 Características encontradas:*\n\n"
+        "*🔍 Features found:*\n\n"
         + "\n".join([f"• *{feature}*" for feature in features])
         + "\n\n"
-        + "*Para más información sobre este bot, visita:* \n"
+        + "*For more information about this bot, visit:* \n"
         + "[serranito-hub-dev](https://serranito-hub-dev.onrender.com/botintegration)"
     )
 
@@ -38,29 +38,29 @@ def send_messages_bot(bot_token, chat_id, features):
     try:
         response = requests.post(url, data=payload, timeout=10)
         if response.status_code == 200:
-            print(f"Mensaje enviado a {chat_id} exitosamente.")
+            print(f"Message successfully sent to {chat_id}.")
         else:
-            print(f"Error al enviar mensaje: {response.status_code}")
+            print(f"Error sending message: {response.status_code}")
     except requests.exceptions.RequestException as e:
-        print(f"Error en la solicitud: {e}")
+        print(f"Request error: {e}")
 
 
-# Función que procesará el árbol de nodos
+# Function to process the node tree
 def bot_task(app):
-    with app.app_context():  # Establecer el contexto de la app
+    with app.app_context():  # Set the app context
         start_bot_task()
 
 
 def start_bot_task():
-    """Inicia la tarea del bot procesando el árbol de nodos y enviando mensajes."""
+    """Starts the bot task by processing the node tree and sending messages."""
 
-    # Importar el modelo de TreeNodeBot desde el módulo correspondiente
+    # Import the TreeNodeBot model from the corresponding module
     from app.modules.botintegration.models import TreeNodeBot
 
-    # Obtener nodos del árbol desde la base de datos
-    treenode_bot = TreeNodeBot.query.all()  # Aquí directamente consultas los modelos
+    # Fetch nodes from the tree in the database
+    treenode_bot = TreeNodeBot.query.all()  # Directly query the models here
 
-    # Convertir a diccionarios si hay datos
+    # Convert to dictionaries if there is data
     treenode_bot_dict = (
         [node.to_dict() for node in treenode_bot] if treenode_bot else []
     )
@@ -78,17 +78,17 @@ def start_bot_task():
                     ]
                     send_messages_bot(BOT_TOKEN, CHAT_ID, features)
     except Exception as e:
-        # Capturar cualquier excepción y mostrarla en la consola
-        print(f"Error en la ejecución de la tarea del bot: {e}")
+        # Capture any exception and display it in the console
+        print(f"Error executing the bot task: {e}")
 
 
-# Configurar el job para ejecutar cada 9 segundos
+# Schedule the job to execute every 9 seconds
 @scheduler.task("cron", id="bot_task", hour=20, minute=0)
 def scheduled_task():
     bot_task(app)
 
 
-# Crear la aplicación Flask
+# Create the Flask application
 def create_app(config_name="development"):
     app = Flask(__name__)
 
@@ -96,15 +96,15 @@ def create_app(config_name="development"):
     config_manager = ConfigManager(app)
     config_manager.load_config(config_name=config_name)
 
-    # Inicializar SQLAlchemy y Migrate con la app
+    # Initialize SQLAlchemy and Migrate with the app
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # Registrar módulos
+    # Register modules
     module_manager = ModuleManager(app)
     module_manager.register_modules()
 
-    # Registrar login manager
+    # Register login manager
     from flask_login import LoginManager
 
     login_manager = LoginManager()
@@ -117,28 +117,28 @@ def create_app(config_name="development"):
 
         return User.query.get(int(user_id))
 
-    # Configurar logging
+    # Configure logging
     logging_manager = LoggingManager(app)
     logging_manager.setup_logging()
 
-    # Inicializar el gestor de errores
+    # Initialize the error manager
     error_handler_manager = ErrorHandlerManager(app)
     error_handler_manager.register_error_handlers()
 
-    # Inicializar el servicio de correo
+    # Initialize the mail service
     mail_service.init_app(app)
 
-    # Inyectar variables de entorno en el contexto de Jinja
+    # Inject environment variables into the Jinja context
     @app.context_processor
     def inject_vars_into_jinja():
         return {
             "FLASK_APP_NAME": os.getenv("FLASK_APP_NAME"),
             "FLASK_ENV": os.getenv("FLASK_ENV"),
             "DOMAIN": os.getenv("DOMAIN", "localhost"),
-            "APP_VERSION": get_app_version(),  # Iniciar el scheduler
+            "APP_VERSION": get_app_version(),  # Start the scheduler
         }
 
-    # Solo iniciar el scheduler si no está en ejecución
+    # Only start the scheduler if it is not running
     if not scheduler.running:
         scheduler.init_app(app)
         scheduler.start()
@@ -146,5 +146,5 @@ def create_app(config_name="development"):
     return app
 
 
-# Inicializar la app
+# Initialize the app
 app = create_app()
