@@ -313,22 +313,28 @@ class NodeService(BaseService):
 
     def remove_stopped_chats(self, node):
         """
-        Elimina los nodos de chat que tienen un estado "0" bajo nodos '4'.
+        Removes chat nodes that have a state "0" under nodes '4',
+        or nodes with state "1" that have children with name "7".
 
-        :param node: Nodo del árbol para procesar.
+        :param node: Node of the tree to process.
         """
-        # Procesar los hijos del nodo actual
+        # Process the children of the current node
         for child in node.get("children", []):
             if child["name"] == "4":
-                # Filtrar los chats que no tienen hijos con nombre "0"
+                # Filter chats based on the conditions:
+                # - Remove if any child has "name" == "0".
+                # - Remove if "name" == "1" and has children with "name" == "7".
                 child["children"] = [
                     chat
                     for chat in child.get("children", [])
-                    if not any(
-                        grandchild["name"] == "0"
-                        for grandchild in chat.get("children", [])
+                    if not (
+                        any(grandchild["name"] == "0" for grandchild in chat.get("children", []))
+                        or (
+                            chat["name"] == "1"
+                            and any(grandchild["name"] == "7" for grandchild in chat.get("children", []))
+                        )
                     )
                 ]
             else:
-                # Llamada recursiva para los demás nodos
+                # Recursive call for other nodes
                 self.remove_stopped_chats(child)
