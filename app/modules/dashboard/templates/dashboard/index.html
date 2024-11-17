@@ -165,8 +165,22 @@
     const datasetNames = JSON.parse(dataContainer.getAttribute('data-dataset-names'));
     let totalSizes = JSON.parse(dataContainer.getAttribute('data-total-sizes'));
 
+    // Detectar la unidad predominante (KB, MB, GB, etc.)
+    let unit = "Bytes"; // Valor predeterminado
+    if (totalSizes.length > 0 && typeof totalSizes[0] === 'string') {
+        const match = totalSizes[0].match(/\s([A-Za-z]+)$/); // Extrae la unidad
+        if (match) {
+            unit = match[1];
+        }
+    }
+
+    // Convertir valores al formato numérico
     totalSizes = totalSizes.map(size => {
-        return parseFloat(size.replace(" KB", ""));
+        if (typeof size === 'string' && size.match(/\d+\s[A-Za-z]+/)) {
+            const value = parseFloat(size.replace(/[^\d.]/g, '')); // Extraer el número
+            return value;
+        }
+        return parseFloat(size); // Si ya es un número
     });
 
     const ctx = document.getElementById('datasetSizeChart').getContext('2d');
@@ -175,7 +189,7 @@
         data: {
             labels: datasetNames,
             datasets: [{
-                label: 'Tamaño Total de Archivos por Dataset (KBytes)',
+                label: `Tamaño Total de Archivos por Dataset (${unit})`,
                 data: totalSizes,
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -189,7 +203,7 @@
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Tamaño en KBytes'
+                        text: `Tamaño en ${unit}`
                     }
                 },
                 x: {
