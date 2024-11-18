@@ -30,7 +30,7 @@ jobs:
 
           # Extraer y almacenar valores para cada campo, capturando la segunda línea después de cada encabezado
           PRIORITY=$(echo "$ISSUE_BODY" | grep -A 2 "### Priority" | tail -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          DIFFICULTY=$(echo "$ISSUE_BODY" | grep -A 2 "### Dificulty" | tail -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          DIFFICULTY=$(echo "$ISSUE_BODY" | grep -A 2 "### Difficulty" | tail -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           RELEVANCE=$(echo "$ISSUE_BODY" | grep -A 2 "### Fusion change relevance" | tail -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
           echo "Prioridad extraída: $PRIORITY"
