@@ -1,0 +1,67 @@
+name: Auto Merge Show PRs - Test Version
+
+on:
+  repository_dispatch:
+    types: [show_scheduled_event]
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update && sudo apt-get install -y gh jq
+
+      - name: Authenticate GitHub CLI
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          echo "${ADMIN_TOKEN}" | gh auth login --with-token
+
+      - name: Find and merge eligible PRs
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          # Define time variables
+          CURRENT_TIME=$(date +%s)
+          SIX_HOURS_AGO=$(($CURRENT_TIME - 6 * 3600))
+          # Fetch all open PRs with titles starting with "show-"
+          PRs=$(gh pr list --state open --json number,title,createdAt,mergeable,statusCheckRollup | jq '[.[] | select(.title | startswith("show-"))]')
+          echo "Found PRs: $PRs"
+          # Iterate over each PR to verify conditions
+          echo "$PRs" | jq -c '.[]' | while read pr; do
+            PR_NUMBER=$(echo "$pr" | jq -r '.number')
+            PR_TITLE=$(echo "$pr" | jq -r '.title')
+            PR_CREATED_AT=$(echo "$pr" | jq -r '.createdAt')
+            PR_MERGEABLE=$(echo "$pr" | jq -r '.mergeable')
+            # Check if statusCheckRollup is empty
+            STATUS_CHECKS_EMPTY=$(echo "$pr" | jq '.statusCheckRollup | length == 0')
+            if [ "$STATUS_CHECKS_EMPTY" = "true" ]; then
+              # Assume checks passed if no checks are present
+              PR_STATUS_CHECKS="SUCCESS"
+            else
+              # Extract the state from statusCheckRollup
+              PR_STATUS_CHECKS=$(echo "$pr" | jq -r '.statusCheckRollup.state')
+            fi
+            # Convert creation date to timestamp
+            PR_CREATED_TIMESTAMP=$(date -d "$PR_CREATED_AT" +%s)
+            # Check if the PR has been open for at least 6 hours
+            if [ "$PR_CREATED_TIMESTAMP" -le "$SIX_HOURS_AGO" ]; then
+              echo "PR #$PR_NUMBER - \"$PR_TITLE\" has been open for at least 6 hours."
+              # Check if the PR is mergeable and all checks have passed
+              if [ "$PR_MERGEABLE" = "MERGEABLE" ] && [ "$PR_STATUS_CHECKS" = "SUCCESS" ]; then
+                echo "Merging PR #$PR_NUMBER..."
+                # Merge the PR using the preferred merge method (e.g., merge commit)
+                gh pr merge $PR_NUMBER --merge --auto
+                echo "PR #$PR_NUMBER merged."
+              else
+                echo "PR #$PR_NUMBER is not ready to be merged. Mergeable: $PR_MERGEABLE, Status Checks: $PR_STATUS_CHECKS"
+              fi
+            else
+              echo "PR #$PR_NUMBER - \"$PR_TITLE\" has not been open for 6 hours yet."
+            fi
+          done
