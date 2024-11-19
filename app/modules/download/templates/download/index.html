@@ -1,11 +1,12 @@
-{% extends "base_template.html" %}
-
-{% block title %}View download{% endblock %}
-
+{% extends "base_template.html" %} {% block title %}Download datasets{% endblock %}
 {% block content %}
 
-{% endblock %}
+<h1 class="h3 mb-3"><b style="color: white">Download datasets</b></h1>
 
-{% block scripts %}
-    <script src="{{ url_for('download.scripts') }}"></script>
+<p>To dowload a zip file with all the datasets, click the following button:</p>
+
+<a href="/dataset/download/all" class="btn btn-primary">Download all datasets</a>
+
+
+
 {% endblock %}

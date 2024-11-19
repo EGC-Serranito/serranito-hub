@@ -73,6 +73,13 @@ chico sundermann">
                     </a>
                 </li>
 
+                <li class="sidebar-item {{ 'active' if request.endpoint == 'download.index' else '' }}">
+                    <a class="sidebar-link" href="{{ url_for('download.index') }}">
+                        <i class="align-middle" data-feather="download"></i> <span
+                            class="align-middle">Download datasets</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item {{ 'active' if request.endpoint == 'dashboard.index' else '' }}">
                     <a class="sidebar-link" href="{{ url_for('dashboard.index') }}">
                         <i class="align-middle" data-feather="grid"></i> <span
