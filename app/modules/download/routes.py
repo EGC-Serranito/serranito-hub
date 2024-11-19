@@ -55,7 +55,10 @@ def download_datasets_by_date():
         master_zip_buffer = download_service.zip_datasets_by_date(start_date, end_date)
 
         if master_zip_buffer is None:
-            return jsonify({"error": "No datasets found in the specified date range."}), 404
+            return (
+                jsonify({"error": "No datasets found in the specified date range."}),
+                404,
+            )
 
         localtime = datetime.now().strftime("%Y%m%d")
         download_filename = f"serranitohub_datasets_{localtime}.zip"
@@ -69,4 +72,33 @@ def download_datasets_by_date():
 
     except Exception as e:
         logging.error(f"Error while downloading in date range datasets: {e}")
+        abort(500, description="An error occurred while downloading the datasets")
+
+
+@download_bp.route("/download/by-email", methods=["POST"])
+def download_datasets_by_email():
+    try:
+        print(request.form)
+        email = request.form.get("email")
+
+        if not email:
+            return jsonify({"error": "Email is required."}), 400
+
+        master_zip_buffer = download_service.zip_datasets_by_email(email)
+
+        if master_zip_buffer is None:
+            return jsonify({"error": "No datasets found for the specified email."}), 404
+
+        localtime = datetime.now().strftime("%Y%m%d")
+        download_filename = f"serranitohub_datasets_{localtime}.zip"
+
+        return send_file(
+            master_zip_buffer,
+            as_attachment=True,
+            mimetype="application/zip",
+            download_name=download_filename,
+        )
+
+    except Exception as e:
+        logging.error(f"Error while downloading by email datasets: {e}")
         abort(500, description="An error occurred while downloading the datasets")
