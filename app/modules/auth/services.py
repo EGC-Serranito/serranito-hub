@@ -19,11 +19,13 @@ class AuthenticationService(BaseService):
         super().__init__(UserRepository())
         self.repository = UserRepository()
         self.user_profile_repository = UserProfileRepository()
-        self.CONFIRM_EMAIL_SALT = os.getenv('CONFIRM_EMAIL_SALT', 'sample_salt')
-        self.CONFIRM_EMAIL_TOKEN_MAX_AGE = os.getenv('CONFIRM_EMAIL_TOKEN_MAX_AGE', 3600)
+        self.CONFIRM_EMAIL_SALT = os.getenv("CONFIRM_EMAIL_SALT", "sample_salt")
+        self.CONFIRM_EMAIL_TOKEN_MAX_AGE = os.getenv(
+            "CONFIRM_EMAIL_TOKEN_MAX_AGE", 3600
+        )
 
     def get_serializer(self):
-        return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        return URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
 
     def login(self, email, password, remember=True):
         user = self.repository.get_by_email(email)
@@ -51,11 +53,7 @@ class AuthenticationService(BaseService):
             if not surname:
                 raise ValueError("Surname is required.")
 
-            user_data = {
-                "email": email,
-                "password": password,
-                "email_verified": False
-            }
+            user_data = {"email": email, "password": password, "email_verified": False}
 
             profile_data = {
                 "name": name,
@@ -105,13 +103,17 @@ class AuthenticationService(BaseService):
             "Please confirm your email",
             recipients=[user_email],
             body="Please confirm your email by clicking the link below.",
-            html_body=html_body
+            html_body=html_body,
         )
 
     def confirm_user_with_token(self, token):
         s = self.get_serializer()
         try:
-            email = s.loads(token, salt=self.CONFIRM_EMAIL_SALT, max_age=self.CONFIRM_EMAIL_TOKEN_MAX_AGE)
+            email = s.loads(
+                token,
+                salt=self.CONFIRM_EMAIL_SALT,
+                max_age=self.CONFIRM_EMAIL_TOKEN_MAX_AGE,
+            )
         except SignatureExpired:
             raise Exception("The confirmation link has expired.")
         except BadTimeSignature:
@@ -125,4 +127,3 @@ class AuthenticationService(BaseService):
     def is_email_verified(self, email: str) -> bool:
         user = self.repository.get_by_email(email)
         return user.email_verified if user else False
-    

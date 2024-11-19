@@ -16,7 +16,6 @@ from flask import (
     make_response,
     abort,
     url_for,
-    send_file,
 )
 from flask_login import login_required, current_user
 
@@ -299,7 +298,7 @@ def rate_dataset(dataset_id):
         return jsonify({"message": "Invalid JSON data"}), 400
 
     user_id = current_user.id
-    rate = int(data.get('rate'))
+    rate = int(data.get("rate"))
 
     if rate is None:
         return jsonify({"message": "Rate is required"}), 400

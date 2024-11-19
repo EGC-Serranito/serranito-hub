@@ -23,10 +23,12 @@ class DownloadService(BaseService):
         datasets = DataSetRepository().get_all_datasets()
 
         dataset_ids = [
-            dataset.id for dataset in datasets
-            if hasattr(dataset, 'created_at') and start_date <= dataset.created_at <= end_date
+            dataset.id
+            for dataset in datasets
+            if hasattr(dataset, "created_at")
+            and start_date <= dataset.created_at <= end_date
         ]
-        
+
         return dataset_ids
 
     def zip_all_datasets(self):
@@ -80,9 +82,10 @@ class DownloadService(BaseService):
             raise e
 
     def zip_datasets_by_date(self, start_date, end_date):
-        """Create a single ZIP file containing all files from all datasets within a date range and return its content in BytesIO."""
+        """Create a single ZIP file containing all files from all datasets within
+        a date range and return its content in BytesIO."""
         dataset_ids = self.get_in_date_range_dataset_ids(start_date, end_date)
-        
+
         if not dataset_ids:
             return None
 
