@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, request, jsonify
 from app.modules.download import download_bp
 from app.modules.download.services import DownloadService
 from flask import send_file, abort
@@ -7,9 +7,11 @@ import logging
 
 download_service = DownloadService()
 
-@download_bp.route('/download', methods=['GET'])
+
+@download_bp.route("/download", methods=["GET"])
 def index():
-    return render_template('download/index.html')
+    return render_template("download/index.html")
+
 
 @download_bp.route("/download/all", methods=["GET"])
 def download_all_datasets():
@@ -35,3 +37,25 @@ def download_all_datasets():
         abort(500, description="An error occurred while downloading the datasets")
 
 
+@download_bp.route("/download/by-date", methods=["POST"])
+def download_datasets_by_date():
+    try:
+        start_date_str = request.form.get("start_date")
+        end_date_str = request.form.get("end_date")
+
+        if not start_date_str or not end_date_str:
+            return jsonify({"error": "Both start_date and end_date are required."}), 400
+
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+
+        if start_date > end_date:
+            return jsonify({"error": "Start date must be before end date."}), 400
+
+        # Por ahora solo imprimimos las fechas
+        print(f"Start Date: {start_date}, End Date: {end_date}")
+        return jsonify({"message": "Dates received successfully.", "start_date": start_date_str, "end_date": end_date_str}), 200
+
+    except Exception as e:
+        logging.error(f"Error while processing dates for dataset download: {e}")
+        abort(500, description="An error occurred while processing your request.")
