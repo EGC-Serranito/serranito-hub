@@ -1,6 +1,7 @@
 from app.modules.download.repositories import DownloadRepository
 from app.modules.dataset.repositories import DataSetRepository
 from app.modules.dataset.services import DataSetService
+from app.modules.auth.services import UserRepository
 from core.services.BaseService import BaseService
 import io
 import os
@@ -12,30 +13,11 @@ class DownloadService(BaseService):
     def __init__(self):
         super().__init__(DownloadRepository())
         self.dataset_service = DataSetService()
+        self.user_repository = UserRepository()
         
     def get_all_dataset_ids(self):
         datasets = DataSetRepository().get_all_datasets()
         return [dataset.id for dataset in datasets]
-
-    def create_zip_for_dataset(self, dataset_id):
-        """Create a ZIP file containing all files related to a dataset and return its content in BytesIO."""
-        try:
-            dataset = self.get_or_404(dataset_id)
-            zip_buffer = io.BytesIO()
-
-            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
-                file_path = f"uploads/user_{dataset.user_id}/dataset_{dataset.id}/"
-                for subdir, dirs, files in os.walk(file_path):
-                    for file in files:
-                        full_path = os.path.join(subdir, file)
-                        relative_path = os.path.relpath(full_path, file_path)
-                        zipf.write(full_path, arcname=relative_path)
-
-            zip_buffer.seek(0)
-            return zip_buffer
-        except Exception as e:
-            logging.error(f"Error while creating ZIP for dataset {dataset_id}: {e}")
-            raise e
 
     def zip_all_datasets(self):
         """Create a single ZIP file containing all files from all datasets and return its content in BytesIO."""
@@ -49,6 +31,7 @@ class DownloadService(BaseService):
                 for dataset_id in dataset_ids:
                     try:
                         dataset = self.dataset_service.get_or_404(dataset_id)
+                        username = self.user_repository.get_by_id(dataset.user_id).email
                         file_base_path = (
                             f"uploads/user_{dataset.user_id}/dataset_{dataset.id}/"
                         )
