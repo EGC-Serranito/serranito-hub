@@ -14,7 +14,7 @@ from app.modules.dataset.models import (
     DSMetaData,
     DSViewRecord,
     DataSet,
-    DatasetUserRate
+    DatasetUserRate,
 )
 
 
@@ -144,7 +144,9 @@ class DatasetUserRateRepository(BaseRepository):
         super().__init__(DatasetUserRate)
 
     def find_user_rating(self, dataset_id, user_id):
-        return self.model.query.filter_by(dataset_id=dataset_id, user_id=user_id).first()
+        return self.model.query.filter_by(
+            dataset_id=dataset_id, user_id=user_id
+        ).first()
 
     def add_rating(self, dataset_id, user_id, rate):
         new_rating = DatasetUserRate(dataset_id=dataset_id, user_id=user_id, rate=rate)
