@@ -1,0 +1,32 @@
+messages:
+  AUTH:
+    message: "🔒 *Authentication and user management enabled.*\n\n *Current user:* {name} {surname} ({email}). \n*ORCID:* {orcid}."
+    feature: "AUTH"
+  
+  DATASET:
+    message: "📊 *Dataset Management Enabled*\n\n📂 *Here are your synchronized datasets:*\n\n{datasets}*Thank you for using our service!*"
+    feature: "DATASET"
+
+  EXPLORE:
+    message: "🔍 Exploration mode is ready. Explore areas such as {explore_areas}, analyze {analysis_types}, and uncover insights from your data. Top features and models include {top_features}."
+    feature: "EXPLORE"
+
+  FLAMAPY:
+    message: "🔥 Flamapy integration activated. Available models: {available_models}. Last model used: {last_model_used}. Ensure your models are valid before analysis."
+    feature: "FLAMAPY"
+
+  HUBFILE:
+    message: "📂 Hub file management is active. You have {total_files} files uploaded. Last file uploaded: {last_uploaded_file}. Total storage used: {storage_used}MB."
+    feature: "HUBFILE"
+
+  FEATURE_MODEL:
+    message: "🛠️ Feature modeling tools are ready. Models created: {models_created}. Last modification on {last_modification_date} by {last_editor}. Feature models include variants like {feature_variants}."
+    feature: "FEATURE MODEL"
+
+  FAKENODO:
+    message: "🤖 Fake node activated for testing. Last simulation on {last_simulation_date}. Test cases configured: {test_cases}. This tool is used for internal validation and testing purposes."
+    feature: "FAKENODO"
+
+  HUB_STATS:
+    message: "📊 Hub Statistics:\n  - Datasets uploaded: {total_datasets}\n  - Feature models available: {total_feature_models}\n  - Datasets viewed: {datasets_viewed}\n  - Feature models viewed: {feature_models_viewed}\n  - Datasets downloaded: {datasets_downloaded}\n  - Feature models downloaded: {feature_models_downloaded}"
+    feature: "HUB_STATS"
