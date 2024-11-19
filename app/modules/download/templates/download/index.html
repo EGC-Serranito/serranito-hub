@@ -6,11 +6,13 @@ Download datasets
 
 {% block content %}
 
-<h1 class="h3 mb-3"><b style="color: white">Download datasets</b></h1>
+<h2><b style="color: white">Download all datasets</b></h2>
 
 <p>To download a zip file with all the datasets, click the following button:</p>
 
 <a href="/download/all" class="btn btn-primary mb-4">Download all datasets</a>
+
+<hr>
 
 <h2><b style="color: white">Download datasets by date</b></h2>
 
@@ -31,6 +33,24 @@ Download datasets
       </div>
     </div>
   </form>
+
+  <hr>
+
+  <h2><br><b style="color: white">Download datasets by user email</b></h2>
+
+<p>Enter a user email to download datasets created by that user:</p>
+
+<form action="/download/by-email" method="POST" class="mt-3">
+    <div class="row">
+      <div class="col-md-5">
+        <label for="email" class="form-label text-white">User Email</label>
+        <input type="email" id="email" name="email" class="form-control" required>
+      </div>
+      <div class="col-md-5">
+        <button type="submit" class="btn btn-primary mt-4">Download</button>
+      </div>
+    </div>
+  </form>
   
   <script>
     document.getElementById('date-range-form').addEventListener('submit', async function(event) {
@@ -43,27 +63,8 @@ Download datasets
         alert('The end date cannot be earlier than the start date. Please correct the dates.');
         return;
       }
-  
-      const formData = new FormData(this);
-      const response = await fetch(this.action, {
-        method: this.method,
-        body: formData,
-      });
-  
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `datasets_${startDate}_to_${endDate}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } else if (response.status === 404) {
-        alert('No datasets found in the specified date range.');
-      } else {
-        alert('An error occurred while processing your request.');
-      }
+
+      this.submit();
     });
   </script>
 
