@@ -21,7 +21,7 @@ function send_query() {
                 csrf_token: csrfToken,
                 query: document.querySelector('#query').value,
                 publication_type: document.querySelector('#publication_type').value,
-                sorting: document.querySelector('[name="sorting"]:checked').value,
+                sorting: document.querySelector('#sorting').value,
             };
 
             console.log(document.querySelector('#publication_type').value);
