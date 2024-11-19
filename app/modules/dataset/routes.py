@@ -290,30 +290,6 @@ def get_unsynchronized_dataset(dataset_id):
     return render_template("dataset/view_dataset.html", dataset=dataset)
 
 
-@dataset_bp.route("/dataset/download/all", methods=["GET"])
-def download_all_datasets():
-
-    try:
-        # Create a zip buffer with all datasets
-        master_zip_buffer = dataset_service.zip_all_datasets()
-
-        # Generate a unique filename for the download
-        localtime = datetime.now().strftime("%Y%m%d")
-        download_filename = f"serranitohub_datasets_{localtime}.zip"
-
-        # Return the zip buffer as a file download
-        return send_file(
-            master_zip_buffer,
-            as_attachment=True,
-            mimetype="application/zip",
-            download_name=download_filename,
-        )
-
-    except Exception as e:
-        logging.error(f"Error while downloading all datasets: {e}")
-        abort(500, description="An error occurred while downloading the datasets")
-
-
 @dataset_bp.route("/rate_dataset/<int:dataset_id>", methods=["POST"])
 @login_required
 def rate_dataset(dataset_id):
