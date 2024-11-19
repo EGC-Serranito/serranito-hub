@@ -165,6 +165,13 @@ class DataSetService(BaseService):
 
     def is_synchronized(self, dataset_id: int) -> bool:
         return self.repository.get_synchronized(dataset_id)
+    
+    def get_dataset_title(self, dataset_id: int) -> Optional[str]:
+        """Return the title of a dataset given its ID."""
+        dataset = self.repository.get_by_id(dataset_id)
+        if dataset and dataset.ds_meta_data:
+            return dataset.ds_meta_data.title
+        return None
 
 
 class AuthorService(BaseService):
