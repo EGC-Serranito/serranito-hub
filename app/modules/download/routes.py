@@ -52,10 +52,20 @@ def download_datasets_by_date():
         if start_date > end_date:
             return jsonify({"error": "Start date must be before end date."}), 400
 
-        # Por ahora solo imprimimos las fechas
-        print(f"Start Date: {start_date}, End Date: {end_date}")
-        return jsonify({"message": "Dates received successfully.", "start_date": start_date_str, "end_date": end_date_str}), 200
+        master_zip_buffer = download_service.zip_datasets_by_date(start_date, end_date)
+
+        # Generate a unique filename for the download
+        localtime = datetime.now().strftime("%Y%m%d")
+        download_filename = f"serranitohub_datasets_{localtime}.zip"
+
+        # Return the zip buffer as a file download
+        return send_file(
+            master_zip_buffer,
+            as_attachment=True,
+            mimetype="application/zip",
+            download_name=download_filename,
+        )
 
     except Exception as e:
-        logging.error(f"Error while processing dates for dataset download: {e}")
-        abort(500, description="An error occurred while processing your request.")
+        logging.error(f"Error while downloading in date range datasets: {e}")
+        abort(500, description="An error occurred while downloading the datasets")
