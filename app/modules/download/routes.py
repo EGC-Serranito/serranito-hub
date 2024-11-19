@@ -60,8 +60,7 @@ def download_datasets_by_date():
                 404,
             )
 
-        localtime = datetime.now().strftime("%Y%m%d")
-        download_filename = f"serranitohub_datasets_{localtime}.zip"
+        download_filename = f"serranitohub_datasets_{start_date_str}_{end_date_str}.zip"
 
         return send_file(
             master_zip_buffer,
@@ -87,10 +86,10 @@ def download_datasets_by_email():
         master_zip_buffer = download_service.zip_datasets_by_email(email)
 
         if master_zip_buffer is None:
-            return jsonify({"error": "No datasets found for the specified email."}), 404
+            return jsonify({"message": f"No datasets found for the email: {email}"}), 404
 
         localtime = datetime.now().strftime("%Y%m%d")
-        download_filename = f"serranitohub_datasets_{localtime}.zip"
+        download_filename = f"serranitohub_datasets_{email}_{localtime}.zip"
 
         return send_file(
             master_zip_buffer,

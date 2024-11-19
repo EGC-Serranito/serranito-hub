@@ -34,12 +34,19 @@ class DownloadService(BaseService):
         return dataset_ids
 
     def get_dataset_ids_by_email(self, email):
-        datasets = DataSetRepository().get_all_datasets()
-        userId = UserRepository().get_by_email(email).id
+        try:
+            user = self.user_repository.get_by_email(email)
+            user_id = user.id
+            datasets = DataSetRepository().get_all_datasets()
 
-        dataset_ids = [dataset.id for dataset in datasets if dataset.user_id == userId]
+            dataset_ids = [
+                dataset.id for dataset in datasets if dataset.user_id == user_id
+            ]
 
-        return dataset_ids
+            return dataset_ids
+        except Exception as e:
+            logging.error(f"Error while retrieving user by email: {e}")
+            return []
 
     def zip_all_datasets(self):
         """Create a single ZIP file containing all files from all datasets and return its content in BytesIO."""
@@ -152,6 +159,7 @@ class DownloadService(BaseService):
         dataset_ids = self.get_dataset_ids_by_email(email)
 
         if not dataset_ids:
+            logging.info(f"No datasets found for email: {email}")
             return None
 
         try:

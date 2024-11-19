@@ -63,27 +63,8 @@ Download datasets
         alert('The end date cannot be earlier than the start date. Please correct the dates.');
         return;
       }
-  
-      const formData = new FormData(this);
-      const response = await fetch(this.action, {
-        method: this.method,
-        body: formData,
-      });
-  
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `datasets_${startDate}_to_${endDate}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } else if (response.status === 404) {
-        alert('No datasets found in the specified date range.');
-      } else {
-        alert('An error occurred while processing your request.');
-      }
+
+      this.submit();
     });
   </script>
 
