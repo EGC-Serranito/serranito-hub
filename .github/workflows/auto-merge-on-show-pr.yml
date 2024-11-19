@@ -30,7 +30,7 @@ jobs:
           CURRENT_TIME=$(date +%s)
           SIX_HOURS_AGO=$(($CURRENT_TIME - 6 * 3600))
           # Fetch all open PRs with titles starting with "show-"
-          PRs=$(gh pr list --state open --json number,title,createdAt,mergeable,statusCheckRollup | jq '[.[] | select(.title | startswith("show-"))]')
+          PRs=$(gh pr list --state open --json number,title,createdAt,mergeable,statusCheckRollup | jq '[.[] | select(.title | startswith("show"))]')
           echo "Found PRs: $PRs"
           # Iterate over each PR to verify conditions
           echo "$PRs" | jq -c '.[]' | while read pr; do

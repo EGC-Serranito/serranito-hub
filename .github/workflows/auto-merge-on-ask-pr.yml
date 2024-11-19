@@ -31,7 +31,7 @@ jobs:
           TWO_HOURS_AGO=$(($CURRENT_TIME - 2 * 3600))
           
           # Fetch all open PRs with titles starting with "ask-"
-          PRs=$(gh pr list --state open --json number,title,createdAt,mergeable,statusCheckRollup,reviewDecision | jq '[.[] | select(.title | startswith("ask-"))]')
+          PRs=$(gh pr list --state open --json number,title,createdAt,mergeable,statusCheckRollup,reviewDecision | jq '[.[] | select(.title | startswith("ask"))]')
           echo "Found PRs: $PRs"
           
           # Iterate over each PR to verify conditions
