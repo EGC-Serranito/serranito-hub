@@ -82,6 +82,10 @@ class DownloadService(BaseService):
     def zip_datasets_by_date(self, start_date, end_date):
         """Create a single ZIP file containing all files from all datasets within a date range and return its content in BytesIO."""
         dataset_ids = self.get_in_date_range_dataset_ids(start_date, end_date)
+        
+        if not dataset_ids:
+            return None
+
         try:
             master_zip_buffer = io.BytesIO()
             with zipfile.ZipFile(

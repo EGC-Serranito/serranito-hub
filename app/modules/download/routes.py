@@ -54,11 +54,12 @@ def download_datasets_by_date():
 
         master_zip_buffer = download_service.zip_datasets_by_date(start_date, end_date)
 
-        # Generate a unique filename for the download
+        if master_zip_buffer is None:
+            return jsonify({"error": "No datasets found in the specified date range."}), 404
+
         localtime = datetime.now().strftime("%Y%m%d")
         download_filename = f"serranitohub_datasets_{localtime}.zip"
 
-        # Return the zip buffer as a file download
         return send_file(
             master_zip_buffer,
             as_attachment=True,

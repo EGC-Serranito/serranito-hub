@@ -17,31 +17,54 @@ Download datasets
 <p>Select a start and end date to download datasets created within that range:</p>
 
 <form id="date-range-form" action="/download/by-date" method="POST" class="mt-3">
-  <div class="row">
-    <div class="col-md-5">
-      <label for="start_date" class="form-label text-white">Start Date</label>
-      <input type="date" id="start_date" name="start_date" class="form-control" required>
+    <div class="row">
+      <div class="col-md-5">
+        <label for="start_date" class="form-label text-white">Start Date</label>
+        <input type="date" id="start_date" name="start_date" class="form-control" required>
+      </div>
+      <div class="col-md-5">
+        <label for="end_date" class="form-label text-white">End Date</label>
+        <input type="date" id="end_date" name="end_date" class="form-control" required>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary mb-1">Download</button>
+      </div>
     </div>
-    <div class="col-md-5">
-      <label for="end_date" class="form-label text-white">End Date</label>
-      <input type="date" id="end_date" name="end_date" class="form-control" required>
-    </div>
-    <div class="col-md-2 d-flex align-items-end">
-      <button type="submit" class="btn btn-primary mb-1">Download</button>
-    </div>
-  </div>
-</form>
-
-<script>
-  document.getElementById('date-range-form').addEventListener('submit', function(event) {
-    const startDate = document.getElementById('start_date').value;
-    const endDate = document.getElementById('end_date').value;
-
-    if (startDate && endDate && startDate > endDate) {
+  </form>
+  
+  <script>
+    document.getElementById('date-range-form').addEventListener('submit', async function(event) {
       event.preventDefault();
-      alert('The end date cannot be earlier than the start date. Please correct the dates.');
-    }
-  });
-</script>
+  
+      const startDate = document.getElementById('start_date').value;
+      const endDate = document.getElementById('end_date').value;
+  
+      if (startDate && endDate && startDate > endDate) {
+        alert('The end date cannot be earlier than the start date. Please correct the dates.');
+        return;
+      }
+  
+      const formData = new FormData(this);
+      const response = await fetch(this.action, {
+        method: this.method,
+        body: formData,
+      });
+  
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `datasets_${startDate}_to_${endDate}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else if (response.status === 404) {
+        alert('No datasets found in the specified date range.');
+      } else {
+        alert('An error occurred while processing your request.');
+      }
+    });
+  </script>
 
 {% endblock %}
