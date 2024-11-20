@@ -165,7 +165,7 @@
         <div class="node">
 
             {% set name_mapping = {
-                "3": "TELEGRAM BOTS",
+                "3": "BOT TOKEN",
                 "4": "CHATS",
                 "5": "TYPES OF NOTIFICATIONS",
                 "6": "NEW MESSAGES",
@@ -218,17 +218,9 @@
                         <input type="hidden" name="parent_id" value="{{ node.id }}">
                         
                         {% if node.name == "4" %}
-                            {{ form.name(class_="form-control", placeholder="Enter your telegram chat id") }}
+                            {{ form.name(class_="form-control", placeholder="Enter your chat id") }}
                         {% elif node.name == "3" %}
-                            <select name="name" id="bot-selection" class="form-control">
-                                <option value="" disabled selected>Select a telegram bot</option>
-                                {% for value, label in [
-                                    ("5610517330:AAFmH2yl8YXRRN-mqSiIKVTSTvVykBwZNCw", "@uvlhub_bot1"),
-                                    ("7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI", "@uvlhub_bot2")
-                                ] %}
-                                    <option value="{{ value }}">{{ label }}</option>
-                                {% endfor %}
-                            </select>
+                            {{ form.name(class_="form-control", placeholder="Token of Telegram or Discord") }}
                         {% elif node.name == "8" %}
                             <select name="name" id="features-selection" class="form-control">
                                 <option value="" disabled selected>Select a feature</option>
@@ -285,18 +277,10 @@
     {% else %}
         <div id="tree" class="tree">
             <div class="node">
-                <h2>TELEGRAM BOTS</h2>
+                <h2>BOT TOKEN</h2>
                 <div class="form-container">
                     <form method="POST" action="{{ url_for('botintegration.create_node_route_add_bot') }}" style="display: inline;">
-                            <select name="name" id="bot-selection" class="form-control">
-                                <option value="" disabled selected>Select a telegram bot</option>
-                                    {% for value, label in [
-                                        ("5610517330:AAFmH2yl8YXRRN-mqSiIKVTSTvVykBwZNCw", "@uvlhub_bot1"),
-                                        ("7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI", "@uvlhub_bot2")
-                                        ] %}
-                                        <option value="{{ value }}">{{ label }}</option>
-                                    {% endfor %}
-                            </select>
+                        {{ form.name(class_="form-control", placeholder="Token of Telegram or Discord") }}
 
                         {{ form.submit(class_="add-btn") }}
                     </form>

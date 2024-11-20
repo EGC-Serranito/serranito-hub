@@ -12,7 +12,7 @@ messages:
     feature: "EXPLORE"
 
   FLAMAPY:
-    message: "🔥 Flamapy integration activated. Available models: {available_models}. Last model used: {last_model_used}. Ensure your models are valid before analysis."
+    message: "🚀 Flamapy integration activated!\nSend your UVL code and we will validate it instantly."
     feature: "FLAMAPY"
 
   HUBFILE:
