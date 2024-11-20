@@ -89,7 +89,7 @@ def start_bot_task():
         print(f"Error executing the bot task: {e}")
 
 
-@scheduler.task("interval", id="bot_task", seconds=9)
+@scheduler.task("cron", id="bot_task", hour=20, minute=0)
 def scheduled_task():
     bot_task(app)
 
