@@ -1,6 +1,5 @@
 import requests
 import yaml
-from flask_login import current_user
 import json
 
 
@@ -44,9 +43,13 @@ class FeatureService:
                     from app.modules.profile.models import UserProfile
                     from app.modules.auth.models import User
                     message_template = messages.get("AUTH", {}).get("message", "")
-                    user = User.query.get(current_user.id)
+                    from app.modules.botintegration.models import TreeNode
+                    # Fetch nodes from the tree in the database
+                    tree_node = TreeNode.query.filter(TreeNode.name == chat_id).first()
+
+                    user = User.query.get(tree_node.user_id)
                     user_profile = UserProfile.query.filter_by(
-                        user_id=current_user.id
+                        user_id=tree_node.user_id
                     ).first()
                     user_data = {
                         "email": user.email,
@@ -58,8 +61,11 @@ class FeatureService:
                 case "DATASET":
                     from app.modules.dataset.models import DSMetaData, DataSet
                     message_template = messages.get("DATASET", {}).get("message", "")
+                    from app.modules.botintegration.models import TreeNode
+                    # Fetch nodes from the tree in the database
+                    tree_node = TreeNode.query.filter(TreeNode.name == chat_id).first()
                     datasets = DataSet.query.join(DSMetaData).filter(
-                        DataSet.user_id == current_user.id, DSMetaData.dataset_doi.isnot(None)
+                        DataSet.user_id == tree_node.user_id, DSMetaData.dataset_doi.isnot(None)
                     ).order_by(DataSet.created_at.desc()).all()
 
                     list_content = ""
