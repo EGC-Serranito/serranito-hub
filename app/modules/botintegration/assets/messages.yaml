@@ -19,6 +19,6 @@ messages:
     message: "🤖 Fake node activated for testing. {connection}."
     feature: "FAKENODO"
 
-  HUB_STATS:
+  HUBSTATS:
     message: "📊 Hub Statistics:\n  - Datasets uploaded: {datasets_counter}\n  - Feature models available: {feature_models_counter}\n  - Datasets viewed: {total_dataset_views}\n  - Feature models viewed: {total_feature_model_views}\n  - Datasets downloaded: {total_dataset_downloads}\n  - Feature models downloaded: {total_feature_model_downloads}"
-    feature: "HUB_STATS"
+    feature: "HUBSTATS"

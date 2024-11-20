@@ -1,6 +1,7 @@
 from app.modules.botintegration.repositories import BotIntegrationRepository
 from core.services.BaseService import BaseService
 from app.modules.botintegration.features import FeatureService
+import os
 
 featureService = FeatureService()
 
@@ -15,6 +16,12 @@ class NodeService(BaseService):
         Initializes the NodeService with the BotIntegrationRepository.
         """
         super().__init__(BotIntegrationRepository())
+
+    def transform_to_full_url(self, url):
+        # Check if the URL already starts with http:// or https://
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url  # Add http:// if no scheme present
+        return url
 
     def get_tree_nodes_by_user(self, user_id):
         """
@@ -166,7 +173,12 @@ class NodeService(BaseService):
                             ]
                             if features:
                                 featureService.send_features_bot(
-                                    BOT_TOKEN, CHAT_ID, features
+                                    BOT_TOKEN,
+                                    CHAT_ID,
+                                    features,
+                                    self.transform_to_full_url(
+                                        os.getenv("DOMAIN", "localhost")
+                                    ),
                                 )
                                 print(features)
                                 print(BOT_TOKEN)
@@ -200,7 +212,12 @@ class NodeService(BaseService):
                             ]
                             if features:
                                 featureService.send_features_bot(
-                                    BOT_TOKEN, CHAT_ID, features
+                                    BOT_TOKEN,
+                                    CHAT_ID,
+                                    features,
+                                    self.transform_to_full_url(
+                                        os.getenv("DOMAIN", "localhost")
+                                    ),
                                 )
 
                             if not tree_nodes_dict:
@@ -223,7 +240,7 @@ class NodeService(BaseService):
 
                             # Visualización del árbol
                             def print_tree(node, level=0):
-                                print("\t" * level + f"- {node['name']}")
+                                print("\t" * level + f"- {node['name']} ----- {node['path']}")
                                 for child in node.get("children", []):
                                     print_tree(child, level + 1)
 

@@ -1,15 +1,7 @@
 import requests
 import yaml
-from app.modules.profile.models import UserProfile
-from app.modules.auth.models import User
 from flask_login import current_user
-from app.modules.dataset.services import DataSetService
-from flask import request
 import json
-from app.modules.featuremodel.services import FeatureModelService
-
-dataset_service = DataSetService()
-feature_model_service = FeatureModelService()
 
 
 class FeatureService:
@@ -25,7 +17,6 @@ class FeatureService:
         try:
             with open(file_path, "r") as file:
                 data = yaml.safe_load(file)
-            print("YAML Loaded Successfully:", data)  # Verificar contenido cargado
             return data
         except FileNotFoundError:
             print(f"Error: File not found at {file_path}")
@@ -34,7 +25,7 @@ class FeatureService:
             print(f"Error parsing YAML: {e}")
             raise
 
-    def send_features_bot(self, bot_token, chat_id, features):
+    def send_features_bot(self, bot_token, chat_id, features, BASE_URL):
         """
         :param bot_token: Token del bot de Telegram.
         :param chat_id: ID del chat de Telegram al que enviar los mensajes.
@@ -50,6 +41,8 @@ class FeatureService:
             # Extraer el mensaje desde la configuración usando match-case
             match feature:
                 case "AUTH":
+                    from app.modules.profile.models import UserProfile
+                    from app.modules.auth.models import User
                     message_template = messages.get("AUTH", {}).get("message", "")
                     user = User.query.get(current_user.id)
                     user_profile = UserProfile.query.filter_by(
@@ -63,8 +56,12 @@ class FeatureService:
                     }
                     formatted_message = message_template.format(**user_data)
                 case "DATASET":
+                    from app.modules.dataset.models import DSMetaData, DataSet
                     message_template = messages.get("DATASET", {}).get("message", "")
-                    datasets = dataset_service.get_synchronized(current_user.id)
+                    datasets = DataSet.query.join(DSMetaData).filter(
+                        DataSet.user_id == current_user.id, DSMetaData.dataset_doi.isnot(None)
+                    ).order_by(DataSet.created_at.desc()).all()
+
                     list_content = ""
 
                     for d in datasets:
@@ -86,10 +83,10 @@ class FeatureService:
                             for file in feature_model.files:
                                 # Detail the file associated with each feature model
                                 list_content += f"\n🔸 *File*: {file.name}\n"
-                                url_view = f"{request.host_url}file/view/{file.id}"
+                                url_view = f"{BASE_URL}/file/view/{file.id}"
                                 print(url_view)
                                 url_download = (
-                                    f"{request.host_url}file/download/{file.id}"
+                                    f"{BASE_URL}/file/download/{file.id}"
                                 )
 
                                 # View and download links
@@ -127,7 +124,7 @@ class FeatureService:
                     # Crear el mensaje formateado
                     formatted_message = message_template.format(**user_data)
                 case "EXPLORE":
-                    response = requests.post(f"{request.host_url}explore", json={})
+                    response = requests.post(f"{BASE_URL}/explore", json={})
                     if response.status_code == 200:
                         # Convertir la respuesta JSON a un diccionario
                         data = response.json()
@@ -161,10 +158,10 @@ class FeatureService:
                         )
                 case "FLAMAPY":
                     message_template = messages.get("FLAMAPY", {}).get("message", "")
-                    self.send_messages_flamapy(bot_token, chat_id)
+                    self.send_messages_flamapy(bot_token, chat_id, BASE_URL)
                     formatted_message = message_template
                 case "FAKENODO":
-                    response = requests.get(f"{request.host_url}fakenodo/api")
+                    response = requests.get(f"{BASE_URL}/fakenodo/api")
                     if response.status_code == 200:
                         # Convertir la respuesta JSON a un diccionario
                         data = response.json()
@@ -174,30 +171,13 @@ class FeatureService:
                     }
                     message_template = messages.get("FAKENODO", {}).get("message", "")
                     formatted_message = message_template.format(**user_data)
-                case "HUB_STATS":
-                    # Statistics: total datasets and feature models
-                    datasets_counter = dataset_service.count_synchronized_datasets()
-                    feature_models_counter = feature_model_service.count_feature_models()
-
-                    # Statistics: total downloads
-                    total_dataset_downloads = dataset_service.total_dataset_downloads()
-                    total_feature_model_downloads = feature_model_service.total_feature_model_downloads()
-
-                    # Statistics: total views
-                    total_dataset_views = dataset_service.total_dataset_views()
-                    total_feature_model_views = feature_model_service.total_feature_model_views()
-
-                    user_data = {
-                        "datasets_counter": datasets_counter,
-                        "feature_models_counter": feature_models_counter,
-                        "total_dataset_downloads": total_dataset_downloads,
-                        "total_feature_model_downloads": total_feature_model_downloads,
-                        "total_dataset_views": total_dataset_views,
-                        "total_feature_model_views": total_feature_model_views
-                    }
-
-                    message_template = messages.get("HUB_STATS", {}).get("message", "")
-                    formatted_message = message_template.format(**user_data)
+                case "HUBSTATS":
+                    response = requests.get(f"{BASE_URL}/hub-stats")
+                    if response.status_code == 200:
+                        # Convertir la respuesta JSON a un diccionario
+                        data = response.json()
+                        message_template = messages.get("HUBSTATS", {}).get("message", "")
+                        formatted_message = message_template.format(**response.json())
                 case _:
                     print(
                         f"Feature {feature} no encontrada en la configuración de mensajes."
@@ -212,7 +192,7 @@ class FeatureService:
                     f"Error formateando el mensaje para la característica {feature}: Faltan datos {e}"
                 )
 
-    def send_messages_flamapy(self, bot_token, chat_id):
+    def send_messages_flamapy(self, bot_token, chat_id, BASE_URL):
         """
         Obtiene los mensajes enviados al bot y responde a cada uno de ellos con "Hola, soy el bot".
         """
@@ -249,7 +229,7 @@ class FeatureService:
                     if chat_id == chat_id_messages:
                         # Llamar a la API de Flamapy con el mensaje
                         response = requests.post(
-                            f"{request.host_url}flamapy/check_uvl",
+                            f"{BASE_URL}/flamapy/check_uvl",
                             json={
                                 "text": uvl_message
                             },  # Corregido: JSON debe ser un diccionario.
@@ -308,7 +288,7 @@ class FeatureService:
                     )
 
                     # Realiza la solicitud POST a la API externa para verificar el mensaje
-                    external_api_url = f"{request.host_url}flamapy/check_uvl"
+                    external_api_url = f"{BASE_URL}/flamapy/check_uvl"
                     response = requests.post(
                         external_api_url,
                         json={
