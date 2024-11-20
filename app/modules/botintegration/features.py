@@ -94,7 +94,7 @@ class FeatureService:
 
                                 # Make request to get file content
                                 try:
-                                    response = requests.get(url_view)
+                                    response = requests.get(url_view, timeout=10)
                                     if response.status_code == 200:
                                         # Convert the JSON response to a dictionary
                                         data = response.json()
@@ -124,7 +124,7 @@ class FeatureService:
                     # Crear el mensaje formateado
                     formatted_message = message_template.format(**user_data)
                 case "EXPLORE":
-                    response = requests.post(f"{BASE_URL}/explore", json={})
+                    response = requests.post(f"{BASE_URL}/explore", json={}, timeout=10)
                     if response.status_code == 200:
                         # Convertir la respuesta JSON a un diccionario
                         data = response.json()
@@ -161,7 +161,7 @@ class FeatureService:
                     self.send_messages_flamapy(bot_token, chat_id, BASE_URL)
                     formatted_message = message_template
                 case "FAKENODO":
-                    response = requests.get(f"{BASE_URL}/fakenodo/api")
+                    response = requests.get(f"{BASE_URL}/fakenodo/api", timeout=10)
                     if response.status_code == 200:
                         # Convertir la respuesta JSON a un diccionario
                         data = response.json()
@@ -172,7 +172,7 @@ class FeatureService:
                     message_template = messages.get("FAKENODO", {}).get("message", "")
                     formatted_message = message_template.format(**user_data)
                 case "HUBSTATS":
-                    response = requests.get(f"{BASE_URL}/hub-stats")
+                    response = requests.get(f"{BASE_URL}/hub-stats", timeout=10)
                     if response.status_code == 200:
                         # Convertir la respuesta JSON a un diccionario
                         data = response.json()
@@ -203,7 +203,7 @@ class FeatureService:
             if last_update_id is not None:
                 url += f"?offset={last_update_id + 1}"
 
-            response = requests.get(url)
+            response = requests.get(url, timeout=10)
             if response.status_code != 200:
                 print(f"Error al obtener actualizaciones: {response.text}")
                 return
@@ -217,7 +217,7 @@ class FeatureService:
                 url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
                 if last_update_id is not None:
                     url += f"?offset={last_update_id + 1}"
-                response = requests.get(url)
+                response = requests.get(url, timeout=10)
 
                 if "message" in update:
                     chat_id_messages = update["message"]["chat"]["id"]  # ID del chat
@@ -232,8 +232,7 @@ class FeatureService:
                             f"{BASE_URL}/flamapy/check_uvl",
                             json={
                                 "text": uvl_message
-                            },  # Corregido: JSON debe ser un diccionario.
-                        )
+                            }, timeout=10)
 
                         # Obtener el texto de respuesta de la API de Flamapy
                         if response.status_code == 200:
@@ -254,8 +253,7 @@ class FeatureService:
                         # Enviar la respuesta
                         send_response = requests.post(
                             f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                            data=data,
-                        )
+                            data=data, timeout=10)
                         if send_response.status_code == 200:
                             print(
                                 f"Respondido al mensaje {message_id} en el chat {chat_id}"
@@ -275,7 +273,7 @@ class FeatureService:
             headers = {"Authorization": f"Bot {bot_token}"}
 
             # Realiza la solicitud GET para obtener los mensajes más recientes
-            response = requests.get(url, headers=headers, params=params)
+            response = requests.get(url, headers=headers, params=params, timeout=10)
 
             # Verifica si la solicitud fue exitosa
             if response.status_code == 200:
@@ -293,8 +291,7 @@ class FeatureService:
                         external_api_url,
                         json={
                             "text": message["content"]
-                        },  # Corregido: JSON debe ser un diccionario
-                    )
+                        }, timeout=10)
 
                     # Obtiene el texto de respuesta de la API externa
                     response_text = response.json().get("error", "Valid Model")
@@ -310,8 +307,7 @@ class FeatureService:
 
                     # Envia la respuesta al mensaje en Discord
                     send_response = requests.post(
-                        url, data=json.dumps(data), headers=headers
-                    )
+                        url, data=json.dumps(data), headers=headers, timeout=10)
 
                     if send_response.status_code == 200:
                         print(
@@ -400,7 +396,7 @@ class FeatureService:
             # Enviar cada fragmento
             for chunk in chunks:
                 data = {"content": chunk}
-                response = requests.post(url, data=json.dumps(data), headers=headers)
+                response = requests.post(url, data=json.dumps(data), headers=headers, timeout=10)
 
                 # Verificar la respuesta
                 if response.status_code == 200:
