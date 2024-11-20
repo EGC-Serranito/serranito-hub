@@ -44,8 +44,8 @@ jobs:
               # Assume checks passed if no checks are present
               PR_STATUS_CHECKS="SUCCESS"
             else
-              # Extract the state from statusCheckRollup
-              PR_STATUS_CHECKS=$(echo "$pr" | jq -r '.statusCheckRollup.state')
+              # Determine if all status checks have passed
+              PR_STATUS_CHECKS=$(echo "$pr" | jq -r 'if ([.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | length) == 0 then "SUCCESS" else "FAILURE" end')
             fi
             # Convert creation date to timestamp
             PR_CREATED_TIMESTAMP=$(date -d "$PR_CREATED_AT" +%s)
@@ -65,3 +65,4 @@ jobs:
               echo "PR #$PR_NUMBER - \"$PR_TITLE\" has not been open for 6 hours yet."
             fi
           done
+
