@@ -15,18 +15,10 @@ messages:
     message: "🚀 Flamapy integration activated!\nSend your UVL code and we will validate it instantly."
     feature: "FLAMAPY"
 
-  HUBFILE:
-    message: "📂 Hub file management is active. You have {total_files} files uploaded. Last file uploaded: {last_uploaded_file}. Total storage used: {storage_used}MB."
-    feature: "HUBFILE"
-
-  FEATURE_MODEL:
-    message: "🛠️ Feature modeling tools are ready. Models created: {models_created}. Last modification on {last_modification_date} by {last_editor}. Feature models include variants like {feature_variants}."
-    feature: "FEATURE MODEL"
-
   FAKENODO:
-    message: "🤖 Fake node activated for testing. Last simulation on {last_simulation_date}. Test cases configured: {test_cases}. This tool is used for internal validation and testing purposes."
+    message: "🤖 Fake node activated for testing. {connection}."
     feature: "FAKENODO"
 
   HUB_STATS:
-    message: "📊 Hub Statistics:\n  - Datasets uploaded: {total_datasets}\n  - Feature models available: {total_feature_models}\n  - Datasets viewed: {datasets_viewed}\n  - Feature models viewed: {feature_models_viewed}\n  - Datasets downloaded: {datasets_downloaded}\n  - Feature models downloaded: {feature_models_downloaded}"
+    message: "📊 Hub Statistics:\n  - Datasets uploaded: {datasets_counter}\n  - Feature models available: {feature_models_counter}\n  - Datasets viewed: {total_dataset_views}\n  - Feature models viewed: {total_feature_model_views}\n  - Datasets downloaded: {total_dataset_downloads}\n  - Feature models downloaded: {total_feature_model_downloads}"
     feature: "HUB_STATS"

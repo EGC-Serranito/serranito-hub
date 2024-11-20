@@ -6,8 +6,10 @@ from flask_login import current_user
 from app.modules.dataset.services import DataSetService
 from flask import request
 import json
+from app.modules.featuremodel.services import FeatureModelService
 
 dataset_service = DataSetService()
+feature_model_service = FeatureModelService()
 
 
 class FeatureService:
@@ -161,22 +163,39 @@ class FeatureService:
                     message_template = messages.get("FLAMAPY", {}).get("message", "")
                     self.send_messages_flamapy(bot_token, chat_id)
                     formatted_message = message_template
-                case "HUBFILE":
-                    message_template = messages.get("HUBFILE", {}).get("message", "")
-                    user_data = {
-                        "available_models": "Model A, Model B",
-                        "last_model_used": "Model C",
-                    }
-                    formatted_message = message_template.format(**user_data)
-                case "FEATURE_MODEL":
-                    message_template = messages.get("FEATURE_MODEL", {}).get(
-                        "message", ""
-                    )
-                    formatted_message = message_template.format(**user_data)
                 case "FAKENODO":
+                    response = requests.get(f"{request.host_url}fakenodo/api")
+                    if response.status_code == 200:
+                        # Convertir la respuesta JSON a un diccionario
+                        data = response.json()
+                        print(data.get("message", "No conection"))
+                    user_data = {
+                        "connection": data.get("message", "No conection")
+                    }
                     message_template = messages.get("FAKENODO", {}).get("message", "")
                     formatted_message = message_template.format(**user_data)
                 case "HUB_STATS":
+                    # Statistics: total datasets and feature models
+                    datasets_counter = dataset_service.count_synchronized_datasets()
+                    feature_models_counter = feature_model_service.count_feature_models()
+
+                    # Statistics: total downloads
+                    total_dataset_downloads = dataset_service.total_dataset_downloads()
+                    total_feature_model_downloads = feature_model_service.total_feature_model_downloads()
+
+                    # Statistics: total views
+                    total_dataset_views = dataset_service.total_dataset_views()
+                    total_feature_model_views = feature_model_service.total_feature_model_views()
+
+                    user_data = {
+                        "datasets_counter": datasets_counter,
+                        "feature_models_counter": feature_models_counter,
+                        "total_dataset_downloads": total_dataset_downloads,
+                        "total_feature_model_downloads": total_feature_model_downloads,
+                        "total_dataset_views": total_dataset_views,
+                        "total_feature_model_views": total_feature_model_views
+                    }
+
                     message_template = messages.get("HUB_STATS", {}).get("message", "")
                     formatted_message = message_template.format(**user_data)
                 case _:
