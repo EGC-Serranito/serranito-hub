@@ -20,7 +20,7 @@ var currentId = 0;
 
             let field = document.createElement('input');
             field.name = name;
-            field.className = 'form-control';
+            field.className = 'form-control custom-search';
 
             fieldWrapper.appendChild(label);
             fieldWrapper.appendChild(field);
@@ -47,7 +47,7 @@ var currentId = 0;
         function createAuthorBlock(idx, suffix) {
             let newAuthor = document.createElement('div');
             newAuthor.className = 'author row';
-            newAuthor.style.cssText = "border:2px dotted #444;border-radius:10px;padding:10px;margin:10px 0; background-color: #21262d; color: white";
+            newAuthor.style.cssText = "border:2px dotted #444;border-radius:10px;padding:10px;margin:10px 0; background-color: #161b22; color: white";
         
             addField(newAuthor, `${suffix}authors-${idx}-name`, 'Name *');
             addField(newAuthor, `${suffix}authors-${idx}-affiliation`, 'Affiliation');
