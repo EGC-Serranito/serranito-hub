@@ -33,7 +33,7 @@ jobs:
           PRs=$(gh pr list --state open --json number,title,createdAt,mergeable,statusCheckRollup | jq '[.[] | select(.title | startswith("show"))]')
           echo "Found PRs: $PRs"
           # Iterate over each PR to verify conditions
-          echo "$PRs" | jq -c '.[]' | while read pr; do
+          echo "$PRs" | jq -c '.[]' | while read -r pr; do
             PR_NUMBER=$(echo "$pr" | jq -r '.number')
             PR_TITLE=$(echo "$pr" | jq -r '.title')
             PR_CREATED_AT=$(echo "$pr" | jq -r '.createdAt')
@@ -55,8 +55,13 @@ jobs:
               # Check if the PR is mergeable and all checks have passed
               if [ "$PR_MERGEABLE" = "MERGEABLE" ] && [ "$PR_STATUS_CHECKS" = "SUCCESS" ]; then
                 echo "Merging PR #$PR_NUMBER..."
+                # Retrieve the PR description and save to a temporary file
+                PR_BODY_FILE=$(mktemp)
+                gh pr view "$PR_NUMBER" --json body -q '.body' > "$PR_BODY_FILE"
                 # Merge the PR using the preferred merge method (e.g., merge commit)
-                gh pr merge $PR_NUMBER --merge --auto
+                gh pr merge "$PR_NUMBER" --merge --auto --body-file "$PR_BODY_FILE"
+                # Remove the temporary file
+                rm "$PR_BODY_FILE"
                 echo "PR #$PR_NUMBER merged."
               else
                 echo "PR #$PR_NUMBER is not ready to be merged. Mergeable: $PR_MERGEABLE, Status Checks: $PR_STATUS_CHECKS"
@@ -65,4 +70,3 @@ jobs:
               echo "PR #$PR_NUMBER - \"$PR_TITLE\" has not been open for 6 hours yet."
             fi
           done
-
