@@ -1,0 +1,24 @@
+messages:
+  AUTH:
+    message: "🔒 *Authentication and user management enabled.*\n\n *Current user:* {name} {surname} ({email}). \n*ORCID:* {orcid}."
+    feature: "AUTH"
+  
+  DATASET:
+    message: "📊 *Dataset Management Enabled*\n\n📂 *Here are your synchronized datasets:*\n\n{datasets}*Thank you for using our service!*"
+    feature: "DATASET"
+
+  EXPLORE:
+    message: "🔍 Exploration mode is ready. Explore areas such as {explore_areas}, analyze {analysis_types}, and uncover insights from your data. Top features and models include {top_features}."
+    feature: "EXPLORE"
+
+  FLAMAPY:
+    message: "🚀 Flamapy integration activated!\nSend your UVL code and we will validate it instantly."
+    feature: "FLAMAPY"
+
+  FAKENODO:
+    message: "🤖 Fake node activated for testing. {connection}."
+    feature: "FAKENODO"
+
+  HUBSTATS:
+    message: "📊 Hub Statistics:\n  - Datasets uploaded: {datasets_counter}\n  - Feature models available: {feature_models_counter}\n  - Datasets viewed: {total_dataset_views}\n  - Feature models viewed: {total_feature_model_views}\n  - Datasets downloaded: {total_dataset_downloads}\n  - Feature models downloaded: {total_feature_model_downloads}"
+    feature: "HUBSTATS"

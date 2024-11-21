@@ -1,6 +1,9 @@
 from app.modules.botintegration.repositories import BotIntegrationRepository
 from core.services.BaseService import BaseService
-import requests
+from app.modules.botintegration.features import FeatureService
+import os
+
+featureService = FeatureService()
 
 
 class NodeService(BaseService):
@@ -13,6 +16,12 @@ class NodeService(BaseService):
         Initializes the NodeService with the BotIntegrationRepository.
         """
         super().__init__(BotIntegrationRepository())
+
+    def transform_to_full_url(self, url):
+        # Check if the URL already starts with http:// or https://
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url  # Add http:// if no scheme present
+        return url
 
     def get_tree_nodes_by_user(self, user_id):
         """
@@ -122,37 +131,6 @@ class NodeService(BaseService):
                 return True
         return False
 
-    def send_messages_bot(self, bot_token, chat_id, features):
-
-        # Crear el mensaje con estilo Markdown
-        message = (
-            "*🔍 Características encontradas:*\n\n"  # Título en negrita
-            + "\n".join(
-                [f"• *{feature}*" for feature in features]
-            )  # Características en lista con viñetas y negritas
-            + "\n\n"
-            + "*Para más información sobre este bot, visita:* \n"
-            + "[serranito-hub-dev](https://serranito-hub-dev.onrender.com/botintegration)"
-        )
-
-        # URL de la API de Telegram para enviar el mensaje
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-
-        # Datos a enviar en la solicitud POST (con formato Markdown habilitado)
-        payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-
-        try:
-            # Realizar la solicitud POST a la API de Telegram
-            response = requests.post(url, data=payload, timeout=10)
-
-            # Comprobar si la solicitud fue exitosa
-            if response.status_code == 200:
-                print(f"Mensaje enviado a {chat_id} exitosamente.")
-            else:
-                print(f"Error al enviar mensaje: {response.status_code}")
-        except requests.exceptions.RequestException as e:
-            print(f"Error en la solicitud: {e}")
-
     def merge_node(self, node_id, user_id):
         try:
             # Recuperar datos del nodo
@@ -194,7 +172,14 @@ class NodeService(BaseService):
                                 for feature in second_child.get("children", [])
                             ]
                             if features:
-                                self.send_messages_bot(BOT_TOKEN, CHAT_ID, features)
+                                featureService.send_features_bot(
+                                    BOT_TOKEN,
+                                    CHAT_ID,
+                                    features,
+                                    self.transform_to_full_url(
+                                        os.getenv("DOMAIN", "localhost")
+                                    ),
+                                )
                                 print(features)
                                 print(BOT_TOKEN)
                                 print(CHAT_ID)
@@ -226,7 +211,14 @@ class NodeService(BaseService):
                                 for feature in second_child.get("children", [])
                             ]
                             if features:
-                                self.send_messages_bot(BOT_TOKEN, CHAT_ID, features)
+                                featureService.send_features_bot(
+                                    BOT_TOKEN,
+                                    CHAT_ID,
+                                    features,
+                                    self.transform_to_full_url(
+                                        os.getenv("DOMAIN", "localhost")
+                                    ),
+                                )
 
                             if not tree_nodes_dict:
                                 return {"error": "User tree is empty"}, 400
@@ -248,7 +240,7 @@ class NodeService(BaseService):
 
                             # Visualización del árbol
                             def print_tree(node, level=0):
-                                print("\t" * level + f"- {node['name']}")
+                                print("\t" * level + f"- {node['name']} ----- {node['path']}")
                                 for child in node.get("children", []):
                                     print_tree(child, level + 1)
 
@@ -328,10 +320,16 @@ class NodeService(BaseService):
                     chat
                     for chat in child.get("children", [])
                     if not (
-                        any(grandchild["name"] == "0" for grandchild in chat.get("children", []))
+                        any(
+                            grandchild["name"] == "0"
+                            for grandchild in chat.get("children", [])
+                        )
                         or (
                             chat["name"] == "1"
-                            and any(grandchild["name"] == "7" for grandchild in chat.get("children", []))
+                            and any(
+                                grandchild["name"] == "7"
+                                for grandchild in chat.get("children", [])
+                            )
                         )
                     )
                 ]
