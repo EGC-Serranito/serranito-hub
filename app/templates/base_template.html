@@ -86,6 +86,12 @@ chico sundermann">
                             class="align-middle">Dashboard</span>
                     </a>
                 </li>
+
+                <li class="sidebar-item {{ 'active' if request.endpoint == 'dashboard.index' else '' }}">
+                    <button id="theme-toggle" class="sidebar-link btn btn-secondary">
+                        Cambiar Tema
+                    </button>
+                </li>
                 
 
                 {% if not current_user.is_anonymous %}
@@ -321,6 +327,22 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         }
     
         sidebarToggleBtn.addEventListener("click", toggleSidebar);
+
+        const toggleButton = document.getElementById('theme-toggle');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+
+        if (savedTheme === 'light') {
+            document.documentElement.classList.add('light-theme');
+        }
+
+        toggleButton.addEventListener('click', () => {
+            document.documentElement.classList.toggle('light-theme');
+            let theme = 'dark';
+            if (document.documentElement.classList.contains('light-theme')) {
+                theme = 'light';
+            }
+            localStorage.setItem('theme', theme);
+        });
     });
 
 </script>
@@ -337,12 +359,28 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         --bg-primary: #161b22;
         --bg-secondary: #343a40;
         --bg-tertiary: #21262d;
-        --color-white: white;
+        --color-text: white;
         --color-hover: #cccccc;
         --color-disabled: #6c757d;
         --color-pagination-active: #495057;
+        --border-color: #444444;
+        --box-shadow-color: #5a5a5a;
     }
-    
+
+    .light-theme {
+        --bg-darkest: #ffffff;
+        --bg-primary: #f8f9fa;
+        --bg-secondary: #e9ecef;
+        --bg-tertiary: #dee2e6;
+        --color-text: #212529;
+        --color-hover: #000000;
+        --color-disabled: #adb5bd;
+        --color-pagination-active: #ced4da;
+        --border-color: #ced4da;
+        --box-shadow-color: #adb5bd;
+    }
+
+    body,
     .custom-search,
     .custom-content,
     .custom-navbar,
@@ -356,62 +394,79 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
     .modal-header,
     .modal-title,
     .modal-body,
+    label,
+    table,
+    tbody,
+    th,
+    td,
+    tr,
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
     h6 {
-        color: var(--color-white);
+        color: var(--color-text);
     }
-    
-    .custom-search {
-        background-color: var(--bg-primary);
-        border: 1px solid #444444;
-    }
-    
-    .custom-search:disabled{
-        background-color: var(--bg-343a40);
-    }
-    .custom-search:focus {
-        background-color: var(--bg-darkest);
-        color: var(--color-white);
-    }
-    
+
+    body,
     .custom-content,
+    .footer,
     .modal-body {
         background-color: var(--bg-tertiary);
     }
-    
+
     .custom-navbar,
+    .card-body,
+    .card-footer,
     .modal-header,
     .page-item {
         background-color: var(--bg-primary);
     }
-    
+
+    .custom-search {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .custom-search:disabled {
+        background-color: var(--bg-secondary);
+    }
+
+    .custom-search:focus {
+        background-color: var(--bg-darkest);
+        color: var(--color-text);
+    }
+
     .custom-pagination .page-link {
         background-color: var(--bg-secondary);
-        color: var(--color-white);
+        color: var(--color-text);
         border: 1px solid var(--bg-secondary);
     }
-    
+
     .dropdown-menu {
         background-color: var(--bg-primary);
     }
-    
+
     .form-select {
         background-color: var(--bg-primary);
-        color: var(--color-white);
-        border: 1px solid #444444;
+        color: var(--color-text);
+        border: 1px solid var(--border-color);
     }
-    
+
     .form-select:focus {
         background-color: var(--bg-tertiary);
-        color: var(--color-white);
-        border-color: #5a5a5a;
+        color: var(--color-text);
+        border-color: var(--box-shadow-color);
         box-shadow: none;
     }
-    
+
     .form-select option {
         background-color: var(--bg-primary);
-        color: var(--color-white);
+        color: var(--color-text);
     }
-    
+
     .custom-navbar .navbar-nav .nav-link:hover,
     .custom-navbar .navbar-brand:hover,
     .custom-navbar .navbar-text:hover,
@@ -420,22 +475,22 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         background-color: var(--bg-secondary);
         color: var(--color-hover);
     }
-    
+
     .custom-pagination .page-item.active .page-link,
     .custom-pagination .page-item.disabled .page-link {
         background-color: var(--color-pagination-active);
         border-color: var(--color-pagination-active);
     }
-    
+
     .custom-pagination .page-item.disabled .page-link {
         background-color: var(--color-disabled);
         border-color: var(--color-disabled);
     }
-    
+
     .modal-content {
         border-radius: 20px;
     }
-    
+
     .btn-close {
         filter: invert(70%);
         position: relative;
