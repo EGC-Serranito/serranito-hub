@@ -91,7 +91,7 @@ chico sundermann">
                 {% if not current_user.is_anonymous %}
 
                     <li class="sidebar-header">
-                        Datasets
+                        Your datasets
                     </li>
 
                     <li class="sidebar-item {{ 'active' if request.endpoint == 'dataset.create_dataset' else '' }}">
@@ -178,7 +178,7 @@ chico sundermann">
                         </a>
 
                         <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" data-bs-toggle="dropdown">
-                            <span class="custom-navbar">{{ current_user.profile.surname }}, {{ current_user.profile.name }}</span>
+                            <span class="">{{ current_user.profile.surname }}, {{ current_user.profile.name }}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end custom-navbar">
                             <a class="dropdown-item custom-navbar" href="{{ url_for('profile.my_profile') }}">
@@ -332,89 +332,113 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
 </html>
 
 <style>
-    .custom-search {
-        background-color: #161b22;
-        color: white;
-        border: 1px solid #444444;
+    :root {
+        --bg-darkest: #0d1117;
+        --bg-primary: #161b22;
+        --bg-secondary: #343a40;
+        --bg-tertiary: #21262d;
+        --color-white: white;
+        --color-hover: #cccccc;
+        --color-disabled: #6c757d;
+        --color-pagination-active: #495057;
     }
-
-    .custom-search:disabled {
-        background-color: #21262d;
-        color: white;
-        border: 1px solid #444444;
-    }
-
-    .custom-search:focus {
-        background-color: #161b22;
-        color: white;
-    }
-
-    .custom-content {
-        background-color: #21262d;
-        color: white;
-
-    }
-
-    .custom-navbar {
-        background-color: #161b22;
-        color: white;
-    }
-
+    
+    .custom-search,
+    .custom-content,
+    .custom-navbar,
     .custom-navbar .navbar-nav .nav-link,
     .custom-navbar .navbar-brand,
-    .custom-navbar .navbar-text {
-        color: white;
+    .custom-navbar .navbar-text,
+    .card-text,
+    .mb-3,
+    .page-item,
+    .dropdown-item,
+    .modal-header,
+    .modal-title,
+    .modal-body,
+    h6 {
+        color: var(--color-white);
     }
-
+    
+    .custom-search {
+        background-color: var(--bg-primary);
+        border: 1px solid #444444;
+    }
+    
+    .custom-search:disabled{
+        background-color: var(--bg-343a40);
+    }
+    .custom-search:focus {
+        background-color: var(--bg-darkest);
+        color: var(--color-white);
+    }
+    
+    .custom-content,
+    .modal-body {
+        background-color: var(--bg-tertiary);
+    }
+    
+    .custom-navbar,
+    .modal-header,
+    .page-item {
+        background-color: var(--bg-primary);
+    }
+    
+    .custom-pagination .page-link {
+        background-color: var(--bg-secondary);
+        color: var(--color-white);
+        border: 1px solid var(--bg-secondary);
+    }
+    
+    .dropdown-menu {
+        background-color: var(--bg-primary);
+    }
+    
+    .form-select {
+        background-color: var(--bg-primary);
+        color: var(--color-white);
+        border: 1px solid #444444;
+    }
+    
+    .form-select:focus {
+        background-color: var(--bg-tertiary);
+        color: var(--color-white);
+        border-color: #5a5a5a;
+        box-shadow: none;
+    }
+    
+    .form-select option {
+        background-color: var(--bg-primary);
+        color: var(--color-white);
+    }
+    
     .custom-navbar .navbar-nav .nav-link:hover,
     .custom-navbar .navbar-brand:hover,
-    .custom-navbar .navbar-text:hover {
-        color: #cccccc;
+    .custom-navbar .navbar-text:hover,
+    .custom-pagination .page-link:hover,
+    .dropdown-item:hover {
+        background-color: var(--bg-secondary);
+        color: var(--color-hover);
     }
-
-    .card-text {
-        color: white;
-    }
-
-    .mb-3 {
-        color: white;
-    }
-
-    .page-item {
-        color: white;
-        background-color: #161b22;
-    }
-
-    .custom-pagination .page-link {
-        background-color: #343a40;
-        color: white;
-        border: 1px solid #343a40;
-    }
-
-    .custom-pagination .page-link:hover {
-        background-color: #495057;
-        color: white;
-    }
-
-    .custom-pagination .page-item.active .page-link {
-        background-color: #495057;
-        border-color: #495057;
-    }
-
+    
+    .custom-pagination .page-item.active .page-link,
     .custom-pagination .page-item.disabled .page-link {
-        background-color: #6c757d;
-        border-color: #6c757d;
+        background-color: var(--color-pagination-active);
+        border-color: var(--color-pagination-active);
     }
-
-    .dropdown-item{
-        color: white;
+    
+    .custom-pagination .page-item.disabled .page-link {
+        background-color: var(--color-disabled);
+        border-color: var(--color-disabled);
     }
-
-    .dropdown-item:hover{
-        background-color: #343a40;
+    
+    .modal-content {
+        border-radius: 20px;
     }
-
-    .dropdown-menu{
-        background-color: #161b22;
+    
+    .btn-close {
+        filter: invert(70%);
+        position: relative;
+        top: -5px;
     }
 </style>
