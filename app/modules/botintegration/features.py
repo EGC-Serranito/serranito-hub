@@ -1,6 +1,7 @@
 import requests
 import yaml
 import json
+import os
 
 
 class FeatureService:
@@ -24,6 +25,57 @@ class FeatureService:
             print(f"Error parsing YAML: {e}")
             raise
 
+    def get_bot_token(self, bot_name, bottokens_path="app/modules/botintegration/assets/bottokens.yaml"):
+        """
+        Obtiene el token de un bot específico a partir del archivo .env y los datos en bottokens.yaml.
+
+        :param bot_name: Nombre del bot (por ejemplo, "@uvlhub-telegram1").
+        :param bottokens_path: Ruta al archivo YAML con las configuraciones de los bots.
+        :param env_path: Ruta al archivo .env.
+        :return: Token del bot como cadena.
+        :raises: FileNotFoundError, KeyError o ValueError si ocurre algún problema.
+        """
+        try:
+            # Cargar el archivo bottokens.yaml
+            with open(bottokens_path, "r") as file:
+                bottokens_data = yaml.safe_load(file)
+
+            # Buscar el bot en la lista de tokens
+            bot_entry = next(
+                (entry for entry in bottokens_data.get("bottokens", []) if entry["name"] == bot_name),
+                None
+            )
+
+            if not bot_entry:
+                raise ValueError(f"Bot name '{bot_name}' not found in {bottokens_path}.")
+
+            # Extraer la variable del token (por ejemplo, {BOT_TELEGRAM1})
+            token_var = bot_entry["token"]
+
+            # Obtener el valor de la variable del token
+            bot_token = os.getenv(token_var)
+
+            if not bot_token:
+                raise ValueError(f"Token variable '{token_var}' not found or empty.")
+
+            return bot_token
+
+        except FileNotFoundError as e:
+            print(f"Error: {e}")
+            raise
+        except yaml.YAMLError as e:
+            print(f"Error parsing YAML: {e}")
+            raise
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            raise
+
+    def transform_to_full_url(self, url):
+        # Check if the URL already starts with http:// or https://
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url  # Add http:// if no scheme present
+        return url
+
     def send_features_bot(self, bot_token, chat_id, features, BASE_URL):
         """
         :param bot_token: Token del bot de Telegram.
@@ -31,6 +83,8 @@ class FeatureService:
         :param features: Lista de características para las cuales enviar mensajes.
         :param user_data: Diccionario con los datos del usuario necesarios para formatear los mensajes.
         """
+        bot_token = self.get_bot_token(bot_token)
+        BASE_URL = self.transform_to_full_url(BASE_URL)
         # Cargar los mensajes desde el archivo YAML
         messages_config = self.load_messages()
         messages = messages_config.get("messages", {})
@@ -203,6 +257,18 @@ class FeatureService:
         Obtiene los mensajes enviados al bot y responde a cada uno de ellos con "Hola, soy el bot".
         """
         if (len(bot_token.split(":")) == 2 and not len(bot_token) == 64):
+            url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
+            response = requests.get(url, timeout=10)
+            webhook_info = response.json()
+
+            if webhook_info["result"]["url"]:
+                # Si hay un webhook activo, eliminarlo
+                delete_webhook_url = f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
+                delete_response = requests.get(delete_webhook_url, timeout=10)
+                if delete_response.status_code == 200:
+                    print("Webhook eliminado con éxito.")
+                else:
+                    print(f"Error al eliminar el webhook: {delete_response.text}")
             last_update_id = None
             # Obtener las actualizaciones (mensajes enviados al bot)
             url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
@@ -232,7 +298,7 @@ class FeatureService:
                     ]  # ID del mensaje recibido
                     uvl_message = update["message"].get("text", "Mensaje sin texto")
 
-                    if chat_id == chat_id_messages:
+                    if int(chat_id) == int(chat_id_messages):
                         # Llamar a la API de Flamapy con el mensaje
                         response = requests.post(
                             f"{BASE_URL}/flamapy/check_uvl",
@@ -273,7 +339,7 @@ class FeatureService:
             url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
 
             # Parámetros para obtener solo el mensaje más reciente
-            params = {"limit": 1}  # Limita la cantidad de mensajes a obtener
+            params = {"limit": 10}  # Limita la cantidad de mensajes a obtener
 
             # Los headers incluyen el token de autorización del bot
             headers = {"Authorization": f"Bot {bot_token}"}
@@ -287,49 +353,54 @@ class FeatureService:
 
                 # Muestra los mensajes recientes
                 for message in messages:
-                    print(
-                        f"Autor: {message['author']['username']} - Contenido: {message['content']}"
-                    )
-
-                    # Realiza la solicitud POST a la API externa para verificar el mensaje
-                    external_api_url = f"{BASE_URL}/flamapy/check_uvl"
-                    response = requests.post(
-                        external_api_url,
-                        json={
-                            "text": message["content"]
-                        }, timeout=10)
-
-                    # Obtiene el texto de respuesta de la API externa
-                    response_text = response.json().get("error", "Valid Model")
-
-                    # Configuración de los headers para responder al mensaje en Discord
-                    headers = {
-                        "Authorization": f"Bot {bot_token}",
-                        "Content-Type": "application/json",
-                    }
-
-                    # Datos para enviar como respuesta al mensaje
-                    data = {"content": response_text}
-
-                    # Envia la respuesta al mensaje en Discord
-                    send_response = requests.post(
-                        url, data=json.dumps(data), headers=headers, timeout=10)
-
-                    if send_response.status_code == 200:
+                    if not message['author'].get('bot', False):
                         print(
-                            f"Respondido al mensaje {message['id']} en el chat {chat_id}"
+                            f"Autor: {message['author']['username']} - Contenido: {message['content']}"
                         )
-                    else:
-                        print(
-                            f"Error al responder al mensaje {message['id']}: {send_response.text}"
-                        )
+
+                        # Realiza la solicitud POST a la API externa para verificar el mensaje
+                        external_api_url = f"{BASE_URL}/flamapy/check_uvl"
+                        response = requests.post(
+                            external_api_url,
+                            json={
+                                "text": message["content"]
+                            }, timeout=10)
+
+                        # Obtiene el texto de respuesta de la API externa
+                        response_text = response.json().get("error", "Valid Model")
+
+                        # Configuración de los headers para responder al mensaje en Discord
+                        headers = {
+                            "Authorization": f"Bot {bot_token}",
+                            "Content-Type": "application/json",
+                        }
+
+                        # Datos para enviar como respuesta al mensaje
+                        data = {
+                            "content": response_text,
+                            "message_reference": {
+                                "message_id": message['id']  # Referencia al mensaje original
+                            }
+                        }
+
+                        # Envia la respuesta al mensaje en Discord
+                        send_response = requests.post(
+                            url, data=json.dumps(data), headers=headers, timeout=10)
+
+                        if send_response.status_code == 200:
+                            print(
+                                f"Respondido al mensaje {message['id']} en el chat {chat_id}"
+                            )
+                        else:
+                            print(
+                                f"Error al responder al mensaje {message['id']}: {send_response.text}"
+                            )
             else:
                 print(f"Error al obtener los mensajes: {response.status_code}")
 
     def send_message_bot(self, bot_token, chat_id, feature, formatted_message):
         """
         Envía un mensaje formateado a un bot de Telegram.
-
         :param bot_token: Token del bot de Telegram.
         :param chat_id: ID del chat de Telegram al que enviar el mensaje.
         :param feature: La característica para la que se está enviando el mensaje.

@@ -267,6 +267,23 @@ class BotIntegrationRepository(BaseRepository):
             db.session.rollback()
             raise e
 
+    def get_tree_nodes_by_path(self, node_path):
+        """
+        Obtiene los nodos de tipo TreeNodeBot con el mismo path proporcionado.
+
+        :param node_path: El path del nodo para filtrar los TreeNodeBot.
+        :return: Lista de nodos TreeNodeBot que coinciden con el path dado.
+        """
+        try:
+            # Realizar la consulta en la base de datos para obtener los nodos de tipo TreeNodeBot
+            nodes = db.session.query(TreeNodeBot).filter(TreeNodeBot.path == node_path).all()
+
+            return nodes
+        except SQLAlchemyError as e:
+            # Manejo de errores en caso de que la consulta falle
+            print(f"Error fetching nodes by path: {e}")
+            return []
+
     def delete_node(self, node_id):
         """
         Elimina un nodo, sus descendientes y sus registros asociados en TreeNodeBot basados en el path del nodo.

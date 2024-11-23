@@ -17,20 +17,11 @@ class NodeService(BaseService):
         """
         super().__init__(BotIntegrationRepository())
 
-    def transform_to_full_url(self, url):
-        # Check if the URL already starts with http:// or https://
-        if not url.startswith(("http://", "https://")):
-            url = "http://" + url  # Add http:// if no scheme present
-        return url
-
     def get_tree_nodes_by_user(self, user_id):
-        """
-        Retrieves tree nodes associated with a specific user.
-
-        :param user_id: ID of the user
-        :return: List of tree nodes
-        """
         return self.repository.get_tree_nodes_by_user(user_id)
+
+    def get_tree_nodes_by_path(self, node_path):
+        return self.get_tree_nodes_by_path(node_path)
 
     def create_node_route_add_chat(self, user_id, name, parent_id, path, single_child):
         """
@@ -176,7 +167,7 @@ class NodeService(BaseService):
                                     BOT_TOKEN,
                                     CHAT_ID,
                                     features,
-                                    self.transform_to_full_url(
+                                    featureService.transform_to_full_url(
                                         os.getenv("DOMAIN", "localhost")
                                     ),
                                 )
@@ -215,7 +206,7 @@ class NodeService(BaseService):
                                     BOT_TOKEN,
                                     CHAT_ID,
                                     features,
-                                    self.transform_to_full_url(
+                                    featureService.transform_to_full_url(
                                         os.getenv("DOMAIN", "localhost")
                                     ),
                                 )

@@ -5,9 +5,40 @@ from app.modules.botintegration import botintegration_bp
 from app.modules.botintegration.forms import BotIntegrationForm
 from app.modules.botintegration.models import TreeNode
 from app import db
+import yaml
 
 # Instancia del servicio de nodos
 tree_node_service = NodeService()
+
+
+def load_features(file_path="app/modules/botintegration/assets/messages.yaml"):
+    try:
+        with open(file_path, "r") as file:
+            data = yaml.safe_load(file)
+        messages = data.get("messages", {})
+        features = [message["feature"] for message in messages.values()]
+        return features
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        raise
+    except yaml.YAMLError as e:
+        print(f"Error parsing YAML: {e}")
+        raise
+
+
+def load_bot_names(file_path="app/modules/botintegration/assets/bottokens.yaml"):
+    try:
+        with open(file_path, "r") as file:
+            data = yaml.safe_load(file)
+        # Extraer los nombres de los bot tokens
+        bot_names = [bot['name'] for bot in data.get('bottokens', [])]
+        return bot_names
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        raise
+    except yaml.YAMLError as e:
+        print(f"Error parsing YAML: {e}")
+        raise
 
 
 @botintegration_bp.route("/botintegration", methods=["GET"])
@@ -17,8 +48,9 @@ def index():
     form = BotIntegrationForm()
     tree = tree_node_service.get_tree_nodes_by_user(current_user.id)
     tree = tree[0].to_dict() if tree else []
-
-    return render_template("botintegration/index.html", tree=tree, form=form)
+    features = load_features()
+    bot_names = load_bot_names()
+    return render_template("botintegration/index.html", tree=tree, form=form, features=features, bot_names=bot_names)
 
 
 @botintegration_bp.route("/botintegration/add-bot", methods=["GET", "POST"])
