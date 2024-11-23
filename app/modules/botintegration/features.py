@@ -258,13 +258,13 @@ class FeatureService:
         """
         if (len(bot_token.split(":")) == 2 and not len(bot_token) == 64):
             url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
-            response = requests.get(url)
+            response = requests.get(url, timeout=10)
             webhook_info = response.json()
 
             if webhook_info["result"]["url"]:
                 # Si hay un webhook activo, eliminarlo
                 delete_webhook_url = f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
-                delete_response = requests.get(delete_webhook_url)
+                delete_response = requests.get(delete_webhook_url, timeout=10)
                 if delete_response.status_code == 200:
                     print("Webhook eliminado con éxito.")
                 else:
