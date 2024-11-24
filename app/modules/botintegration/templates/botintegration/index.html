@@ -165,7 +165,7 @@
         <div class="node">
 
             {% set name_mapping = {
-                "3": "BOT TOKEN",
+                "3": "BOTS",
                 "4": "CHATS",
                 "5": "TYPES OF NOTIFICATIONS",
                 "6": "NEW MESSAGES",
@@ -220,19 +220,17 @@
                         {% if node.name == "4" %}
                             {{ form.name(class_="form-control custom-search", placeholder="Enter your chat id") }}
                         {% elif node.name == "3" %}
-                            {{ form.name(class_="form-control custom-search", placeholder="Token of Telegram or Discord") }}
+                            <select name="name" id="features-selection" class="form-control custom-search">
+                                <option value="" disabled selected>Select a bot</option>
+                                {% for bot_name in bot_names %}
+                                    <option value="{{ bot_name }}">{{ bot_name }}</option>
+                                {% endfor %}
+                            </select>
                         {% elif node.name == "8" %}
                             <select name="name" id="features-selection" class="form-control custom-search">
                                 <option value="" disabled selected>Select a feature</option>
-                                {% for value, label in [
-                                    ("AUTH", "AUTH"),
-                                    ("DATASET", "DATASET"),
-                                    ("EXPLORE", "EXPLORE"),
-                                    ("FLAMAPY", "FLAMAPY"),
-                                    ("FAKENODO", "FAKENODO"),
-                                    ("HUBSTATS", "HUBSTATS")
-                                ] %}
-                                    <option value="{{ value }}">{{ label }}</option>
+                                {% for feature in features %}
+                                    <option value="{{ feature }}">{{ feature }}</option>
                                 {% endfor %}
                             </select>
                         {% elif node.name in ["6"] %}

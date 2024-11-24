@@ -30,13 +30,6 @@ def bot_task(app):
         start_bot_task()
 
 
-def transform_to_full_url(url):
-    # Check if the URL already starts with http:// or https://
-    if not url.startswith(("http://", "https://")):
-        url = "http://" + url  # Add http:// if no scheme present
-    return url
-
-
 def start_bot_task():
     """Starts the bot task by processing the node tree and sending messages."""
 
@@ -81,7 +74,7 @@ def start_bot_task():
                             # Ensure features is a list (it should always be, but we guard against empty cases)
                             if features:
                                 domain = os.getenv("DOMAIN", "localhost")  # Default to 'localhost' if DOMAIN is missing
-                                url = transform_to_full_url(domain)
+                                url = featureService.transform_to_full_url(domain)
                                 # Send features only if we have them
                                 featureService.send_features_bot(BOT_TOKEN, CHAT_ID, features, url)
     except Exception as e:
