@@ -174,7 +174,7 @@
                 "9": "DAILY - Notifications will be sent at 8 PM daily."
             } %}
             {% if node.children and node.children|length > 0 %}
-                <input type="checkbox" id="node-{{ node.id }}" {% if node.id in open_nodes %}checked{% endif %}>    
+                <input type="checkbox" id="node-{{ node.id }}" {% if node.id in open_nodes %}checked{% endif %}>
                 {% if node.name != "0" and node.name != "1" %}
                     <label for="node-{{ node.id }}">{{ name_mapping.get(node.name, node.name) }}</label>
                 {% else %}
@@ -218,23 +218,23 @@
                         <input type="hidden" name="parent_id" value="{{ node.id }}">
                         
                         {% if node.name == "4" %}
-                            {{ form.name(class_="form-control", placeholder="Enter your chat id") }}
+                            {{ form.name(class_="form-control custom-search", placeholder="Enter your chat id") }}
                         {% elif node.name == "3" %}
-                            <select name="name" id="features-selection" class="form-control">
+                            <select name="name" id="features-selection" class="form-control custom-search">
                                 <option value="" disabled selected>Select a bot</option>
                                 {% for bot_name in bot_names %}
                                     <option value="{{ bot_name }}">{{ bot_name }}</option>
                                 {% endfor %}
                             </select>
                         {% elif node.name == "8" %}
-                            <select name="name" id="features-selection" class="form-control">
+                            <select name="name" id="features-selection" class="form-control custom-search">
                                 <option value="" disabled selected>Select a feature</option>
                                 {% for feature in features %}
                                     <option value="{{ feature }}">{{ feature }}</option>
                                 {% endfor %}
                             </select>
                         {% elif node.name in ["6"] %}
-                            <select name="name" id="errors-selection" class="form-control">
+                            <select name="name" id="errors-selection" class="form-control custom-search">
                                 <option value="" disabled selected>Select a frequency</option>
                                 {% for value, label in [
                                     ("9", "DAILY - Notifications will be sent at 8 PM daily."),
@@ -277,7 +277,7 @@
                 <h2>BOT TOKEN</h2>
                 <div class="form-container">
                     <form method="POST" action="{{ url_for('botintegration.create_node_route_add_bot') }}" style="display: inline;">
-                        {{ form.name(class_="form-control", placeholder="Token of Telegram or Discord") }}
+                        {{ form.name(class_="form-control custom-search", placeholder="Token of Telegram or Discord") }}
 
                         {{ form.submit(class_="add-btn") }}
                     </form>

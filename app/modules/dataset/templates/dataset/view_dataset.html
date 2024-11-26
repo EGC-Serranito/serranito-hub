@@ -36,7 +36,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h1><b style="color:white">{{ dataset.ds_meta_data.title }}</b></h1>
+                    <h1><b>{{ dataset.ds_meta_data.title }}</b></h1>
                     <div>
                         <span class="badge bg-secondary">{{ dataset.get_cleaned_publication_type() }}</span>
                     </div>
@@ -88,7 +88,7 @@
                             {% endif %}
                         </p>
                         {% endfor %}
-                    </div>        // Insertar el mensaje debajo del botón de calificación
+                    </div>        <p>// Insertar el mensaje debajo del botón de calificación</p>
                 </div>
 
                 {% if dataset.ds_meta_data.publication_doi %}
@@ -212,7 +212,7 @@
 
             <div class="card-body">
 
-                <h3 style="color:white"> Related publication </h3>
+                <h3> Related publication </h3>
 
                 David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides,
                 <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
@@ -227,23 +227,23 @@
 
             <div class="card-body mt-0 pt-0">
 
-                <button onclick="copyText('bibtex_cite')" class="btn btn-dark btn-sm"
+                <button onclick="copyText('bibtex_cite')" class="btn btn-custom btn-sm"
                     style="border-radius: 5px; margin-right: 10px">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in BibTex
                 </button>
 
-                <button onclick="copyText('ris_cite')" class="btn btn-dark btn-sm" style="border-radius: 5px;">
+                <button onclick="copyText('ris_cite')" class="btn btn-custom btn-sm" style="border-radius: 5px;">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in RIS
                 </button>
 
-                <button onclick="copyText('apa_cite')" class="btn btn-dark btn-sm" style="border-radius: 5px;">
+                <button onclick="copyText('apa_cite')" class="btn btn-custom btn-sm" style="border-radius: 5px;">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in APA
                 </button>
 
-                <button onclick="copyText('text_cite')" class="btn btn-dark btn-sm" style="border-radius: 5px;">
+                <button onclick="copyText('text_cite')" class="btn btn-custom btn-sm" style="border-radius: 5px;">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in text
                 </button>
@@ -259,12 +259,12 @@
 
         <div class="list-group">
 
-            <div class="list-group-item"  style="background-color:#161b22">
+            <div class="list-group-item">
 
                 <div class="row">
                     <div class="col-12 d-flex justify-content-between align-items-center">
-                        <h4 style="margin-bottom: 0px; color:white">UVL models</h4>
-                        <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count()
+                        <h4 style="margin-bottom: 0px;">UVL models</h4>
+                        <h4 style="margin-bottom: 0px;"><span class="badge bg-custom">{{ dataset.get_files_count()
                                 }}</span></h4>
                     </div>
                 </div>
@@ -275,7 +275,7 @@
 
             {% for feature_model in dataset.feature_models %}
             {% for file in feature_model.files %}
-            <div class="list-group-item" style="color:white; background-color:#161b22">
+            <div class="list-group-item">
 
                 <div class="row">
                     <div class="col-12">
@@ -394,7 +394,7 @@
             </div>
             <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
                 <pre id="fileContent"
-                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; background-color: #21262d; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
+                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
             </div>
         </div>
     </div>
