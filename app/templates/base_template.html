@@ -86,12 +86,6 @@ chico sundermann">
                             class="align-middle">Dashboard</span>
                     </a>
                 </li>
-
-                <li class="sidebar-item {{ 'active' if request.endpoint == 'dashboard.index' else '' }}">
-                    <button id="theme-toggle" class="sidebar-link btn btn-secondary">
-                        Cambiar Tema
-                    </button>
-                </li>
                 
 
                 {% if not current_user.is_anonymous %}
@@ -130,6 +124,12 @@ chico sundermann">
                 {% endif %}
 
             </ul>
+
+            <li class="sidebar-item {{ 'active' if request.endpoint == 'dashboard.index' else '' }}" style="display: flex; justify-content: center; align-items: center;">
+                <button id="theme-toggle" class="btn btn-primary">
+                    Cambiar Tema
+                </button>
+            </li>
 
             {% if APP_VERSION != 'unknown' and APP_VERSION != '' %}
             <div class="sidebar-cta text-center">
@@ -190,7 +190,7 @@ chico sundermann">
                             <a class="dropdown-item custom-navbar" href="{{ url_for('profile.my_profile') }}">
                                 <i class="align-middle me-1" data-feather="user"></i> My profile</a>
                             <a class="dropdown-item custom-navbar" href="{{ url_for('profile.edit_profile') }}">
-                                <i class="align-middle me-1" data-feather="user"></i> Edit profile</a>
+                                <i class="align-middle me-1" data-feather="edit-2"></i> Edit profile</a>
                             <a class="dropdown-item custom-navbar" href="{{ url_for('auth.logout') }}">
                                 <i class="align-middle me-1" data-feather="log-out"></i> Log out</a>
                         </div>
@@ -365,6 +365,9 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         --color-pagination-active: #495057;
         --border-color: #444444;
         --box-shadow-color: #5a5a5a;
+        --alert-warning-bg: #4a4a2c;
+        --alert-success-bg: #2d4a2d;
+        --alert-error-bg: #4a2d2d;
     }
 
     .light-theme {
@@ -378,28 +381,37 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         --color-pagination-active: #ced4da;
         --border-color: #ced4da;
         --box-shadow-color: #adb5bd;
+        --alert-warning-bg: #FFF3CD;
+        --alert-success-bg: #D4EDD9;
+        --alert-error-bg: #F9D6D9;
     }
 
     body,
+    .btn-custom,
     .custom-search,
     .custom-content,
     .custom-navbar,
     .custom-navbar .navbar-nav .nav-link,
     .custom-navbar .navbar-brand,
     .custom-navbar .navbar-text,
-    .card-text,
-    .mb-3,
-    .page-item,
+    .card-text, .card-body, .list-group-item,
+    .mb-3, .bg-custom,
+    .page-item, .dropzone,
     .dropdown-item,
     .modal-header,
     .modal-title,
     .modal-body,
+    .card-title,
+    .card-header,
+    .fa,
+    .me-1,
     label,
     table,
     tbody,
     th,
     td,
     tr,
+    i,
     p,
     h1,
     h2,
@@ -407,30 +419,41 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
     h4,
     h5,
     h6 {
-        color: var(--color-text);
+        color: var(--color-text) !important;
     }
 
     body,
     .custom-content,
     .footer,
+    .btn-custom,
+    .bg-custom,
     .modal-body {
         background-color: var(--bg-tertiary);
     }
 
     .custom-navbar,
+    .card, .card-title,
+    .card-header,
+    .list-group-item,
     .card-body,
     .card-footer,
+    .dropzone,
     .modal-header,
     .page-item {
         background-color: var(--bg-primary);
     }
+
+    .upload-custom {
+        background-color: var(--bg-primary) !important;
+    }
+
 
     .custom-search {
         background-color: var(--bg-primary);
         border: 1px solid var(--border-color);
     }
 
-    .custom-search:disabled {
+    .custom-search:disabled, .btn-custom:hover {
         background-color: var(--bg-secondary);
     }
 
@@ -496,4 +519,44 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         position: relative;
         top: -5px;
     }
+
+    .custom-img {
+        background-color: white;
+    }
+
+    .new-author-style {
+        border: 2px dotted #444;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px 0;
+        background-color: var(--bg-tertiary);
+    }
+
+    .card-header-custom,
+    .card-title-custom {
+        background-color: var(--bg-secondary);
+    }
+
+    .error {
+        border: 1px solid red;
+    }
+    
+    .alert-warning {
+        background-color: var(--alert-warning-bg);
+        padding: 20px;
+        border-radius: 5px;
+    }
+    
+    .alert-success {
+        background-color: var(--alert-success-bg);
+        padding: 20px;
+        border-radius: 5px;
+    }
+    
+    .alert-error {
+        background-color: var(--alert-error-bg);
+        padding: 20px;
+        border-radius: 5px;
+    }
+
 </style>
