@@ -21,8 +21,17 @@
                 <p class="card-text h5"><i class="fa fa-database"></i> <strong>Uploaded datasets:</strong> {{ datasets|length }} datasets</p>
             </div>
         </div>
+        
     </div>
+    <div class="col-12 col-md-4" style="margin-left: 173px;">
+        <h5 style="color:white">Tag Cloud</h5>
+        <div id="tag-cloud" class="mb-3 tag-cloud">
+        </div>
+    </div>
+    
 </div>
+
+
 
 <!-- <div class="row">
     <div class="col-12">
@@ -133,3 +142,109 @@
 
 
 {% endblock %}  
+
+{% block scripts %}
+    <script src="{{ url_for('explore.scripts') }}"></script>
+    <script>
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function getRandomPosition(max) {
+            return Math.floor(Math.random() * max) + 'px';
+        }
+
+        function showResetButton() {
+            let resetButton = document.getElementById('reset-button');
+            if (!resetButton) {
+            resetButton = document.createElement('button');
+            resetButton.id = 'reset-button';
+            resetButton.className = 'btn btn-primary btn-sm';
+            resetButton.style = 'border-radius: 5px; position: absolute; top: 160px; left: 450px; margin-top: 10px;';
+            resetButton.innerText = 'Back to View Profile';
+            resetButton.onclick = () => {
+                const datasets = document.querySelectorAll('.card');
+                datasets.forEach(dataset => {
+                dataset.style.display = 'block';
+                });
+                resetButton.style.display = 'none';
+            };
+            const tagCloud = document.getElementById('tag-cloud');
+            tagCloud.parentNode.insertBefore(resetButton, tagCloud);
+            }
+            resetButton.style.display = 'block';
+        }
+
+        function filterDatasetsByTag(tag) {
+            const datasets = document.querySelectorAll('.card');
+            datasets.forEach(dataset => {
+            const tags = dataset.querySelectorAll('.badge.bg-secondary');
+            let hasTag = false;
+            tags.forEach(t => {
+                if (t.innerText.trim() === tag) {
+                hasTag = true;
+                }
+            });
+            if (hasTag) {
+                dataset.style.display = 'block';
+            } else {
+                dataset.style.display = 'none';
+            }
+            });
+            showResetButton();
+        }
+
+        // Cargar la nube de etiquetas al cargar la página
+        fetch('{{ url_for("explore.tag_cloud") }}')
+            .then(response => response.json())
+            .then(data => {
+                const tagCloud = document.getElementById('tag-cloud');
+                tagCloud.innerHTML = '';
+                for (let [tag, count] of Object.entries(data)) {
+                    const tagElement = document.createElement('a');
+                    tagElement.className = 'tag';
+                    tagElement.style.fontSize = `${Math.min(count * 5, 30)}px`;
+                    tagElement.style.color = getRandomColor();
+                    tagElement.innerText = tag;
+                    tagElement.href = '#';
+                    tagElement.onclick = (e) => {
+                        e.preventDefault();
+                        filterDatasetsByTag(tag);
+                    };
+                    
+                    // Establece una posición aleatoria dentro de la nube
+                    tagElement.style.left = getRandomPosition(tagCloud.offsetWidth - 50);
+                    tagElement.style.top = getRandomPosition(tagCloud.offsetHeight - 50);
+
+                    tagCloud.appendChild(tagElement);
+                }
+            });
+    </script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .tag-cloud {
+        position: relative;
+        width: 100%;
+        height: 300px; /* Altura de la nube */
+        overflow: hidden;
+        border: 1px solid #ddd; /* Opcional, para ver los límites de la nube */
+    }
+    .tag-cloud .tag {
+        position: absolute; /* Para posicionar de forma dispersa */
+        text-decoration: none;
+        font-weight: bold;
+        transition: transform 0.2s;
+        color: inherit;
+    }
+    .tag-cloud .tag:hover {
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}
