@@ -1,5 +1,9 @@
 from app.modules.botintegration.repositories import BotIntegrationRepository
 from core.services.BaseService import BaseService
+from app.modules.botintegration.features import FeatureService
+import os
+
+featureService = FeatureService()
 
 
 class NodeService(BaseService):
@@ -14,13 +18,10 @@ class NodeService(BaseService):
         super().__init__(BotIntegrationRepository())
 
     def get_tree_nodes_by_user(self, user_id):
-        """
-        Retrieves tree nodes associated with a specific user.
-
-        :param user_id: ID of the user
-        :return: List of tree nodes
-        """
         return self.repository.get_tree_nodes_by_user(user_id)
+
+    def get_tree_nodes_by_path(self, node_path):
+        return self.get_tree_nodes_by_path(node_path)
 
     def create_node_route_add_chat(self, user_id, name, parent_id, path, single_child):
         """
@@ -60,7 +61,9 @@ class NodeService(BaseService):
             single_child=single_child,
         )
 
-    def create_node_route_add_types_notification(self, user_id, name, parent_id, path, single_child):
+    def create_node_route_add_types_notification(
+        self, user_id, name, parent_id, path, single_child
+    ):
         """
         Creates a node route for adding types of notifications.
 
@@ -79,7 +82,9 @@ class NodeService(BaseService):
             single_child=single_child,
         )
 
-    def create_node_route_add_feature(self, user_id, name, parent_id, path, single_child):
+    def create_node_route_add_feature(
+        self, user_id, name, parent_id, path, single_child
+    ):
         """
         Creates a node route for adding a feature.
 
@@ -107,6 +112,16 @@ class NodeService(BaseService):
         """
         return self.repository.delete_node(node_id)
 
+    def find_child_with_name(self, child, name_to_find):
+        """Función recursiva para encontrar un nodo con un nombre específico en los hijos."""
+        if child.get("name") == name_to_find:
+            return True
+        # Verificar si el niño tiene más hijos y seguir buscando recursivamente
+        for grandchild in child.get("children", []):
+            if self.find_child_with_name(grandchild, name_to_find):
+                return True
+        return False
+
     def merge_node(self, node_id, user_id):
         try:
             # Recuperar datos del nodo
@@ -115,42 +130,116 @@ class NodeService(BaseService):
                 return {"error": "Node not found"}, 404
 
             current_name = node_data["name"]
-            new_name = "0" if current_name == "1" else "1" if current_name == "0" else current_name
+            new_name = (
+                "0"
+                if current_name == "1"
+                else "1" if current_name == "0" else current_name
+            )
             self.repository.update_node_name(node_id, new_name)
 
             # Recuperar árboles
             treenode_bot = self.repository.get_tree_nodes_by_bot()
             tree_nodes = self.repository.get_tree_nodes_by_user(user_id)
-            tree_nodes_dict = [node.to_dict() for node in tree_nodes] if tree_nodes else []
-            treenode_bot_dict = [node.to_dict() for node in treenode_bot] if treenode_bot else []
+            tree_nodes_dict = (
+                [node.to_dict() for node in tree_nodes] if tree_nodes else []
+            )
+            treenode_bot_dict = (
+                [node.to_dict() for node in treenode_bot] if treenode_bot else []
+            )
 
-            if not tree_nodes_dict:
-                return {"error": "User tree is empty"}, 400
+            for node in tree_nodes_dict:
+                # Verificar que estamos trabajando con el nodo correcto
+                if node_data["name"] == "0" and node.get("id") == node_id:
+                    # Revisar si se encuentra el nodo con el nombre 7 de manera recursiva
+                    if self.find_child_with_name(node, "7"):
+                        # Verificar si el segundo hijo tiene hijos y extraer sus nombres
+                        if len(node.get("children", [])) > 1:
+                            second_child = node.get("children")[1]
+                            BOT_TOKEN = second_child.get("path").split("/")[1]
+                            CHAT_ID = second_child.get("path").split("/")[3]
+                            # Extraer los nombres de los hijos del segundo hijo
+                            features = [
+                                feature.get("name")
+                                for feature in second_child.get("children", [])
+                            ]
+                            if features:
+                                featureService.send_features_bot(
+                                    BOT_TOKEN,
+                                    CHAT_ID,
+                                    features,
+                                    featureService.transform_to_full_url(
+                                        os.getenv("DOMAIN", "localhost")
+                                    ),
+                                )
+                                print(features)
+                                print(BOT_TOKEN)
+                                print(CHAT_ID)
+                                node_data = self.repository.get_node_by_id(node_id)
+                                if not node_data:
+                                    return {"error": "Node not found"}, 404
 
-            # Limpieza y fusión de árboles
-            if treenode_bot_dict:
-                self.remove_stopped_chats(treenode_bot_dict[0])
-                merged_tree = self.merge_nary_trees(tree_nodes_dict[0], treenode_bot_dict[0])
-            else:
-                merged_tree = tree_nodes_dict[0]
+                                current_name = node_data["name"]
+                                new_name = (
+                                    "0"
+                                    if current_name == "1"
+                                    else "1" if current_name == "0" else current_name
+                                )
+                                self.repository.update_node_name(node_id, new_name)
+                            else:
+                                print(
+                                    "No se encontraron características en los hijos del segundo hijo."
+                                )
+                        else:
+                            print("El nodo no tiene un segundo hijo.")
+                    else:
+                        if len(node.get("children", [])) > 1:
+                            second_child = node.get("children")[1]
+                            BOT_TOKEN = second_child.get("path").split("/")[1]
+                            CHAT_ID = second_child.get("path").split("/")[3]
+                            # Extraer los nombres de los hijos del segundo hijo
+                            features = [
+                                feature.get("name")
+                                for feature in second_child.get("children", [])
+                            ]
+                            if features:
+                                featureService.send_features_bot(
+                                    BOT_TOKEN,
+                                    CHAT_ID,
+                                    features,
+                                    featureService.transform_to_full_url(
+                                        os.getenv("DOMAIN", "localhost")
+                                    ),
+                                )
 
-            # Validación y limpieza final
-            if not merged_tree or "name" not in merged_tree:
-                raise ValueError("Merged tree is invalid.")
+                            if not tree_nodes_dict:
+                                return {"error": "User tree is empty"}, 400
 
-            self.remove_stopped_chats(merged_tree)
+                            # Limpieza y fusión de árboles
+                            if treenode_bot_dict:
+                                self.remove_stopped_chats(treenode_bot_dict[0])
+                                merged_tree = self.merge_nary_trees(
+                                    tree_nodes_dict[0], treenode_bot_dict[0]
+                                )
+                            else:
+                                merged_tree = tree_nodes_dict[0]
 
-            # Visualización del árbol
-            def print_tree(node, level=0):
-                print("\t" * level + f"- {node['name']}")
-                for child in node.get("children", []):
-                    print_tree(child, level + 1)
+                            # Validación y limpieza final
+                            if not merged_tree or "name" not in merged_tree:
+                                raise ValueError("Merged tree is invalid.")
 
-            print_tree(merged_tree)
+                            self.remove_stopped_chats(merged_tree)
 
-            # Guardar árbol combinado en la base de datos
-            self.repository.clear_treenode_bot_table()
-            self.repository.save_bot_tree_to_db(merged_tree)
+                            # Visualización del árbol
+                            def print_tree(node, level=0):
+                                print("\t" * level + f"- {node['name']} ----- {node['path']}")
+                                for child in node.get("children", []):
+                                    print_tree(child, level + 1)
+
+                            print_tree(merged_tree)
+
+                            # Guardar árbol combinado en la base de datos
+                            self.repository.clear_treenode_bot_table()
+                            self.repository.save_bot_tree_to_db(merged_tree)
 
             return {"message": "Node merged successfully!", "node_id": node_id}, 200
 
@@ -180,7 +269,7 @@ class NodeService(BaseService):
             "path": tree1["path"],  # Mantén el path del primer árbol
             "parent_id": tree1.get("parent_id") or tree2.get("parent_id"),
             "single_child": tree1.get("single_child") or tree2.get("single_child"),
-            "children": []
+            "children": [],
         }
 
         # Crear un mapa para los hijos de tree1 usando el atributo 'name' como clave
@@ -190,7 +279,9 @@ class NodeService(BaseService):
         for child2 in tree2.get("children", []):
             if child2["name"] in children_map:
                 # Si el hijo existe en ambos árboles, fusiónalos recursivamente
-                merged_child = self.merge_nary_trees(children_map[child2["name"]], child2)
+                merged_child = self.merge_nary_trees(
+                    children_map[child2["name"]], child2
+                )
                 merged_node["children"].append(merged_child)
                 del children_map[child2["name"]]  # Eliminar el hijo fusionado del mapa
             else:
@@ -205,18 +296,34 @@ class NodeService(BaseService):
 
     def remove_stopped_chats(self, node):
         """
-        Elimina los nodos de chat que tienen un estado "0" bajo nodos '4'.
+        Removes chat nodes that have a state "0" under nodes '4',
+        or nodes with state "1" that have children with name "7".
 
-        :param node: Nodo del árbol para procesar.
+        :param node: Node of the tree to process.
         """
-        # Procesar los hijos del nodo actual
+        # Process the children of the current node
         for child in node.get("children", []):
             if child["name"] == "4":
-                # Filtrar los chats que no tienen hijos con nombre "0"
+                # Filter chats based on the conditions:
+                # - Remove if any child has "name" == "0".
+                # - Remove if "name" == "1" and has children with "name" == "7".
                 child["children"] = [
-                    chat for chat in child.get("children", [])
-                    if not any(grandchild["name"] == "0" for grandchild in chat.get("children", []))
+                    chat
+                    for chat in child.get("children", [])
+                    if not (
+                        any(
+                            grandchild["name"] == "0"
+                            for grandchild in chat.get("children", [])
+                        )
+                        or (
+                            chat["name"] == "1"
+                            and any(
+                                grandchild["name"] == "7"
+                                for grandchild in chat.get("children", [])
+                            )
+                        )
+                    )
                 ]
             else:
-                # Llamada recursiva para los demás nodos
+                # Recursive call for other nodes
                 self.remove_stopped_chats(child)

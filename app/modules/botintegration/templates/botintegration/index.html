@@ -26,7 +26,7 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 16px;
-        color: #333;
+        color: #eeeded;
         display: inline-block;
         margin-bottom: 10px;
         position: relative;
@@ -37,7 +37,7 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 16px;
-        color: #333;
+        color: #dfdfdf;
         display: inline-block;
         margin-bottom: 10px;
         position: relative;
@@ -160,21 +160,21 @@
 <h1 class="h3 mb-3">Bot Configuration</h1>
 
 <div id="tree" class="tree">
-    {% macro render_tree(node, form) %}
+    {% set open_nodes = session.get('open_nodes', []) %}
+    {% macro render_tree(node, form, open_nodes) %}
         <div class="node">
 
             {% set name_mapping = {
-                "3": "TELEGRAM BOTS",
+                "3": "BOTS",
                 "4": "CHATS",
                 "5": "TYPES OF NOTIFICATIONS",
                 "6": "NEW MESSAGES",
-                "7": "SYSTEM ERRORS",
+                "7": "IMMEDIATELY - Notifications will be sent immediately.",
                 "8": "FEATURES",
-                "9": "NOTIFICATION PREFERENCE"
+                "9": "DAILY - Notifications will be sent at 8 PM daily."
             } %}
-            
             {% if node.children and node.children|length > 0 %}
-                <input type="checkbox" id="node-{{ node.id }}">    
+                <input type="checkbox" id="node-{{ node.id }}" {% if node.id in open_nodes %}checked{% endif %}>    
                 {% if node.name != "0" and node.name != "1" %}
                     <label for="node-{{ node.id }}">{{ name_mapping.get(node.name, node.name) }}</label>
                 {% else %}
@@ -201,7 +201,7 @@
 
 
             <div class="form-container">
-                {% if node.name in ["4", "3", "8", "7", "6"] %}
+                {% if node.name in ["4", "3", "8", "6"] %}
                     <form method="POST" action="
                         {% if node.name == '4' %}
                             {{ url_for('botintegration.create_node_route_add_chat') }}
@@ -209,7 +209,7 @@
                             {{ url_for('botintegration.create_node_route_add_bot') }}
                         {% elif node.name == '8' %}
                             {{ url_for('botintegration.create_node_route_add_feature') }}
-                        {% elif node.name in ['7', '6'] %}
+                        {% elif node.name in ['6'] %}
                             {{ url_for('botintegration.create_node_route_add_types_notification') }}
                         {% endif %}" 
                         style="display: inline;">
@@ -218,39 +218,27 @@
                         <input type="hidden" name="parent_id" value="{{ node.id }}">
                         
                         {% if node.name == "4" %}
-                            {{ form.name(class_="form-control", placeholder="Enter your telegram chat id") }}
+                            {{ form.name(class_="form-control", placeholder="Enter your chat id") }}
                         {% elif node.name == "3" %}
-                            <select name="name" id="bot-selection" class="form-control">
-                                <option value="" disabled selected>Select a telegram bot</option>
-                                {% for value, label in [
-                                    ("5610517330:AAFmH2yl8YXRRN-mqSiIKVTSTvVykBwZNCw", "@uvlhub_bot1"),
-                                    ("7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI", "@uvlhub_bot2")
-                                ] %}
-                                    <option value="{{ value }}">{{ label }}</option>
+                            <select name="name" id="features-selection" class="form-control">
+                                <option value="" disabled selected>Select a bot</option>
+                                {% for bot_name in bot_names %}
+                                    <option value="{{ bot_name }}">{{ bot_name }}</option>
                                 {% endfor %}
                             </select>
                         {% elif node.name == "8" %}
                             <select name="name" id="features-selection" class="form-control">
                                 <option value="" disabled selected>Select a feature</option>
-                                {% for value, label in [
-                                    ("AUTH", "AUTH"),
-                                    ("DATASET", "DATASET"),
-                                    ("EXPLORE", "EXPLORE"),
-                                    ("FLAMAPY", "FLAMAPY"),
-                                    ("HUBFILE", "HUBFILE"),
-                                    ("FEATURE MODEL", "FEATURE MODEL"),
-                                    ("FAKENODO", "FAKENODO"),
-                                ] %}
-                                    <option value="{{ value }}">{{ label }}</option>
+                                {% for feature in features %}
+                                    <option value="{{ feature }}">{{ feature }}</option>
                                 {% endfor %}
                             </select>
-                        {% elif node.name in ["7", "6"] %}
+                        {% elif node.name in ["6"] %}
                             <select name="name" id="errors-selection" class="form-control">
                                 <option value="" disabled selected>Select a frequency</option>
                                 {% for value, label in [
-                                    ("DAILY", "DAILY"),
-                                    ("WEEKLY", "WEEKLY"),
-                                    ("IMMEDIATELY", "IMMEDIATELY")
+                                    ("9", "DAILY - Notifications will be sent at 8 PM daily."),
+                                    ("7", "IMMEDIATELY - Notifications will be sent immediately.")
                                 ] %}
                                     <option value="{{ value }}">{{ label }}</option>
                                 {% endfor %}
@@ -280,23 +268,16 @@
         </div>
     {% endmacro %}
 
+    {% set open_nodes = session.get('open_nodes', []) %}
     {% if tree and tree|length > 0 %}
-        {{ render_tree(tree, form) }}
+        {{ render_tree(tree, form, open_nodes) }}
     {% else %}
         <div id="tree" class="tree">
             <div class="node">
-                <h2>TELEGRAM BOTS</h2>
+                <h2>BOT TOKEN</h2>
                 <div class="form-container">
                     <form method="POST" action="{{ url_for('botintegration.create_node_route_add_bot') }}" style="display: inline;">
-                            <select name="name" id="bot-selection" class="form-control">
-                                <option value="" disabled selected>Select a telegram bot</option>
-                                    {% for value, label in [
-                                        ("5610517330:AAFmH2yl8YXRRN-mqSiIKVTSTvVykBwZNCw", "@uvlhub_bot1"),
-                                        ("7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI", "@uvlhub_bot2")
-                                        ] %}
-                                        <option value="{{ value }}">{{ label }}</option>
-                                    {% endfor %}
-                            </select>
+                        {{ form.name(class_="form-control", placeholder="Token of Telegram or Discord") }}
 
                         {{ form.submit(class_="add-btn") }}
                     </form>
@@ -305,4 +286,66 @@
         </div>
     {% endif %}
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Obtener el estado de los nodos abiertos desde sessionStorage
+        let openNodes = JSON.parse(sessionStorage.getItem('open_nodes') || '[]'); 
+
+        // Iterar sobre todos los checkboxes y marcar los que estén en openNodes
+        document.querySelectorAll('.node input[type="checkbox"]').forEach(function(checkbox) {
+            const nodeId = parseInt(checkbox.id.split('-')[1]); // Obtener el ID del nodo del checkbox
+            
+            // Si el nodo está en openNodes, marcar el checkbox
+            if (openNodes.includes(nodeId)) {
+                checkbox.checked = true;
+            }
+        });
+
+        // Agregar el evento 'change' para manejar cambios en el estado de los checkboxes
+        document.querySelectorAll('.node input[type="checkbox"]').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function(event) {
+                event.preventDefault(); // Prevenir recarga de la página
+
+                let openNodes = JSON.parse(sessionStorage.getItem('open_nodes') || '[]'); // Obtener el estado de los nodos
+                const nodeId = parseInt(this.id.split('-')[1]); // Obtener el ID del nodo
+
+                // Actualizar el estado de los nodos
+                if (this.checked) {
+                    if (!openNodes.includes(nodeId)) {
+                        openNodes.push(nodeId); // Agregar nodo a los abiertos si no está ya en la lista
+                    }
+                } else {
+                    openNodes = openNodes.filter(function(id) {
+                        return id !== nodeId; // Eliminar el nodo de los abiertos si se desmarca
+                    });
+                }
+
+                // Guardar el estado actualizado de los nodos en sessionStorage
+                sessionStorage.setItem('open_nodes', JSON.stringify(openNodes));
+
+                // Hacer una petición AJAX para guardar el estado del nodo en el backend
+                const data = {
+                    node_id: nodeId,
+                    open_nodes: openNodes
+                };
+
+                fetch("{{ url_for('botintegration.save_node_states') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Estado guardado con éxito:", data);
+                })
+                .catch(error => {
+                    console.error("Error al guardar el estado:", error);
+                });
+            });
+        });
+    });
+
+</script>
 {% endblock %}

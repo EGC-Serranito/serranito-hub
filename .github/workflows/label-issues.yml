@@ -1,0 +1,76 @@
+name: Label Issues Based on Dropdown Selections
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-labels:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Set up GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: echo "GitHub CLI configured"
+
+      - name: Extract and Apply Labels Based on Dropdown Selections
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          # Extrae el cuerpo completo del issue
+          ISSUE_BODY=$(gh issue view $ISSUE_NUMBER --json body --jq '.body')
+
+          echo "Cuerpo del issue extraído:"
+          echo "$ISSUE_BODY"
+
+          # Extraer y almacenar valores para cada campo, capturando la segunda línea después de cada encabezado
+          PRIORITY=$(echo "$ISSUE_BODY" | grep -A 2 "### Priority" | tail -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          DIFFICULTY=$(echo "$ISSUE_BODY" | grep -A 2 "### Difficulty" | tail -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          RELEVANCE=$(echo "$ISSUE_BODY" | grep -A 2 "### Fusion change relevance" | tail -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+          echo "Prioridad extraída: $PRIORITY"
+          echo "Dificultad extraída: $DIFFICULTY"
+          echo "Relevancia de cambio extraída: $RELEVANCE"
+
+          # Aplicar etiquetas según el valor extraído para cada campo
+
+          # Priority
+          if [[ "$PRIORITY" == "High" ]]; then
+            echo "Asignando etiqueta: High Priority"
+            gh issue edit $ISSUE_NUMBER --add-label "High Priority"
+          elif [[ "$PRIORITY" == "Medium" ]]; then
+            echo "Asignando etiqueta: Medium Priority"
+            gh issue edit $ISSUE_NUMBER --add-label "Medium Priority"
+          elif [[ "$PRIORITY" == "Low" ]]; then
+            echo "Asignando etiqueta: Low Priority"
+            gh issue edit $ISSUE_NUMBER --add-label "Low Priority"
+          fi
+
+          # Difficulty
+          if [[ "$DIFFICULTY" == "Difficult" ]]; then
+            echo "Asignando etiqueta: hard"
+            gh issue edit $ISSUE_NUMBER --add-label "hard"
+          elif [[ "$DIFFICULTY" == "Medium" ]]; then
+            echo "Asignando etiqueta: medium"
+            gh issue edit $ISSUE_NUMBER --add-label "medium"
+          elif [[ "$DIFFICULTY" == "Easy" ]]; then
+            echo "Asignando etiqueta: easy"
+            gh issue edit $ISSUE_NUMBER --add-label "easy"
+          fi
+
+          # Fusion Change Relevance
+          if [[ "$RELEVANCE" == "Ship" ]]; then
+            echo "Asignando etiqueta: ship"
+            gh issue edit $ISSUE_NUMBER --add-label "ship"
+          elif [[ "$RELEVANCE" == "Show" ]]; then
+            echo "Asignando etiqueta: show"
+            gh issue edit $ISSUE_NUMBER --add-label "show"
+          elif [[ "$RELEVANCE" == "Ask" ]]; then
+            echo "Asignando etiqueta: ask"
+            gh issue edit $ISSUE_NUMBER --add-label "ask"
+          fi

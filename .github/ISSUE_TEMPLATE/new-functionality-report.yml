@@ -1,0 +1,69 @@
+name: "Issue template"
+description: Create a new ticket for a new feature or a change in our application.
+title: "WI <nombre_WI>-feature <funcionalidad>"
+body:
+
+  - type: markdown
+    attributes:
+      value: "### ✏️ Summary\n---\nProvide a brief, one-line description of the change."
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: "Summary"
+      description: "Brief description (one-line) of the change."
+      placeholder: "E.g., The app doesn’t support multiple login"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "### 📋 Detailed Description\n---\nProvide detailed instructions to help understand what you want to have in the app."
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Detailed description"
+      description: "Provide instructions to understand what you want to have in the app."
+      placeholder: |
+        I'd like to be able to login using Google and/or GitHub. I don't want to be forced to create
+        an account. My idea is having some options such as 'continue with GitHub' or 'continue with 
+        Google' in the sign-in/up view.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "### 🎛️ Configuration Options\n---\nSet the priority, difficulty, and relevance of this issue."
+
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: Select the priority level of this issue.
+      options:
+        - High
+        - Medium
+        - Low
+
+  - type: dropdown
+    id: dificulty
+    attributes:
+      label: "Dificulty"
+      description: Select the dificulty level of this issue.
+      options:
+        - Difficult
+        - Medium
+        - Easy
+
+  - type: dropdown
+    id: fusion-change-relevance
+    attributes:
+      label: "Fusion change relevance"
+      description: Select the relevance of this issue in the fusion of the app. Ship for low relevance, Show for medium relevance, and Ask for high relevance.
+      options:
+        - Ship 
+        - Show 
+        - Ask 
+      

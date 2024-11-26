@@ -94,6 +94,20 @@
 
                 </div>
 
+                <div class="row mt-3">
+                    <div class="col-lg-6 col-12">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <div id="flash-messages">
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+
                 <div class="row">
 
                     <div class="mt-3">

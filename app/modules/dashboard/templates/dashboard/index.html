@@ -11,6 +11,7 @@
 <!-- Botón para mostrar/ocultar el dropdown y la gráfica -->
 <div class="custom-buttons">
     <button type="button" class="btn-dashboard" onclick="toggleDropdownAndChart()">Ver gráfica por autor</button>
+    <button type="button" class="btn-dashboard" onclick="toggleDatasetSizeChart()">Ver tamaño de archivos por dataset</button>
 </div>
 
 <!-- Dropdown para seleccionar el tipo de datos (inicialmente oculto) -->
@@ -22,15 +23,20 @@
     </select>
 </div>
 
-<!-- Contenedor para la gráfica -->
+<!-- Contenedor para la gráfica de autores -->
 <canvas id="chartCanvas" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
 
-<!-- Div oculto para almacenar los datos de autores, cantidad de datasets y cantidad de visualizaciones -->
+<!-- Contenedor para la gráfica de tamaños de dataset -->
+<canvas id="datasetSizeChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
+
+<!-- Div oculto para almacenar los datos de autores, cantidad de datasets, visualizaciones y tamaños de datasets -->
 <div id="data-container"
      data-author-names-datasets='{{ author_names_dataset | tojson | safe }}'
      data-datasets-count='{{ datasets_count | tojson | safe }}'
      data-author-names-views='{{ author_names_view | tojson | safe }}'
      data-view-counts='{{ view_counts | tojson | safe }}'
+     data-dataset-names='{{ dataset_names | tojson | safe }}'
+     data-total-sizes='{{ total_sizes | tojson | safe }}'
      style="display: none;">
 </div>
 
@@ -58,6 +64,7 @@
 <script>
     const dataContainer = document.getElementById('data-container');
     let chartInstance;
+    let datasetSizeChartInstance;
 
     function toggleDropdownAndChart() {
         const dropdownContainer = document.getElementById('data-type-container');
@@ -75,6 +82,22 @@
         } else {
             dropdownContainer.style.display = "none";
             chartCanvas.style.display = "none";
+        }
+    }
+
+    function toggleDatasetSizeChart() {
+        const datasetSizeChart = document.getElementById('datasetSizeChart');
+
+        // Alternar visibilidad del canvas de la gráfica de tamaños de dataset
+        if (datasetSizeChart.style.display === "none") {
+            datasetSizeChart.style.display = "block";
+            
+            // Inicializar la gráfica solo si no existe aún
+            if (!datasetSizeChartInstance) {
+                initializeDatasetSizeChart();
+            }
+        } else {
+            datasetSizeChart.style.display = "none";
         }
     }
 
@@ -137,5 +160,47 @@
             }
         });
     }
+
+    function initializeDatasetSizeChart() {
+    const datasetNames = JSON.parse(dataContainer.getAttribute('data-dataset-names'));
+    let totalSizes = JSON.parse(dataContainer.getAttribute('data-total-sizes'));
+
+    totalSizes = totalSizes.map(size => {
+        return parseFloat(size.replace(" KB", ""));
+    });
+
+    const ctx = document.getElementById('datasetSizeChart').getContext('2d');
+    datasetSizeChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: datasetNames,
+            datasets: [{
+                label: 'Tamaño Total de Archivos por Dataset (KBytes)',
+                data: totalSizes,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Tamaño en KBytes'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Datasets'
+                    }
+                }
+            }
+        }
+    });
+}
 </script>
 {% endblock %}
