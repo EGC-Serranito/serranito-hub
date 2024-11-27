@@ -24,6 +24,19 @@
                                 </a>
 
                             </h2>
+                            <div class="rating">
+                                {% if dataset.get_average_rating() >= 1 %}
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= dataset.get_average_rating() %}
+                                            <i class="fas fa-star" style="color: gold;"></i>
+                                        {% else %}
+                                            <i class="far fa-star" style="color: gold;"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <p>No ratings</p>
+                                {% endif %}
+                            </div>
                             <div>
                                 <span class="badge bg-secondary">{{ dataset.get_cleaned_publication_type() }}</span>
                             </div>
