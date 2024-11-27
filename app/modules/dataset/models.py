@@ -132,6 +132,7 @@ class DataSet(db.Model):
             'files_count': self.get_files_count(),
             'total_size_in_bytes': self.get_file_total_size(),
             'total_size_in_human_format': self.get_file_total_size_for_human(),
+            'rating': self.get_average_rating(),
         }
 
     def __repr__(self):

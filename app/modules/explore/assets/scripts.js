@@ -60,6 +60,9 @@ function send_query() {
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <h3><a href="${dataset.url}">${dataset.title}</a></h3>
+                                        <div class="rating">
+                                            <p class="card-text">${generateStars(dataset.rating)}</p>
+                                        </div>
                                         <div>
                                             <span class="badge bg-primary" style="cursor: pointer;" onclick="set_publication_type_as_query('${dataset.publication_type}')">${dataset.publication_type}</span>
                                         </div>
@@ -96,6 +99,18 @@ function send_query() {
                 });
         });
     });
+}
+
+function generateStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            stars += '<i class="fas fa-star" style="color: gold;"></i>'; // estrella llena
+        } else {
+            stars += '<i class="far fa-star" style="color: gold;"></i>'; // estrella vacía
+        }
+    }
+    return stars;
 }
 
 function formatDate(dateString) {
