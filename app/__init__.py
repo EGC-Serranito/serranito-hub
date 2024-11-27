@@ -10,7 +10,9 @@ from core.managers.module_manager import ModuleManager
 from core.managers.config_manager import ConfigManager
 from core.managers.error_handler_manager import ErrorHandlerManager
 from core.managers.logging_manager import LoggingManager
-import requests
+from app.modules.botintegration.features import FeatureService
+
+featureService = FeatureService()
 
 # Load environment variables
 load_dotenv()
@@ -20,29 +22,6 @@ db = SQLAlchemy()
 migrate = Migrate()
 mail_service = MailService()
 scheduler = APScheduler()
-
-
-# Function to send a message to the bot
-def send_messages_bot(bot_token, chat_id, features):
-    message = (
-        "*🔍 Features found:*\n\n"
-        + "\n".join([f"• *{feature}*" for feature in features])
-        + "\n\n"
-        + "*For more information about this bot, visit:* \n"
-        + "[serranito-hub-dev](https://serranito-hub-dev.onrender.com/botintegration)"
-    )
-
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-
-    try:
-        response = requests.post(url, data=payload, timeout=10)
-        if response.status_code == 200:
-            print(f"Message successfully sent to {chat_id}.")
-        else:
-            print(f"Error sending message: {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
 
 
 # Function to process the node tree
@@ -66,23 +45,43 @@ def start_bot_task():
     )
     try:
         if treenode_bot_dict:
+            # Iterate through each bot token in the dictionary, check if it has 'children'
             for bot_token in treenode_bot_dict[0].get("children", []):
                 BOT_TOKEN = bot_token.get("name")
-                for chat_id in bot_token.get("children", [])[0].get("children", []):
-                    CHAT_ID = chat_id.get("name")
-                    features = [
-                        node.get("name")
-                        for node in chat_id.get("children", [])[0]
-                        .get("children", [])[1]
-                        .get("children", [])
-                    ]
-                    send_messages_bot(BOT_TOKEN, CHAT_ID, features)
+                # Proceed only if the bot_token has a name
+                if BOT_TOKEN:
+                    # Iterate through chat_ids for the bot_token, check if 'children' exist
+                    for chat_id in bot_token.get("children", [])[0].get("children", []):
+                        CHAT_ID = chat_id.get("name")
+                        # Proceed only if the chat_id has a name
+                        if CHAT_ID:
+                            # Safely navigate through the nested structure to get features
+                            features = []
+
+                            # Check if the first level of children exists
+                            first_children = chat_id.get("children", [])
+                            if len(first_children) > 0:
+                                # Check if the second level of children exists
+                                second_children = first_children[0].get("children", [])
+                                if len(second_children) > 1:
+                                    # Check if the third level of children exists
+                                    third_children = second_children[1].get("children", [])
+                                    # Now, process the third level
+                                    for node in third_children:
+                                        # Add an additional check to ensure 'name' exists in the node
+                                        if node.get("name"):
+                                            features.append(node.get("name"))
+                            # Ensure features is a list (it should always be, but we guard against empty cases)
+                            if features:
+                                domain = os.getenv("DOMAIN", "localhost")  # Default to 'localhost' if DOMAIN is missing
+                                url = featureService.transform_to_full_url(domain)
+                                # Send features only if we have them
+                                featureService.send_features_bot(BOT_TOKEN, CHAT_ID, features, url)
     except Exception as e:
         # Capture any exception and display it in the console
         print(f"Error executing the bot task: {e}")
 
 
-# Schedule the job to execute every 9 seconds
 @scheduler.task("cron", id="bot_task", hour=20, minute=0)
 def scheduled_task():
     bot_task(app)

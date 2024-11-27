@@ -1,0 +1,250 @@
+{% extends "base_template.html" %}
+
+{% block title %}{{ user.profile.name }} {{ user.profile.surname }}'s Datasets{% endblock %}
+
+{% block content %}
+
+<h1 class="h3 mb-3">{{ user.profile.name }} {{ user.profile.surname }}'s Datasets</h1>
+
+<div class="row">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="profile-header">
+                <h5 class="profile-title mb-0" style="font-size: 15px;">Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text h5"><i class="fa fa-user"></i> <strong>Name:</strong> {{ user.profile.name }}</p>
+                <p class="card-text h5"><i class="fa fa-user-circle"></i> <strong>Surname:</strong> {{ user.profile.surname }}</p>
+                <p class="card-text h5"><i class="fa fa-building"></i> <strong>Affiliation:</strong> {{ user.profile.affiliation }}</p>
+                <p class="card-text h5"><i class="fa fa-id-card"></i> <strong>Orcid:</strong> {{ user.profile.orcid }}</p>
+                <p class="card-text h5"><i class="fa fa-envelope"></i> <strong>Email:</strong> {{ user.email }}</p>
+                <p class="card-text h5"><i class="fa fa-database"></i> <strong>Uploaded datasets:</strong> {{ datasets|length }} datasets</p>
+            </div>
+        </div>
+        
+    </div>
+    <div class="col-12 col-md-4" style="margin-left: 173px;">
+        <h5 style="color:white">Tag Cloud</h5>
+        <div id="tag-cloud" class="mb-3 tag-cloud">
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!-- <div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Publication type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dataset in datasets %}
+                        <tr>
+                            <td>
+                                {% if dataset.ds_meta_data.dataset_doi %}
+                                    <a href="{{ dataset.get_uvlhub_doi() }}">
+                                        {{ dataset.ds_meta_data.title }}
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('dataset.get_unsynchronized_dataset', dataset_id=dataset.id) }}">
+                                        {{ dataset.ds_meta_data.title }}
+                                    </a>                                    
+                                {% endif %}
+                            </td>
+                            <td>{{ dataset.ds_meta_data.publication_type.name.replace('_', ' ').title() }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2">No datasets uploaded.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<div class="mb-2 col-xl-8 col-lg-12 col-md-12 col-sm-12">
+    {% for dataset in datasets %}
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h2>
+                        <a href="{{ dataset.get_uvlhub_doi() }}">
+                            {{ dataset.ds_meta_data.title }}
+                        </a>
+                    </h2>
+                    <div>
+                        <span class="badge bg-secondary">{{ dataset.get_cleaned_publication_type() }}</span>
+                    </div>
+                </div>
+                <p class="text-secondary">{{ dataset.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <p class="card-text">{{ dataset.ds_meta_data.description }}</p>
+                    </div>
+                </div>
+                <div class="row mb-2 mt-4">
+                    <div class="col-12">
+                        {% for author in dataset.ds_meta_data.authors %}
+                            <p class="p-0 m-0">
+                                {{ author.name }}
+                                {% if author.affiliation %}
+                                    ({{ author.affiliation }})
+                                {% endif %}
+                                {% if author.orcid %}
+                                    ({{ author.orcid }})
+                                {% endif %}
+                            </p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <a href="{{ dataset.get_uvlhub_doi() }}">{{ dataset.get_uvlhub_doi() }}</a>
+                        <div id="dataset_doi_uvlhub_{{ dataset.id }}" style="display: none">
+                            {{ dataset.get_uvlhub_doi() }}
+                        </div>
+                        <i data-feather="clipboard" class="center-button-icon" style="cursor: pointer" onclick="copyText('dataset_doi_uvlhub_{{ dataset.id }}')"></i>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-12">
+                        {% for tag in dataset.ds_meta_data.tags.split(',') %}
+                            <span class="badge bg-secondary">{{ tag.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <a href="{{ dataset.get_uvlhub_doi() }}" class="btn btn-outline-primary btn-sm" style="border-radius: 5px;">
+                            <i data-feather="eye" class="center-button-icon"></i>
+                            View dataset
+                        </a>
+                        <a href="/dataset/download/{{ dataset.id }}" class="btn btn-outline-primary btn-sm" style="border-radius: 5px;">
+                            <i data-feather="download" class="center-button-icon"></i>
+                            Download ({{ dataset.get_file_total_size_for_human() }})
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+
+{% endblock %}  
+
+{% block scripts %}
+    <script src="{{ url_for('explore.scripts') }}"></script>
+    <script>
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function getRandomPosition(max) {
+            return Math.floor(Math.random() * max) + 'px';
+        }
+
+        function showResetButton() {
+            let resetButton = document.getElementById('reset-button');
+            if (!resetButton) {
+            resetButton = document.createElement('button');
+            resetButton.id = 'reset-button';
+            resetButton.className = 'btn btn-primary btn-sm';
+            resetButton.style = 'border-radius: 5px; position: absolute; top: 160px; left: 450px; margin-top: 10px;';
+            resetButton.innerText = 'Back to View Profile';
+            resetButton.onclick = () => {
+                const datasets = document.querySelectorAll('.card');
+                datasets.forEach(dataset => {
+                dataset.style.display = 'block';
+                });
+                resetButton.style.display = 'none';
+            };
+            const tagCloud = document.getElementById('tag-cloud');
+            tagCloud.parentNode.insertBefore(resetButton, tagCloud);
+            }
+            resetButton.style.display = 'block';
+        }
+
+        function filterDatasetsByTag(tag) {
+            const datasets = document.querySelectorAll('.card');
+            datasets.forEach(dataset => {
+            const tags = dataset.querySelectorAll('.badge.bg-secondary');
+            let hasTag = false;
+            tags.forEach(t => {
+                if (t.innerText.trim() === tag) {
+                hasTag = true;
+                }
+            });
+            if (hasTag) {
+                dataset.style.display = 'block';
+            } else {
+                dataset.style.display = 'none';
+            }
+            });
+            showResetButton();
+        }
+
+        // Cargar la nube de etiquetas al cargar la página
+        fetch('{{ url_for("explore.tag_cloud") }}')
+            .then(response => response.json())
+            .then(data => {
+                const tagCloud = document.getElementById('tag-cloud');
+                tagCloud.innerHTML = '';
+                for (let [tag, count] of Object.entries(data)) {
+                    const tagElement = document.createElement('a');
+                    tagElement.className = 'tag';
+                    tagElement.style.fontSize = `${Math.min(count * 5, 30)}px`;
+                    tagElement.style.color = getRandomColor();
+                    tagElement.innerText = tag;
+                    tagElement.href = '#';
+                    tagElement.onclick = (e) => {
+                        e.preventDefault();
+                        filterDatasetsByTag(tag);
+                    };
+                    
+                    // Establece una posición aleatoria dentro de la nube
+                    tagElement.style.left = getRandomPosition(tagCloud.offsetWidth - 50);
+                    tagElement.style.top = getRandomPosition(tagCloud.offsetHeight - 50);
+
+                    tagCloud.appendChild(tagElement);
+                }
+            });
+    </script>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .tag-cloud {
+        position: relative;
+        width: 100%;
+        height: 300px; /* Altura de la nube */
+        overflow: hidden;
+        border: 1px solid #ddd; /* Opcional, para ver los límites de la nube */
+    }
+    .tag-cloud .tag {
+        position: absolute; /* Para posicionar de forma dispersa */
+        text-decoration: none;
+        font-weight: bold;
+        transition: transform 0.2s;
+        color: inherit;
+    }
+    .tag-cloud .tag:hover {
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}

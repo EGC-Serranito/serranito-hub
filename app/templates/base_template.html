@@ -73,6 +73,13 @@ chico sundermann">
                     </a>
                 </li>
 
+                <li class="sidebar-item {{ 'active' if request.endpoint == 'download.index' else '' }}">
+                    <a class="sidebar-link" href="{{ url_for('download.index') }}">
+                        <i class="align-middle" data-feather="download"></i> <span
+                            class="align-middle">Download datasets</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item {{ 'active' if request.endpoint == 'dashboard.index' else '' }}">
                     <a class="sidebar-link" href="{{ url_for('dashboard.index') }}">
                         <i class="align-middle" data-feather="grid"></i> <span
@@ -84,7 +91,7 @@ chico sundermann">
                 {% if not current_user.is_anonymous %}
 
                     <li class="sidebar-header">
-                        Datasets
+                        Your datasets
                     </li>
 
                     <li class="sidebar-item {{ 'active' if request.endpoint == 'dataset.create_dataset' else '' }}">
@@ -117,6 +124,12 @@ chico sundermann">
                 {% endif %}
 
             </ul>
+
+            <li class="sidebar-item {{ 'active' if request.endpoint == 'dashboard.index' else '' }}" style="display: flex; justify-content: center; align-items: center;">
+                <button id="theme-toggle" class="btn btn-primary">
+                    Cambiar Tema
+                </button>
+            </li>
 
             {% if APP_VERSION != 'unknown' and APP_VERSION != '' %}
             <div class="sidebar-cta text-center">
@@ -154,7 +167,7 @@ chico sundermann">
                 <ul class="navbar-nav navbar-align">
                     <li class="nav-item dropdown">
 
-                        <a href="/dataset/download/all" class="nav-link d-none d-sm-inline-block" style="border-radius: 5px;">
+                        <a href="/download/all" class="nav-link d-none d-sm-inline-block" style="border-radius: 5px;">
                             <i data-feather="download-cloud"></i>
                             Download all datasets!
                         </a>
@@ -171,13 +184,13 @@ chico sundermann">
                         </a>
 
                         <a class="nav-link dropdown-toggle d-none d-sm-inline-block" href="#" data-bs-toggle="dropdown">
-                            <span class="custom-navbar">{{ current_user.profile.surname }}, {{ current_user.profile.name }}</span>
+                            <span class="">{{ current_user.profile.surname }}, {{ current_user.profile.name }}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end custom-navbar">
                             <a class="dropdown-item custom-navbar" href="{{ url_for('profile.my_profile') }}">
                                 <i class="align-middle me-1" data-feather="user"></i> My profile</a>
                             <a class="dropdown-item custom-navbar" href="{{ url_for('profile.edit_profile') }}">
-                                <i class="align-middle me-1" data-feather="user"></i> Edit profile</a>
+                                <i class="align-middle me-1" data-feather="edit-2"></i> Edit profile</a>
                             <a class="dropdown-item custom-navbar" href="{{ url_for('auth.logout') }}">
                                 <i class="align-middle me-1" data-feather="log-out"></i> Log out</a>
                         </div>
@@ -314,6 +327,22 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
         }
     
         sidebarToggleBtn.addEventListener("click", toggleSidebar);
+
+        const toggleButton = document.getElementById('theme-toggle');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+
+        if (savedTheme === 'light') {
+            document.documentElement.classList.add('light-theme');
+        }
+
+        toggleButton.addEventListener('click', () => {
+            document.documentElement.classList.toggle('light-theme');
+            let theme = 'dark';
+            if (document.documentElement.classList.contains('light-theme')) {
+                theme = 'light';
+            }
+            localStorage.setItem('theme', theme);
+        });
     });
 
 </script>
@@ -325,89 +354,209 @@ Romero-Organvidez, D., Galindo, J. A., Sundermann, C., Horcas, J.-M., & Benavide
 </html>
 
 <style>
-    .custom-search {
-        background-color: #161b22;
-        color: white;
-        border: 1px solid #444444;
+    :root {
+        --bg-darkest: #0d1117;
+        --bg-primary: #161b22;
+        --bg-secondary: #343a40;
+        --bg-tertiary: #21262d;
+        --color-text: white;
+        --color-hover: #cccccc;
+        --color-disabled: #6c757d;
+        --color-pagination-active: #495057;
+        --border-color: #444444;
+        --box-shadow-color: #5a5a5a;
+        --alert-warning-bg: #4a4a2c;
+        --alert-success-bg: #2d4a2d;
+        --alert-error-bg: #4a2d2d;
     }
 
-    .custom-search:disabled {
-        background-color: #21262d;
-        color: white;
-        border: 1px solid #444444;
+    .light-theme {
+        --bg-darkest: #ffffff;
+        --bg-primary: #f8f9fa;
+        --bg-secondary: #e9ecef;
+        --bg-tertiary: #dee2e6;
+        --color-text: #212529;
+        --color-hover: #000000;
+        --color-disabled: #adb5bd;
+        --color-pagination-active: #ced4da;
+        --border-color: #ced4da;
+        --box-shadow-color: #adb5bd;
+        --alert-warning-bg: #FFF3CD;
+        --alert-success-bg: #D4EDD9;
+        --alert-error-bg: #F9D6D9;
+    }
+
+    body,
+    .btn-custom,
+    .custom-search,
+    .custom-content,
+    .custom-navbar,
+    .custom-navbar .navbar-nav .nav-link,
+    .custom-navbar .navbar-brand,
+    .custom-navbar .navbar-text,
+    .card-text, .card-body, .list-group-item,
+    .mb-3, .bg-custom,
+    .page-item, .dropzone,
+    .dropdown-item,
+    .modal-header,
+    .modal-title,
+    .modal-body,
+    .card-title,
+    .card-header,
+    .fa,
+    .me-1,
+    label,
+    table,
+    tbody,
+    th,
+    td,
+    tr,
+    i,
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: var(--color-text) !important;
+    }
+
+    body,
+    .custom-content,
+    .footer,
+    .btn-custom,
+    .bg-custom,
+    .modal-body {
+        background-color: var(--bg-tertiary);
+    }
+
+    .custom-navbar,
+    .card, .card-title,
+    .card-header,
+    .list-group-item,
+    .card-body,
+    .card-footer,
+    .dropzone,
+    .modal-header,
+    .page-item {
+        background-color: var(--bg-primary);
+    }
+
+    .upload-custom {
+        background-color: var(--bg-primary) !important;
+    }
+
+
+    .custom-search {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .custom-search:disabled, .btn-custom:hover {
+        background-color: var(--bg-secondary);
     }
 
     .custom-search:focus {
-        background-color: #161b22;
-        color: white;
+        background-color: var(--bg-darkest);
+        color: var(--color-text);
     }
 
-    .custom-content {
-        background-color: #21262d;
-        color: white;
-
+    .custom-pagination .page-link {
+        background-color: var(--bg-secondary);
+        color: var(--color-text);
+        border: 1px solid var(--bg-secondary);
     }
 
-    .custom-navbar {
-        background-color: #161b22;
-        color: white;
+    .dropdown-menu {
+        background-color: var(--bg-primary);
     }
 
-    .custom-navbar .navbar-nav .nav-link,
-    .custom-navbar .navbar-brand,
-    .custom-navbar .navbar-text {
-        color: white;
+    .form-select {
+        background-color: var(--bg-primary);
+        color: var(--color-text);
+        border: 1px solid var(--border-color);
+    }
+
+    .form-select:focus {
+        background-color: var(--bg-tertiary);
+        color: var(--color-text);
+        border-color: var(--box-shadow-color);
+        box-shadow: none;
+    }
+
+    .form-select option {
+        background-color: var(--bg-primary);
+        color: var(--color-text);
     }
 
     .custom-navbar .navbar-nav .nav-link:hover,
     .custom-navbar .navbar-brand:hover,
-    .custom-navbar .navbar-text:hover {
-        color: #cccccc;
+    .custom-navbar .navbar-text:hover,
+    .custom-pagination .page-link:hover,
+    .dropdown-item:hover {
+        background-color: var(--bg-secondary);
+        color: var(--color-hover);
     }
 
-    .card-text {
-        color: white;
-    }
-
-    .mb-3 {
-        color: white;
-    }
-
-    .page-item {
-        color: white;
-        background-color: #161b22;
-    }
-
-    .custom-pagination .page-link {
-        background-color: #343a40;
-        color: white;
-        border: 1px solid #343a40;
-    }
-
-    .custom-pagination .page-link:hover {
-        background-color: #495057;
-        color: white;
-    }
-
-    .custom-pagination .page-item.active .page-link {
-        background-color: #495057;
-        border-color: #495057;
+    .custom-pagination .page-item.active .page-link,
+    .custom-pagination .page-item.disabled .page-link {
+        background-color: var(--color-pagination-active);
+        border-color: var(--color-pagination-active);
     }
 
     .custom-pagination .page-item.disabled .page-link {
-        background-color: #6c757d;
-        border-color: #6c757d;
+        background-color: var(--color-disabled);
+        border-color: var(--color-disabled);
     }
 
-    .dropdown-item{
-        color: white;
+    .modal-content {
+        border-radius: 20px;
     }
 
-    .dropdown-item:hover{
-        background-color: #343a40;
+    .btn-close {
+        filter: invert(70%);
+        position: relative;
+        top: -5px;
     }
 
-    .dropdown-menu{
-        background-color: #161b22;
+    .custom-img {
+        background-color: white;
     }
+
+    .new-author-style {
+        border: 2px dotted #444;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px 0;
+        background-color: var(--bg-tertiary);
+    }
+
+    .card-header-custom,
+    .card-title-custom {
+        background-color: var(--bg-secondary);
+    }
+
+    .error {
+        border: 1px solid red;
+    }
+    
+    .alert-warning {
+        background-color: var(--alert-warning-bg);
+        padding: 20px;
+        border-radius: 5px;
+    }
+    
+    .alert-success {
+        background-color: var(--alert-success-bg);
+        padding: 20px;
+        border-radius: 5px;
+    }
+    
+    .alert-error {
+        background-color: var(--alert-error-bg);
+        padding: 20px;
+        border-radius: 5px;
+    }
+
 </style>
