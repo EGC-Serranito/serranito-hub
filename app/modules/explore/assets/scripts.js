@@ -102,16 +102,21 @@ function send_query() {
 }
 
 function generateStars(rating) {
-    let stars = '';
+    let starsContainer = document.createElement('div'); // Crea un contenedor para las estrellas
     for (let i = 1; i <= 5; i++) {
+        let star = document.createElement('i');
         if (i <= rating) {
-            stars += '<i class="fas fa-star" style="color: gold;"></i>'; // estrella llena
+            star.classList.add('fas', 'fa-star');
+            star.style.color = 'gold';
         } else {
-            stars += '<i class="far fa-star" style="color: gold;"></i>'; // estrella vacía
+            star.classList.add('far', 'fa-star');
+            star.style.color = 'gold';
         }
+        starsContainer.appendChild(star); // Añade cada estrella al contenedor
     }
-    return stars;
+    return starsContainer.innerHTML; // Devuelve el HTML generado
 }
+
 
 function formatDate(dateString) {
     const options = {day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: 'numeric'};
