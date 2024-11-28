@@ -60,24 +60,25 @@ function send_query() {
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <h3><a href="${dataset.url}">${dataset.title}</a></h3>
+                                        <div class="rating"></div> <!-- Aquí irán las estrellas -->
                                         <div>
                                             <span class="badge bg-primary" style="cursor: pointer;" onclick="set_publication_type_as_query('${dataset.publication_type}')">${dataset.publication_type}</span>
                                         </div>
                                     </div>
                                     <p class="text-secondary">${formatDate(dataset.created_at)}</p>
-
+                    
                                     <div class="col-12">
                                         <p class="card-text">${dataset.description}</p>
                                     </div>
-
+                    
                                     <div class="row mb-2 mt-4">
                                         <div class="col-12">
-                                        <p class="p-0 m-0">${dataset.authors.map(author => `<p class="p-0 m-0">${author.name}${author.affiliation ? ` (${author.affiliation})` : ''}${author.orcid ? ` (${author.orcid})` : ''}</p>`).join('')}</p>
-                                        <p class="p-0 m-0">${dataset.tags.map(tag => `<span class="badge bg-primary me-1" style="cursor: pointer;" onclick="set_tag_as_query('${tag}')">${tag}</span>`).join('')}</p>
+                                            <p class="p-0 m-0">${dataset.authors.map(author => `<p class="p-0 m-0">${author.name}${author.affiliation ? ` (${author.affiliation})` : ''}${author.orcid ? ` (${author.orcid})` : ''}</p>`).join('')}</p>
+                                            <p class="p-0 m-0">${dataset.tags.map(tag => `<span class="badge bg-primary me-1" style="cursor: pointer;" onclick="set_tag_as_query('${tag}')">${tag}</span>`).join('')}</p>
                                         </div>
                                     </div>
-
-                                    <div class="row  mt-4">
+                    
+                                    <div class="row mt-4">
                                         <div class="col-12">
                                             <a href="/dataset/download/${dataset.id}" class="btn btn-outline-primary btn-sm" id="search" style="border-radius: 5px;">
                                                 <i data-feather="download" class="center-button-icon"></i>
@@ -85,11 +86,18 @@ function send_query() {
                                             </a>
                                         </div>
                                     </div>
+                                </div>
                             </div>
                         `;
-
+                        
+                        // Insertamos las estrellas en el contenedor correspondiente
+                        const ratingContainer = card.querySelector('.rating');
+                        const starsElement = generateStars(dataset.rating); // Obtenemos el contenedor con las estrellas
+                        ratingContainer.appendChild(starsElement); // Añadimos las estrellas al contenedor
+                    
                         document.getElementById('results').appendChild(card);
                     });
+                    
 
                     feather.replace();
 
@@ -97,6 +105,25 @@ function send_query() {
         });
     });
 }
+
+function generateStars(rating) {
+    const container = document.createElement('div'); // Creamos un contenedor para las estrellas
+
+    for (let i = 1; i <= 5; i++) {
+        let star = document.createElement('i'); // Creamos cada estrella
+        if (i <= rating) {
+            star.classList.add('fas', 'fa-star'); // Estrella llena
+            star.style.color = 'gold';
+        } else {
+            star.classList.add('far', 'fa-star'); // Estrella vacía
+            star.style.color = 'gold';
+        }
+        container.appendChild(star); // Añadimos la estrella al contenedor
+    }
+    return container; // Devolvemos el contenedor con las estrellas
+}
+
+
 
 function formatDate(dateString) {
     const options = {day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: 'numeric'};
