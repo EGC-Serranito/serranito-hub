@@ -37,3 +37,4 @@ class DashboardAuthorRepository(BaseRepository):
             .all()
         )
         return result
+

@@ -41,6 +41,8 @@
      data-view-counts='{{ view_counts | tojson | safe }}'
      data-dataset-names='{{ dataset_names | tojson | safe }}'
      data-total-sizes='{{ total_sizes | tojson | safe }}'
+     data-view-dates='{{ view_dates | tojson | safe }}'
+     data-view-counts-over-time='{{ view_counts_over_time | tojson | safe }}'
      style="display: none;">
 </div>
 
@@ -103,6 +105,17 @@
             }
         } else {
             datasetSizeChart.style.display = "none";
+        }
+    }
+
+    function toggleViewsOverTimeChart() {
+        const viewsOverTimeChartCanvas = document.getElementById('viewsOverTimeChart');
+
+        if (viewsOverTimeChartCanvas.style.display === "none") {
+            viewsOverTimeChartCanvas.style.display = "block";
+            initializeViewsOverTimeChart();
+        } else {
+            viewsOverTimeChartCanvas.style.display = "none";
         }
     }
 
@@ -219,37 +232,49 @@
         });
     }
 
-    const ctx = document.getElementById('datasetSizeChart').getContext('2d');
-    datasetSizeChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: datasetNames,
-            datasets: [{
-                label: `Tamaño Total de Archivos por Dataset (${unit})`,
-                data: totalSizes,
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: `Tamaño en ${unit}`
+    function initializeViewsOverTimeChart() {
+        const viewDates = JSON.parse(dataContainer.getAttribute('data-view-dates'));
+        const viewCountsOverTime = JSON.parse(dataContainer.getAttribute('data-view-counts-over-time'));
+        console.log(viewDates);
+        console.log(viewCountsOverTime);
+        const ctx = document.getElementById('viewsOverTimeChart').getContext('2d');
+        viewsOverTimeChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: viewDates,
+                datasets: [{
+                    label: 'Visualizaciones a lo largo del tiempo',
+                    data: viewCountsOverTime,
+                    fill: false,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Visualizaciones'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Fecha'
+                        }
                     }
                 },
-                x: {
-                    title: {
+                plugins: {
+                    legend: {
                         display: true,
-                        text: 'Datasets'
+                        position: 'top'
                     }
                 }
             }
-        }
-    });
+        });
+    }
 </script>
 {% endblock %}
