@@ -8,10 +8,11 @@
 
 <p>Para ver los diferentes Dashboards de UVLHub, seleccione una opción:</p>
 
-<!-- Botón para mostrar/ocultar el dropdown y la gráfica -->
+<!-- Botón para mostrar/ocultar los gráficos -->
 <div class="custom-buttons">
     <button type="button" class="btn-dashboard" onclick="toggleDropdownAndChart()">Ver gráfica por autor</button>
     <button type="button" class="btn-dashboard" onclick="toggleDatasetSizeChart()">Ver tamaño de archivos por dataset</button>
+    <button type="button" class="btn-dashboard" onclick="toggleViewsOverTimeChart()">Ver evolución de visualizaciones</button>
 </div>
 
 <!-- Dropdown para seleccionar el tipo de datos (inicialmente oculto) -->
@@ -29,6 +30,9 @@
 <!-- Contenedor para la gráfica de tamaños de dataset -->
 <canvas id="datasetSizeChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
 
+<!-- Contenedor para la gráfica de evolución de visualizaciones -->
+<canvas id="viewsOverTimeChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
+
 <!-- Div oculto para almacenar los datos de autores, cantidad de datasets, visualizaciones y tamaños de datasets -->
 <div id="data-container"
      data-author-names-datasets='{{ author_names_dataset | tojson | safe }}'
@@ -37,6 +41,8 @@
      data-view-counts='{{ view_counts | tojson | safe }}'
      data-dataset-names='{{ dataset_names | tojson | safe }}'
      data-total-sizes='{{ total_sizes | tojson | safe }}'
+     data-view-dates='{{ view_dates | tojson | safe }}'
+     data-view-counts-over-time='{{ view_counts_over_time | tojson | safe }}'
      style="display: none;">
 </div>
 
@@ -65,6 +71,7 @@
     const dataContainer = document.getElementById('data-container');
     let chartInstance;
     let datasetSizeChartInstance;
+    let viewsOverTimeChartInstance;
 
     function toggleDropdownAndChart() {
         const dropdownContainer = document.getElementById('data-type-container');
@@ -98,6 +105,17 @@
             }
         } else {
             datasetSizeChart.style.display = "none";
+        }
+    }
+
+    function toggleViewsOverTimeChart() {
+        const viewsOverTimeChartCanvas = document.getElementById('viewsOverTimeChart');
+
+        if (viewsOverTimeChartCanvas.style.display === "none") {
+            viewsOverTimeChartCanvas.style.display = "block";
+            initializeViewsOverTimeChart();
+        } else {
+            viewsOverTimeChartCanvas.style.display = "none";
         }
     }
 
@@ -162,45 +180,101 @@
     }
 
     function initializeDatasetSizeChart() {
-    const datasetNames = JSON.parse(dataContainer.getAttribute('data-dataset-names'));
-    let totalSizes = JSON.parse(dataContainer.getAttribute('data-total-sizes'));
+        const datasetNames = JSON.parse(dataContainer.getAttribute('data-dataset-names'));
+        let totalSizes = JSON.parse(dataContainer.getAttribute('data-total-sizes'));
 
-    totalSizes = totalSizes.map(size => {
-        return parseFloat(size.replace(" KB", ""));
-    });
+        let unit = "Bytes"; // Valor predeterminado
+        if (totalSizes.length > 0 && typeof totalSizes[0] === 'string') {
+            const match = totalSizes[0].match(/\s([A-Za-z]+)$/);
+            if (match) {
+                unit = match[1];
+            }
+        }
 
-    const ctx = document.getElementById('datasetSizeChart').getContext('2d');
-    datasetSizeChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: datasetNames,
-            datasets: [{
-                label: 'Tamaño Total de Archivos por Dataset (KBytes)',
-                data: totalSizes,
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Tamaño en KBytes'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Datasets'
+        totalSizes = totalSizes.map(size => {
+            if (typeof size === 'string' && size.match(/\d+\s[A-Za-z]+/)) {
+                return parseFloat(size.replace(/[^\d.]/g, ''));
+            }
+            return parseFloat(size);
+        });
+
+        const ctx = document.getElementById('datasetSizeChart').getContext('2d');
+        datasetSizeChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: datasetNames,
+                datasets: [{
+                    label: `Tamaño Total de Archivos por Dataset (${unit})`,
+                    data: totalSizes,
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: `Tamaño en ${unit}`
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Datasets'
+                        }
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
+
+    function initializeViewsOverTimeChart() {
+        const viewDates = JSON.parse(dataContainer.getAttribute('data-view-dates'));
+        const viewCountsOverTime = JSON.parse(dataContainer.getAttribute('data-view-counts-over-time'));
+        console.log(viewDates);
+        console.log(viewCountsOverTime);
+        const ctx = document.getElementById('viewsOverTimeChart').getContext('2d');
+        viewsOverTimeChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: viewDates,
+                datasets: [{
+                    label: 'Visualizaciones a lo largo del tiempo',
+                    data: viewCountsOverTime,
+                    fill: false,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Visualizaciones'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Fecha'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
 </script>
 {% endblock %}

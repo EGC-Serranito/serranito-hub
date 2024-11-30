@@ -4,6 +4,8 @@ from app.modules.dataset.repositories import (
 
 from app.modules.dashboard.repositories import DashboardAuthorRepository
 from core.services.BaseService import BaseService
+from sqlalchemy import func
+from app.modules.dataset.models import DSViewRecord
 
 
 class DashBoardService(BaseService):
@@ -34,3 +36,22 @@ class DashBoardService(BaseService):
             total_sizes.append(total_size)
 
         return dataset_names, total_sizes
+
+    def get_views_over_time(self):
+        result = (
+                self.repository.session.query(
+                    func.date(DSViewRecord.view_date).label("view_dates"),
+                    func.count(DSViewRecord.id).label("view_counts_over_time")
+                )
+                .group_by(func.date(DSViewRecord.view_date))
+                .order_by(func.date(DSViewRecord.view_date))
+                .all()
+            )
+        print(result)
+        if not result:  # Si no hay datos, retorna listas vacías
+            return [], []
+
+        dates = [record.view_date.strftime('%Y-%m-%d') for record in result]
+        view_counts = [record.view_count for record in result]
+
+        return dates, view_counts
