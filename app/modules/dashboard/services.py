@@ -39,19 +39,19 @@ class DashBoardService(BaseService):
 
     def get_views_over_time(self):
         result = (
-                self.repository.session.query(
-                    func.date(DSViewRecord.view_date).label("view_dates"),
-                    func.count(DSViewRecord.id).label("view_counts_over_time")
-                )
-                .group_by(func.date(DSViewRecord.view_date))
-                .order_by(func.date(DSViewRecord.view_date))
-                .all()
+            self.repository.session.query(
+                func.date(DSViewRecord.view_date).label("view_dates"),
+                func.count(DSViewRecord.id).label("view_counts_over_time")
             )
+            .group_by(func.date(DSViewRecord.view_date))
+            .order_by(func.date(DSViewRecord.view_date))
+            .all()
+        )
         print(result)
-        if not result:  # Si no hay datos, retorna listas vacías
+        if not result:
             return [], []
 
-        dates = [record.view_date.strftime('%Y-%m-%d') for record in result]
-        view_counts = [record.view_count for record in result]
+        dates = [record.view_dates.strftime('%Y-%m-%d') for record in result]
+        view_counts = [record.view_counts_over_time for record in result]
 
         return dates, view_counts
