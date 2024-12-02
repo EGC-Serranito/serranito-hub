@@ -1,11 +1,11 @@
 from app.modules.dataset.repositories import (
     DataSetRepository,
 )
-
+from app import db
 from app.modules.dashboard.repositories import DashboardAuthorRepository
 from core.services.BaseService import BaseService
 from sqlalchemy import func
-from app.modules.dataset.models import DSViewRecord
+from app.modules.dataset.models import DSViewRecord, DSMetaData, DSDownloadRecord
 
 
 class DashBoardService(BaseService):
@@ -37,21 +37,63 @@ class DashBoardService(BaseService):
 
         return dataset_names, total_sizes
 
-    def get_views_over_time(self):
+    def get_views_over_time_with_filter(self, filter_type="day"):
+        if filter_type == "month":
+            group_by_filter = func.date_format(DSViewRecord.view_date, '%Y-%m')
+        elif filter_type == "year":
+            group_by_filter = func.date_format(DSViewRecord.view_date, '%Y')
+        else:  # Default to "day"
+            group_by_filter = func.date_format(DSViewRecord.view_date, '%Y-%m-%d')
+
+        # Construcción de la consulta
         result = (
-                self.repository.session.query(
-                    func.date(DSViewRecord.view_date).label("view_dates"),
-                    func.count(DSViewRecord.id).label("view_counts_over_time")
-                )
-                .group_by(func.date(DSViewRecord.view_date))
-                .order_by(func.date(DSViewRecord.view_date))
-                .all()
+            self.repository.session.query(
+                group_by_filter.label("view_dates"),
+                func.count(DSViewRecord.id).label("view_counts_over_time")
             )
-        print(result)
-        if not result:  # Si no hay datos, retorna listas vacías
+            .group_by(group_by_filter)
+            .order_by(group_by_filter)
+            .all()
+        )
+
+        if not result:
             return [], []
 
-        dates = [record.view_date.strftime('%Y-%m-%d') for record in result]
-        view_counts = [record.view_count for record in result]
+        # Formatear las fechas y los datos
+        dates = [record.view_dates for record in result]
+        view_counts = [record.view_counts_over_time for record in result]
 
         return dates, view_counts
+
+    @staticmethod
+    def get_publication_types_data():
+        result = (
+            db.session
+            .query(DSMetaData.publication_type, db.func.count(DSMetaData.id))
+            .group_by(DSMetaData.publication_type)
+            .all()
+        )
+        publication_types_count = {str(row[0]): row[1] for row in result}
+
+        return publication_types_count
+
+    def get_downloads_by_day(self):
+        """
+        Agrupa las descargas por día y devuelve un diccionario con el número de descargas por fecha.
+        Esta versión cuenta todas las descargas, incluso si el mismo usuario descarga el mismo dataset múltiples veces.
+        """
+        result = (
+            db.session.query(
+                func.date(DSDownloadRecord.download_date).label("download_date"),
+                func.count(DSDownloadRecord.id).label("download_count")  # Contar todas las descargas
+            )
+            .group_by(func.date(DSDownloadRecord.download_date))  # Agrupar por fecha
+            .order_by(func.date(DSDownloadRecord.download_date))  # Ordenar por fecha
+            .all()
+        )
+
+        downloads_by_day = {
+            record.download_date.strftime('%Y-%m-%d'): record.download_count for record in result
+        }
+
+        return downloads_by_day

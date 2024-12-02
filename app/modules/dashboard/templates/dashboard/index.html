@@ -13,6 +13,8 @@
     <button type="button" class="btn-dashboard" onclick="toggleDropdownAndChart()">Ver gráfica por autor</button>
     <button type="button" class="btn-dashboard" onclick="toggleDatasetSizeChart()">Ver tamaño de archivos por dataset</button>
     <button type="button" class="btn-dashboard" onclick="toggleViewsOverTimeChart()">Ver evolución de visualizaciones</button>
+    <button type="button" class="btn-dashboard" onclick="togglePublicationTypeChart()">Ver gráfico de tipos de publicación</button>
+    <button type="button" class="btn-dashboard" onclick="toggleDownloadHeatmap()">Ver mapa de calor de descargas</button>
 </div>
 
 <!-- Dropdown para seleccionar el tipo de datos (inicialmente oculto) -->
@@ -21,6 +23,14 @@
     <select id="data-type" onchange="updateChart()">
         <option value="datasets">Datasets por autor</option>
         <option value="views">Visualizaciones por autor</option>
+    </select>
+</div>
+<div id="views-filter-container" style="display: none; margin-top: 10px;">
+    <label for="views-filter">Filtrar por:</label>
+    <select id="views-filter" onchange="updateViewsOverTimeChart()">
+        <option value="day" selected>Día</option>
+        <option value="month">Mes</option>
+        <option value="year">Año</option>
     </select>
 </div>
 
@@ -33,6 +43,12 @@
 <!-- Contenedor para la gráfica de evolución de visualizaciones -->
 <canvas id="viewsOverTimeChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
 
+<!-- Contenedor para la gráfica de tipos de publicación (rosco) -->
+<canvas id="publicationTypeChart" width="400" height="400" style="margin-top: 20px; display: none;"></canvas>
+
+<!-- Contenedor para el mapa de calor de descargas -->
+<canvas id="downloadHeatmap" width="800" height="400" style="margin-top: 20px; display: none;"></canvas>
+
 <!-- Div oculto para almacenar los datos de autores, cantidad de datasets, visualizaciones y tamaños de datasets -->
 <div id="data-container"
      data-author-names-datasets='{{ author_names_dataset | tojson | safe }}'
@@ -43,6 +59,8 @@
      data-total-sizes='{{ total_sizes | tojson | safe }}'
      data-view-dates='{{ view_dates | tojson | safe }}'
      data-view-counts-over-time='{{ view_counts_over_time | tojson | safe }}'
+     data-publication-types-count='{{ publication_types_count | tojson | safe }}'
+     data-download-counts='{{ download_counts | tojson | safe }}'
      style="display: none;">
 </div>
 
@@ -72,6 +90,8 @@
     let chartInstance;
     let datasetSizeChartInstance;
     let viewsOverTimeChartInstance;
+    let publicationTypeChartInstance;
+    let downloadHeatmapInstance;
 
     function toggleDropdownAndChart() {
         const dropdownContainer = document.getElementById('data-type-container');
@@ -109,13 +129,69 @@
     }
 
     function toggleViewsOverTimeChart() {
-        const viewsOverTimeChartCanvas = document.getElementById('viewsOverTimeChart');
+    const viewsOverTimeChartCanvas = document.getElementById('viewsOverTimeChart');
+    const viewsFilterContainer = document.getElementById('views-filter-container');
 
-        if (viewsOverTimeChartCanvas.style.display === "none") {
-            viewsOverTimeChartCanvas.style.display = "block";
+    if (viewsOverTimeChartCanvas.style.display === "none") {
+        viewsOverTimeChartCanvas.style.display = "block";
+        viewsFilterContainer.style.display = "block";
+
+        // Inicializar la gráfica solo si no existe aún
+        if (!viewsOverTimeChartInstance) {
             initializeViewsOverTimeChart();
+        }
+    } else {
+        viewsOverTimeChartCanvas.style.display = "none";
+        viewsFilterContainer.style.display = "none";
+    }
+}
+
+function updateViewsOverTimeChart() {
+    const selectedFilter = document.getElementById('views-filter').value;
+
+    fetch('/dashboard', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filter: selectedFilter }) // Enviar el filtro como JSON
+    })
+        .then(response => response.json())
+        .then(result => {
+            console.log(`Filter: ${selectedFilter}, Data:`, result); // Depuración
+            const labels = result.view_dates; // Fechas obtenidas del servidor
+            const data = result.view_counts_over_time; // Cantidad de visualizaciones
+
+            let label;
+            if (selectedFilter === 'day') {
+                label = 'Visualizaciones Diarias';
+            } else if (selectedFilter === 'month') {
+                label = 'Visualizaciones Mensuales';
+            } else if (selectedFilter === 'year') {
+                label = 'Visualizaciones Anuales';
+            }
+
+            // Actualizar la gráfica
+            viewsOverTimeChartInstance.data.labels = labels;
+            viewsOverTimeChartInstance.data.datasets[0].data = data;
+            viewsOverTimeChartInstance.data.datasets[0].label = label;
+            viewsOverTimeChartInstance.update();
+        })
+        .catch(error => {
+            console.error('Error al actualizar la gráfica de visualizaciones:', error);
+        });
+}
+
+
+
+    function togglePublicationTypeChart() {
+        const publicationTypeChartCanvas = document.getElementById('publicationTypeChart');
+
+        if (publicationTypeChartCanvas.style.display === "none") {
+            publicationTypeChartCanvas.style.display = "block";
+            initializePublicationTypeChart();  // Llamar a la función que inicializa el gráfico
         } else {
-            viewsOverTimeChartCanvas.style.display = "none";
+            publicationTypeChartCanvas.style.display = "none";
         }
     }
 
@@ -139,6 +215,16 @@
         chartInstance.data.datasets[0].data = data;
         chartInstance.data.datasets[0].label = label;
         chartInstance.update();
+    }
+
+    function toggleDownloadHeatmap() {
+        const heatmapCanvas = document.getElementById('downloadHeatmap');
+        if (heatmapCanvas.style.display === "none") {
+            heatmapCanvas.style.display = "block";
+            initializeDownloadHeatmap();
+        } else {
+            heatmapCanvas.style.display = "none";
+        }
     }
 
     function initializeChart() {
@@ -233,48 +319,143 @@
     }
 
     function initializeViewsOverTimeChart() {
-        const viewDates = JSON.parse(dataContainer.getAttribute('data-view-dates'));
-        const viewCountsOverTime = JSON.parse(dataContainer.getAttribute('data-view-counts-over-time'));
-        console.log(viewDates);
-        console.log(viewCountsOverTime);
-        const ctx = document.getElementById('viewsOverTimeChart').getContext('2d');
-        viewsOverTimeChartInstance = new Chart(ctx, {
-            type: 'line',
+    const viewDates = JSON.parse(dataContainer.getAttribute('data-view-dates'));
+    const viewCountsOverTime = JSON.parse(dataContainer.getAttribute('data-view-counts-over-time'));
+
+    const ctx = document.getElementById('viewsOverTimeChart').getContext('2d');
+    viewsOverTimeChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: viewDates,
+            datasets: [{
+                label: 'Visualizaciones a lo largo del tiempo',
+                data: viewCountsOverTime,
+                fill: false,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Visualizaciones'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Fecha'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+}
+
+    function initializePublicationTypeChart() {
+        const publicationTypesCount = JSON.parse(dataContainer.getAttribute('data-publication-types-count'));
+        const labels = Object.keys(publicationTypesCount); // Los tipos de publicación
+        const data = Object.values(publicationTypesCount); // Las cantidades de datasets
+
+        const ctx = document.getElementById('publicationTypeChart').getContext('2d');
+
+        publicationTypeChartInstance = new Chart(ctx, {
+            type: 'pie', // Cambié el tipo a 'pie' para el gráfico de rosco
             data: {
-                labels: viewDates,
+                labels: labels,
                 datasets: [{
-                    label: 'Visualizaciones a lo largo del tiempo',
-                    data: viewCountsOverTime,
-                    fill: false,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    tension: 0.1
+                    label: 'Tipos de Publicaciones',
+                    data: data,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#FFB6C1', '#B0E57C', '#8B74FF', '#F39C12', '#A9338E'],
+                    borderColor: 'white',
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Cantidad de Visualizaciones'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Fecha'
-                        }
-                    }
-                },
                 plugins: {
                     legend: {
-                        display: true,
-                        position: 'top'
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' datasets';
+                            }
+                        }
                     }
                 }
             }
         });
     }
+    function initializeDownloadHeatmap() {
+    const downloadCounts = JSON.parse(dataContainer.getAttribute('data-download-counts'));  // Asegúrate de que estos datos existen
+
+    console.log('Datos de descargas:', downloadCounts);  // Verifica los datos que recibes
+
+    // Si no hay datos, no inicialices el gráfico
+    if (Object.keys(downloadCounts).length === 0) {
+        console.log("No hay datos de descargas para mostrar.");
+        return;
+    }
+
+    const dates = Object.keys(downloadCounts);
+    const values = Object.values(downloadCounts);
+
+    const ctx = document.getElementById('downloadHeatmap').getContext('2d');
+    if (downloadHeatmapInstance) {
+        downloadHeatmapInstance.destroy(); // Destruir la instancia anterior si existe
+    }
+
+    // Convertir los datos a formato de gráfico de burbujas
+    const bubbleData = dates.map((date, index) => ({
+        x: date,       // Usar la fecha como valor en el eje X
+        y: values[index],  // Usar el valor de descargas como valor en el eje Y
+        r: values[index] / 10  // El tamaño de la burbuja, puedes ajustar la división
+    }));
+
+    downloadHeatmapInstance = new Chart(ctx, {
+        type: 'bubble',  // Puedes cambiar esto si usas un gráfico diferente
+        data: {
+            datasets: [{
+                label: 'Descargas por día',
+                data: bubbleData,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Descargas'
+                    }
+                },
+                x: {
+                    type: 'category',  // Cambia el tipo a 'category' si usas fechas como etiquetas
+                    title: {
+                        display: true,
+                        text: 'Fecha'
+                    }
+                }
+            }
+        }
+    });
+}
+
 </script>
 {% endblock %}
