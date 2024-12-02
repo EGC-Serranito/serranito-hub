@@ -306,3 +306,17 @@ def test_get_average_rating(dataset_rating_service):
 
             assert result == 5
             mock_get_all_ratings.assert_called_once_with(dataset_id)
+
+
+def test_find_rating_by_user_and_dataset(dataset_rating_service, mock_dataset_rating):
+    app = create_app()
+    with app.app_context():
+        with patch.object(dataset_rating_service.repository, 'find_user_rating') as mock_find_rating:
+            mock_find_rating.return_value = mock_dataset_rating
+
+            dataset_id = 1
+            user_id = 1
+            result = dataset_rating_service.find_rating_by_user_and_dataset(dataset_id, user_id)
+
+            assert result == mock_dataset_rating
+            mock_find_rating.assert_called_once_with(dataset_id, user_id)
