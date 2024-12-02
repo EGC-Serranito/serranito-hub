@@ -37,36 +37,42 @@ class DashBoardService(BaseService):
 
         return dataset_names, total_sizes
 
-    def get_views_over_time(self):
+    def get_views_over_time_with_filter(self, filter_type="day"):
+        if filter_type == "month":
+            group_by_filter = func.date_format(DSViewRecord.view_date, '%Y-%m')
+        elif filter_type == "year":
+            group_by_filter = func.date_format(DSViewRecord.view_date, '%Y')
+        else:  # Default to "day"
+            group_by_filter = func.date(DSViewRecord.view_date)
+
+        # Construcción de la consulta
         result = (
             self.repository.session.query(
-                func.date(DSViewRecord.view_date).label("view_dates"),
+                group_by_filter.label("view_dates"),
                 func.count(DSViewRecord.id).label("view_counts_over_time")
             )
-            .group_by(func.date(DSViewRecord.view_date))
-            .order_by(func.date(DSViewRecord.view_date))
+            .group_by(group_by_filter)
+            .order_by(group_by_filter)
             .all()
         )
-        print(result)
+
         if not result:
             return [], []
 
-        dates = [record.view_dates.strftime('%Y-%m-%d') for record in result]
+        # Formatear las fechas y los datos
+        dates = [record.view_dates for record in result]
         view_counts = [record.view_counts_over_time for record in result]
 
         return dates, view_counts
 
     @staticmethod
     def get_publication_types_data():
-        # Consultar directamente la base de datos para contar los tipos de publicación
         result = (
             db.session
             .query(DSMetaData.publication_type, db.func.count(DSMetaData.id))
             .group_by(DSMetaData.publication_type)
             .all()
         )
-
-        # Convertir los resultados en un diccionario
         publication_types_count = {str(row[0]): row[1] for row in result}
 
         return publication_types_count

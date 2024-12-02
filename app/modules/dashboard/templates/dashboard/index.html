@@ -24,6 +24,14 @@
         <option value="views">Visualizaciones por autor</option>
     </select>
 </div>
+<div id="views-filter-container" style="display: none; margin-top: 10px;">
+    <label for="views-filter">Filtrar por:</label>
+    <select id="views-filter" onchange="updateViewsOverTimeChart()">
+        <option value="day" selected>Día</option>
+        <option value="month">Mes</option>
+        <option value="year">Año</option>
+    </select>
+</div>
 
 <!-- Contenedor para la gráfica de autores -->
 <canvas id="chartCanvas" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
@@ -115,15 +123,60 @@
     }
 
     function toggleViewsOverTimeChart() {
-        const viewsOverTimeChartCanvas = document.getElementById('viewsOverTimeChart');
+    const viewsOverTimeChartCanvas = document.getElementById('viewsOverTimeChart');
+    const viewsFilterContainer = document.getElementById('views-filter-container');
 
-        if (viewsOverTimeChartCanvas.style.display === "none") {
-            viewsOverTimeChartCanvas.style.display = "block";
+    if (viewsOverTimeChartCanvas.style.display === "none") {
+        viewsOverTimeChartCanvas.style.display = "block";
+        viewsFilterContainer.style.display = "block";
+
+        // Inicializar la gráfica solo si no existe aún
+        if (!viewsOverTimeChartInstance) {
             initializeViewsOverTimeChart();
-        } else {
-            viewsOverTimeChartCanvas.style.display = "none";
         }
+    } else {
+        viewsOverTimeChartCanvas.style.display = "none";
+        viewsFilterContainer.style.display = "none";
     }
+}
+
+function updateViewsOverTimeChart() {
+    const selectedFilter = document.getElementById('views-filter').value;
+
+    fetch('/dashboard', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filter: selectedFilter }) // Enviar el filtro como JSON
+    })
+        .then(response => response.json())
+        .then(result => {
+            console.log(`Filter: ${selectedFilter}, Data:`, result); // Depuración
+            const labels = result.view_dates; // Fechas obtenidas del servidor
+            const data = result.view_counts_over_time; // Cantidad de visualizaciones
+
+            let label;
+            if (selectedFilter === 'day') {
+                label = 'Visualizaciones Diarias';
+            } else if (selectedFilter === 'month') {
+                label = 'Visualizaciones Mensuales';
+            } else if (selectedFilter === 'year') {
+                label = 'Visualizaciones Anuales';
+            }
+
+            // Actualizar la gráfica
+            viewsOverTimeChartInstance.data.labels = labels;
+            viewsOverTimeChartInstance.data.datasets[0].data = data;
+            viewsOverTimeChartInstance.data.datasets[0].label = label;
+            viewsOverTimeChartInstance.update();
+        })
+        .catch(error => {
+            console.error('Error al actualizar la gráfica de visualizaciones:', error);
+        });
+}
+
+
 
     function togglePublicationTypeChart() {
         const publicationTypeChartCanvas = document.getElementById('publicationTypeChart');
@@ -250,49 +303,48 @@
     }
 
     function initializeViewsOverTimeChart() {
-        const viewDates = JSON.parse(dataContainer.getAttribute('data-view-dates'));
-        const viewCountsOverTime = JSON.parse(dataContainer.getAttribute('data-view-counts-over-time'));
-        console.log(viewDates);
-        console.log(viewCountsOverTime);
-        const ctx = document.getElementById('viewsOverTimeChart').getContext('2d');
-        viewsOverTimeChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: viewDates,
-                datasets: [{
-                    label: 'Visualizaciones a lo largo del tiempo',
-                    data: viewCountsOverTime,
-                    fill: false,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Cantidad de Visualizaciones'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Fecha'
-                        }
+    const viewDates = JSON.parse(dataContainer.getAttribute('data-view-dates'));
+    const viewCountsOverTime = JSON.parse(dataContainer.getAttribute('data-view-counts-over-time'));
+
+    const ctx = document.getElementById('viewsOverTimeChart').getContext('2d');
+    viewsOverTimeChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: viewDates,
+            datasets: [{
+                label: 'Visualizaciones a lo largo del tiempo',
+                data: viewCountsOverTime,
+                fill: false,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad de Visualizaciones'
                     }
                 },
-                plugins: {
-                    legend: {
+                x: {
+                    title: {
                         display: true,
-                        position: 'top'
+                        text: 'Fecha'
                     }
                 }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
             }
-        });
-    }
+        }
+    });
+}
 
     function initializePublicationTypeChart() {
         const publicationTypesCount = JSON.parse(dataContainer.getAttribute('data-publication-types-count'));
