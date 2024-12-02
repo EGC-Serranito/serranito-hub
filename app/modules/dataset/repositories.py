@@ -3,7 +3,6 @@ import logging
 from flask_login import current_user
 from typing import Optional
 from core.repositories.BaseRepository import BaseRepository
-from app import db
 
 from sqlalchemy import desc, func
 
@@ -148,14 +147,12 @@ class DatasetUserRateRepository(BaseRepository):
             dataset_id=dataset_id, user_id=user_id
         ).first()
 
-    def add_rating(self, dataset_id, user_id, rate):
-        new_rating = DatasetUserRate(dataset_id=dataset_id, user_id=user_id, rate=rate)
-        db.session.add(new_rating)
-        db.session.commit()
-
     def update_rating(self, rating, rate):
-        rating.rate = rate
-        db.session.commit()
+        return self.update(rating.id, rate=rate)
 
-    def get_all_ratings(self, dataset_id):
-        return self.model.query.filter_by(dataset_id=dataset_id).all()
+    def add_rating(self, dataset_id, user_id, rate):
+        return self.create(
+            dataset_id=dataset_id,
+            user_id=user_id,
+            rate=rate
+        )
