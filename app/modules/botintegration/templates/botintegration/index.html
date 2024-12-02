@@ -156,6 +156,19 @@
         background-color: #2980b9;
     }
 </style>
+<div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div>
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+</div>
 
 <h1 class="h3 mb-3">Bot Configuration</h1>
 
@@ -277,7 +290,12 @@
                 <h2>BOT TOKEN</h2>
                 <div class="form-container">
                     <form method="POST" action="{{ url_for('botintegration.create_node_route_add_bot') }}" style="display: inline;">
-                        {{ form.name(class_="form-control", placeholder="Token of Telegram or Discord") }}
+                        <select name="name" id="features-selection" class="form-control">
+                            <option value="" disabled selected>Select a bot</option>
+                            {% for bot_name in bot_names %}
+                                <option value="{{ bot_name }}">{{ bot_name }}</option>
+                            {% endfor %}
+                        </select>
 
                         {{ form.submit(class_="add-btn") }}
                     </form>

@@ -186,11 +186,9 @@ class NodeService(BaseService):
                                 )
                                 self.repository.update_node_name(node_id, new_name)
                             else:
-                                print(
-                                    "No se encontraron características en los hijos del segundo hijo."
-                                )
+                                return {"error": "No features found in the children of the second child."}, 400
                         else:
-                            print("El nodo no tiene un segundo hijo.")
+                            return {"error": "The node does not have a second child."}, 400
                     else:
                         if len(node.get("children", [])) > 1:
                             second_child = node.get("children")[1]
@@ -211,37 +209,40 @@ class NodeService(BaseService):
                                     ),
                                 )
 
-                            if not tree_nodes_dict:
-                                return {"error": "User tree is empty"}, 400
+                                if not tree_nodes_dict:
+                                    return {"error": "User tree is empty"}, 400
 
-                            # Limpieza y fusión de árboles
-                            if treenode_bot_dict:
-                                self.remove_stopped_chats(treenode_bot_dict[0])
-                                merged_tree = self.merge_nary_trees(
-                                    tree_nodes_dict[0], treenode_bot_dict[0]
-                                )
+                                # Limpieza y fusión de árboles
+                                if treenode_bot_dict:
+                                    self.remove_stopped_chats(treenode_bot_dict[0])
+                                    merged_tree = self.merge_nary_trees(
+                                        tree_nodes_dict[0], treenode_bot_dict[0]
+                                    )
+                                else:
+                                    merged_tree = tree_nodes_dict[0]
+
+                                # Validación y limpieza final
+                                if not merged_tree or "name" not in merged_tree:
+                                    raise ValueError("Merged tree is invalid.")
+
+                                self.remove_stopped_chats(merged_tree)
+
+                                # Visualización del árbol
+                                def print_tree(node, level=0):
+                                    print("\t" * level + f"- {node['name']} ----- {node['path']}")
+                                    for child in node.get("children", []):
+                                        print_tree(child, level + 1)
+
+                                print_tree(merged_tree)
+
+                                # Guardar árbol combinado en la base de datos
+                                self.repository.clear_treenode_bot_table()
+                                self.repository.save_bot_tree_to_db(merged_tree)
                             else:
-                                merged_tree = tree_nodes_dict[0]
-
-                            # Validación y limpieza final
-                            if not merged_tree or "name" not in merged_tree:
-                                raise ValueError("Merged tree is invalid.")
-
-                            self.remove_stopped_chats(merged_tree)
-
-                            # Visualización del árbol
-                            def print_tree(node, level=0):
-                                print("\t" * level + f"- {node['name']} ----- {node['path']}")
-                                for child in node.get("children", []):
-                                    print_tree(child, level + 1)
-
-                            print_tree(merged_tree)
-
-                            # Guardar árbol combinado en la base de datos
-                            self.repository.clear_treenode_bot_table()
-                            self.repository.save_bot_tree_to_db(merged_tree)
-
-            return {"message": "Node merged successfully!", "node_id": node_id}, 200
+                                return {"error": "No features found in the children of the second child."}, 400
+                        else:
+                            return {"error": "The node does not have a second child."}, 400
+            return {"message": "Chat run successfully!", "node_id": node_id}, 200
 
         except Exception as e:
             return {"error": str(e)}, 500

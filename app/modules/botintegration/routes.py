@@ -243,14 +243,18 @@ def merge_node(node_id):
             flash("You are not authorized to delete this node", "error")
             return redirect(url_for("botintegration.index"))
 
-        result = tree_node_service.merge_node(node_id, current_user.id)
-        flash(
-            "Node deleted successfully!" if result else "Error deleting node",
-            "success" if result else "error",
-        )
+        # Desempaquetar el resultado de la función merge_node
+        result, status_code = tree_node_service.merge_node(node_id, current_user.id)
+
+        if status_code != 200:
+            flash(f"Error: {result.get('error', 'Unknown error')}", "error")
+        else:
+            flash(result.get('message', 'Node run successfully!'), "success")
+
         return redirect(url_for("botintegration.index"))
     except Exception as e:
         db.session.rollback()
+        print(str(e))
         flash(f"Error: {str(e)}", "danger")
         return redirect(url_for("botintegration.index"))
 
