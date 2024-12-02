@@ -156,3 +156,6 @@ class DatasetUserRateRepository(BaseRepository):
             user_id=user_id,
             rate=rate
         )
+
+    def get_all_ratings(self, dataset_id):
+        return self.model.query.filter_by(dataset_id=dataset_id).all()

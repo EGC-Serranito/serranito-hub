@@ -1,8 +1,8 @@
 import hashlib
 import pytest
 from unittest.mock import mock_open, patch, MagicMock
-from app.modules.dataset.services import DataSetService, calculate_checksum_and_size, SizeService, DOIMappingService
-from app.modules.dataset.models import DataSet, DSMetaData
+from app.modules.dataset.services import DataSetService, calculate_checksum_and_size, SizeService, DOIMappingService, DatasetRatingService
+from app.modules.dataset.models import DataSet, DSMetaData, DatasetUserRate
 from app.modules.auth.models import User
 import os
 from app import create_app
@@ -16,6 +16,11 @@ def size_service():
 @pytest.fixture
 def dataset_service():
     return DataSetService()
+
+
+@pytest.fixture
+def dataset_rating_service():
+    return DatasetRatingService()
 
 
 @pytest.fixture
@@ -47,10 +52,21 @@ def mock_dataset():
         return dataset
 
 
+@pytest.fixture
+def mock_dataset_rating():
+    app = create_app()
+    with app.app_context():
+        dataset_user_rating = MagicMock(spec=DatasetUserRate)
+        dataset_user_rating.rate = 5
+        dataset_user_rating.dataset_id = 1
+        dataset_user_rating.user_id = 1
+        return dataset_user_rating
+
+
 def test_move_feature_models(dataset_service, mock_user, mock_dataset):
     with patch("app.modules.auth.services.AuthenticationService.get_authenticated_user", return_value=mock_user), \
-         patch("shutil.move") as mock_move, \
-         patch("os.makedirs") as mock_makedirs:
+            patch("shutil.move") as mock_move, \
+            patch("os.makedirs") as mock_makedirs:
 
         dataset_service.move_feature_models(mock_dataset)
 
@@ -76,9 +92,9 @@ def test_create_from_form(dataset_service, mock_user):
     app = create_app()
     with app.app_context():
         with patch.object(dataset_service.dsmetadata_repository, 'create') as mock_create_dsmetadata, \
-             patch.object(dataset_service.author_repository, 'create') as mock_create_author, \
-             patch.object(dataset_service.repository, 'create') as mock_create_dataset, \
-             patch.object(dataset_service.repository.session, 'commit'):
+                patch.object(dataset_service.author_repository, 'create') as mock_create_author, \
+                patch.object(dataset_service.repository, 'create') as mock_create_dataset, \
+                patch.object(dataset_service.repository.session, 'commit'):
 
             mock_dsmetadata = MagicMock(spec=DSMetaData)
             mock_dsmetadata.id = 1
@@ -147,7 +163,7 @@ def test_total_dataset_views(dataset_service):
 
 def test_calculate_checksum_and_size():
     with patch("builtins.open", mock_open(read_data=b"test content")) as mock_file, \
-         patch("os.path.getsize", return_value=12) as mock_getsize:
+            patch("os.path.getsize", return_value=12) as mock_getsize:
         checksum, size = calculate_checksum_and_size("/mock/path/to/file")
         mock_file.assert_called_once_with("/mock/path/to/file", "rb")
         mock_getsize.assert_called_once_with("/mock/path/to/file")
@@ -226,3 +242,64 @@ def test_count_dsmetadata(dataset_service):
         dsmetadata_repository_mock.count.return_value = 20
         result = dataset_service.count_dsmetadata()
         assert result == 20
+
+
+def test_rate_for_first_time(dataset_rating_service, mock_dataset_rating):
+    app = create_app()
+    with app.app_context():
+        with patch.object(dataset_rating_service.repository, 'add_rating') as mock_submit_rating:
+            mock_submit_rating.return_value = mock_dataset_rating
+
+            dataset_id = 1
+            user_id = 1
+            rate = 5
+            dataset_rating_service.submit_rating(dataset_id, user_id, rate)
+
+            assert mock_dataset_rating.rate == rate
+            assert mock_dataset_rating.dataset_id == dataset_id
+            assert mock_dataset_rating.user_id == user_id
+            mock_submit_rating.assert_called_once_with(dataset_id, user_id, rate)
+
+
+def test_update_rate(dataset_rating_service, mock_dataset_rating):
+    app = create_app()
+    with app.app_context():
+        with patch.object(dataset_rating_service.repository, 'find_user_rating') as mock_find_rating, \
+                patch.object(dataset_rating_service.repository, 'update_rating') as mock_update_rating:
+
+            # Configurar el mock para `find_user_rating`
+            mock_old_dataset_rating = MagicMock(spec=DatasetUserRate)
+            mock_old_dataset_rating.rate = 3
+            mock_old_dataset_rating.dataset_id = 1
+            mock_old_dataset_rating.user_id = 1
+            mock_find_rating.return_value = mock_old_dataset_rating
+
+            mock_update_rating.return_value = mock_old_dataset_rating
+
+            dataset_id = 1
+            user_id = 1
+            rate = 5
+
+            result = dataset_rating_service.submit_rating(dataset_id, user_id, rate)
+
+            assert result == mock_old_dataset_rating
+            assert mock_old_dataset_rating.rate == 3
+            assert mock_dataset_rating.rate == 5
+
+            mock_find_rating.assert_called_once_with(dataset_id, user_id)
+            mock_update_rating.assert_called_once_with(mock_old_dataset_rating, rate)
+
+
+def test_get_average_rating(dataset_rating_service):
+    app = create_app()
+    with app.app_context():
+        with patch.object(dataset_rating_service.repository, 'get_all_ratings') as mock_get_all_ratings:
+            mock_rating = MagicMock()
+            mock_rating.rate = 5
+            mock_get_all_ratings.return_value = [mock_rating]
+
+            dataset_id = 1
+            result = dataset_rating_service.get_average_rating(dataset_id)
+
+            assert result == 5
+            mock_get_all_ratings.assert_called_once_with(dataset_id)
