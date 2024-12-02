@@ -1,11 +1,11 @@
 from app.modules.dataset.repositories import (
     DataSetRepository,
 )
-
+from app import db
 from app.modules.dashboard.repositories import DashboardAuthorRepository
 from core.services.BaseService import BaseService
 from sqlalchemy import func
-from app.modules.dataset.models import DSViewRecord
+from app.modules.dataset.models import DSViewRecord, DSMetaData
 
 
 class DashBoardService(BaseService):
@@ -55,3 +55,18 @@ class DashBoardService(BaseService):
         view_counts = [record.view_counts_over_time for record in result]
 
         return dates, view_counts
+
+    @staticmethod
+    def get_publication_types_data():
+        # Consultar directamente la base de datos para contar los tipos de publicación
+        result = (
+            db.session
+            .query(DSMetaData.publication_type, db.func.count(DSMetaData.id))
+            .group_by(DSMetaData.publication_type)
+            .all()
+        )
+
+        # Convertir los resultados en un diccionario
+        publication_types_count = {str(row[0]): row[1] for row in result}
+
+        return publication_types_count

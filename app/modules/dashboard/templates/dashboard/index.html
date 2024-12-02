@@ -13,6 +13,7 @@
     <button type="button" class="btn-dashboard" onclick="toggleDropdownAndChart()">Ver gráfica por autor</button>
     <button type="button" class="btn-dashboard" onclick="toggleDatasetSizeChart()">Ver tamaño de archivos por dataset</button>
     <button type="button" class="btn-dashboard" onclick="toggleViewsOverTimeChart()">Ver evolución de visualizaciones</button>
+    <button type="button" class="btn-dashboard" onclick="togglePublicationTypeChart()">Ver gráfico de tipos de publicación</button>
 </div>
 
 <!-- Dropdown para seleccionar el tipo de datos (inicialmente oculto) -->
@@ -33,6 +34,9 @@
 <!-- Contenedor para la gráfica de evolución de visualizaciones -->
 <canvas id="viewsOverTimeChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
 
+<!-- Contenedor para la gráfica de tipos de publicación (rosco) -->
+<canvas id="publicationTypeChart" width="400" height="400" style="margin-top: 20px; display: none;"></canvas>
+
 <!-- Div oculto para almacenar los datos de autores, cantidad de datasets, visualizaciones y tamaños de datasets -->
 <div id="data-container"
      data-author-names-datasets='{{ author_names_dataset | tojson | safe }}'
@@ -43,6 +47,7 @@
      data-total-sizes='{{ total_sizes | tojson | safe }}'
      data-view-dates='{{ view_dates | tojson | safe }}'
      data-view-counts-over-time='{{ view_counts_over_time | tojson | safe }}'
+     data-publication-types-count='{{ publication_types_count | tojson | safe }}'
      style="display: none;">
 </div>
 
@@ -72,6 +77,7 @@
     let chartInstance;
     let datasetSizeChartInstance;
     let viewsOverTimeChartInstance;
+    let publicationTypeChartInstance;
 
     function toggleDropdownAndChart() {
         const dropdownContainer = document.getElementById('data-type-container');
@@ -116,6 +122,17 @@
             initializeViewsOverTimeChart();
         } else {
             viewsOverTimeChartCanvas.style.display = "none";
+        }
+    }
+
+    function togglePublicationTypeChart() {
+        const publicationTypeChartCanvas = document.getElementById('publicationTypeChart');
+
+        if (publicationTypeChartCanvas.style.display === "none") {
+            publicationTypeChartCanvas.style.display = "block";
+            initializePublicationTypeChart();  // Llamar a la función que inicializa el gráfico
+        } else {
+            publicationTypeChartCanvas.style.display = "none";
         }
     }
 
@@ -271,6 +288,43 @@
                     legend: {
                         display: true,
                         position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    function initializePublicationTypeChart() {
+        const publicationTypesCount = JSON.parse(dataContainer.getAttribute('data-publication-types-count'));
+        const labels = Object.keys(publicationTypesCount); // Los tipos de publicación
+        const data = Object.values(publicationTypesCount); // Las cantidades de datasets
+
+        const ctx = document.getElementById('publicationTypeChart').getContext('2d');
+
+        publicationTypeChartInstance = new Chart(ctx, {
+            type: 'pie', // Cambié el tipo a 'pie' para el gráfico de rosco
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tipos de Publicaciones',
+                    data: data,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#FFB6C1', '#B0E57C', '#8B74FF', '#F39C12', '#A9338E'],
+                    borderColor: 'white',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' datasets';
+                            }
+                        }
                     }
                 }
             }

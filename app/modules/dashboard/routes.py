@@ -11,6 +11,8 @@ def index():
     author_names_view, view_counts = dashboardservice.get_all_author_names_and_view_counts()
     dataset_names, total_sizes = dashboardservice.get_datasets_and_total_sizes()
     view_dates, view_counts_over_time = dashboardservice.get_views_over_time()
+    publication_types_count = dashboardservice.get_publication_types_data()
+
     return render_template(
         'dashboard/index.html',
         author_names_dataset=author_names_dataset,
@@ -20,5 +22,6 @@ def index():
         dataset_names=dataset_names,
         total_sizes=total_sizes,
         view_dates=view_dates,
-        view_counts_over_time=view_counts_over_time
+        view_counts_over_time=view_counts_over_time,
+        publication_types_count=publication_types_count
     )
