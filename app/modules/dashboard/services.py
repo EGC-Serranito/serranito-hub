@@ -43,7 +43,7 @@ class DashBoardService(BaseService):
         elif filter_type == "year":
             group_by_filter = func.date_format(DSViewRecord.view_date, '%Y')
         else:  # Default to "day"
-            group_by_filter = func.date(DSViewRecord.view_date)
+            group_by_filter = func.date_format(DSViewRecord.view_date, '%Y-%m-%d')
 
         # Construcción de la consulta
         result = (
