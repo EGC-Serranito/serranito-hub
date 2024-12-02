@@ -14,6 +14,7 @@ def index():
     dataset_names, total_sizes = dashboardservice.get_datasets_and_total_sizes()
     view_dates, view_counts_over_time = dashboardservice.get_views_over_time_with_filter(filter_type)
     publication_types_count = dashboardservice.get_publication_types_data()
+    download_counts = dashboardservice.get_downloads_by_day()
     if request.method == 'POST':
         filter_type = request.json.get('filter', 'day')
         view_dates, view_counts_over_time = dashboardservice.get_views_over_time_with_filter(filter_type)
@@ -32,5 +33,6 @@ def index():
         view_dates=view_dates,
         view_counts_over_time=view_counts_over_time,
         publication_types_count=publication_types_count,
-        current_filter=filter_type
+        current_filter=filter_type,
+        download_counts=download_counts
     )

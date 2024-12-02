@@ -5,7 +5,7 @@ from app import db
 from app.modules.dashboard.repositories import DashboardAuthorRepository
 from core.services.BaseService import BaseService
 from sqlalchemy import func
-from app.modules.dataset.models import DSViewRecord, DSMetaData
+from app.modules.dataset.models import DSViewRecord, DSMetaData, DSDownloadRecord
 
 
 class DashBoardService(BaseService):
@@ -76,3 +76,24 @@ class DashBoardService(BaseService):
         publication_types_count = {str(row[0]): row[1] for row in result}
 
         return publication_types_count
+
+    def get_downloads_by_day(self):
+        """
+        Agrupa las descargas por día y devuelve un diccionario con el número de descargas por fecha.
+        Esta versión cuenta todas las descargas, incluso si el mismo usuario descarga el mismo dataset múltiples veces.
+        """
+        result = (
+            db.session.query(
+                func.date(DSDownloadRecord.download_date).label("download_date"),
+                func.count(DSDownloadRecord.id).label("download_count")  # Contar todas las descargas
+            )
+            .group_by(func.date(DSDownloadRecord.download_date))  # Agrupar por fecha
+            .order_by(func.date(DSDownloadRecord.download_date))  # Ordenar por fecha
+            .all()
+        )
+
+        downloads_by_day = {
+            record.download_date.strftime('%Y-%m-%d'): record.download_count for record in result
+        }
+
+        return downloads_by_day

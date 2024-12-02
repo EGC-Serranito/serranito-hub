@@ -14,6 +14,7 @@
     <button type="button" class="btn-dashboard" onclick="toggleDatasetSizeChart()">Ver tamaño de archivos por dataset</button>
     <button type="button" class="btn-dashboard" onclick="toggleViewsOverTimeChart()">Ver evolución de visualizaciones</button>
     <button type="button" class="btn-dashboard" onclick="togglePublicationTypeChart()">Ver gráfico de tipos de publicación</button>
+    <button type="button" class="btn-dashboard" onclick="toggleDownloadHeatmap()">Ver mapa de calor de descargas</button>
 </div>
 
 <!-- Dropdown para seleccionar el tipo de datos (inicialmente oculto) -->
@@ -45,6 +46,9 @@
 <!-- Contenedor para la gráfica de tipos de publicación (rosco) -->
 <canvas id="publicationTypeChart" width="400" height="400" style="margin-top: 20px; display: none;"></canvas>
 
+<!-- Contenedor para el mapa de calor de descargas -->
+<canvas id="downloadHeatmap" width="800" height="400" style="margin-top: 20px; display: none;"></canvas>
+
 <!-- Div oculto para almacenar los datos de autores, cantidad de datasets, visualizaciones y tamaños de datasets -->
 <div id="data-container"
      data-author-names-datasets='{{ author_names_dataset | tojson | safe }}'
@@ -56,6 +60,7 @@
      data-view-dates='{{ view_dates | tojson | safe }}'
      data-view-counts-over-time='{{ view_counts_over_time | tojson | safe }}'
      data-publication-types-count='{{ publication_types_count | tojson | safe }}'
+     data-download-counts='{{ download_counts | tojson | safe }}'
      style="display: none;">
 </div>
 
@@ -86,6 +91,7 @@
     let datasetSizeChartInstance;
     let viewsOverTimeChartInstance;
     let publicationTypeChartInstance;
+    let downloadHeatmapInstance;
 
     function toggleDropdownAndChart() {
         const dropdownContainer = document.getElementById('data-type-container');
@@ -209,6 +215,16 @@ function updateViewsOverTimeChart() {
         chartInstance.data.datasets[0].data = data;
         chartInstance.data.datasets[0].label = label;
         chartInstance.update();
+    }
+
+    function toggleDownloadHeatmap() {
+        const heatmapCanvas = document.getElementById('downloadHeatmap');
+        if (heatmapCanvas.style.display === "none") {
+            heatmapCanvas.style.display = "block";
+            initializeDownloadHeatmap();
+        } else {
+            heatmapCanvas.style.display = "none";
+        }
     }
 
     function initializeChart() {
@@ -382,5 +398,64 @@ function updateViewsOverTimeChart() {
             }
         });
     }
+    function initializeDownloadHeatmap() {
+    const downloadCounts = JSON.parse(dataContainer.getAttribute('data-download-counts'));  // Asegúrate de que estos datos existen
+
+    console.log('Datos de descargas:', downloadCounts);  // Verifica los datos que recibes
+
+    // Si no hay datos, no inicialices el gráfico
+    if (Object.keys(downloadCounts).length === 0) {
+        console.log("No hay datos de descargas para mostrar.");
+        return;
+    }
+
+    const dates = Object.keys(downloadCounts);
+    const values = Object.values(downloadCounts);
+
+    const ctx = document.getElementById('downloadHeatmap').getContext('2d');
+    if (downloadHeatmapInstance) {
+        downloadHeatmapInstance.destroy(); // Destruir la instancia anterior si existe
+    }
+
+    // Convertir los datos a formato de gráfico de burbujas
+    const bubbleData = dates.map((date, index) => ({
+        x: date,       // Usar la fecha como valor en el eje X
+        y: values[index],  // Usar el valor de descargas como valor en el eje Y
+        r: values[index] / 10  // El tamaño de la burbuja, puedes ajustar la división
+    }));
+
+    downloadHeatmapInstance = new Chart(ctx, {
+        type: 'bubble',  // Puedes cambiar esto si usas un gráfico diferente
+        data: {
+            datasets: [{
+                label: 'Descargas por día',
+                data: bubbleData,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Descargas'
+                    }
+                },
+                x: {
+                    type: 'category',  // Cambia el tipo a 'category' si usas fechas como etiquetas
+                    title: {
+                        display: true,
+                        text: 'Fecha'
+                    }
+                }
+            }
+        }
+    });
+}
+
 </script>
 {% endblock %}
