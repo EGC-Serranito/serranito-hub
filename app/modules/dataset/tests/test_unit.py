@@ -248,8 +248,10 @@ def test_count_dsmetadata(dataset_service):
 def test_rate_for_first_time(dataset_rating_service, mock_dataset_rating):
     app = create_app()
     with app.app_context():
-        with patch.object(dataset_rating_service.repository, 'add_rating') as mock_submit_rating:
+        with patch.object(dataset_rating_service.repository, 'add_rating') as mock_submit_rating, \
+                patch.object(dataset_rating_service.repository, 'find_user_rating') as mock_find_rating:
             mock_submit_rating.return_value = mock_dataset_rating
+            mock_find_rating.return_value = None
 
             dataset_id = 1
             user_id = 1
