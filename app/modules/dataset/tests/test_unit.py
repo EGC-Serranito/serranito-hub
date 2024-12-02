@@ -1,7 +1,8 @@
 import hashlib
 import pytest
 from unittest.mock import mock_open, patch, MagicMock
-from app.modules.dataset.services import DataSetService, calculate_checksum_and_size, SizeService, DOIMappingService, DatasetRatingService
+from app.modules.dataset.services import DataSetService, calculate_checksum_and_size, SizeService, DOIMappingService
+from app.modules.dataset.services import DatasetRatingService
 from app.modules.dataset.models import DataSet, DSMetaData, DatasetUserRate
 from app.modules.auth.models import User
 import os
