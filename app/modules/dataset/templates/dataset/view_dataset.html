@@ -442,25 +442,8 @@
 
     function editFile(){
         const text = document.getElementById('fileEditContent').textContent
-        console.log(JSON.stringify({content: text}))
-        fetch(`/dataset/{{ dataset.id }}/file/${currentFileId}`, {
-            method: "POST", 
-            headers: {
-                'Content-Type': 'application/json'  // Indicamos que el cuerpo es JSON
-            },
-            body: JSON.stringify({content: text})
-        })
-        .then(data => data.json())
-        .then(json => console.log(json))
-        // const response = confirm("Do you want to save changes?")
-        // if(response) {
-        //     fetch(`/file/edit/${currentFileId}`, {
-        //         method: "POST", 
-        //         body: {features, constraints}
-        //     })
-        //     console.log(features)
-        //     console.log(constraints)
-        // }
+        localStorage.setItem("edit_file", JSON.stringify({file_id: currentFileId, content: text}))
+        window.location.href = "/dataset/update/{{ dataset.id }}"
     }
 
     function openEditFile(fileId) {

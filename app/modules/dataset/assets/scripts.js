@@ -210,6 +210,7 @@ var currentId = 0;
                                     });
                                 } else {
                                     response.json().then(data => {
+                                        console.log(data)
                                         console.error('Error: ' + data.message);
                                         hide_loading();
 

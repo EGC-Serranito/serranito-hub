@@ -48,6 +48,10 @@ dataset_rating_service = DatasetRatingService()
 hubfile_service = HubfileService()
 
 
+def printRojo100(text=""):
+    printRojo(str(text) * 100)
+
+
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
 @login_required
 def create_dataset():
@@ -55,7 +59,6 @@ def create_dataset():
     if request.method == "POST":
 
         dataset = None
-
         if not form.validate_on_submit():
             return jsonify({"message": form.errors}), 400
 
@@ -66,13 +69,13 @@ def create_dataset():
             )
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
+
         except Exception as exc:
             logger.exception(f"Exception while create dataset data in local {exc}")
             return (
                 jsonify({"Exception while create dataset data in local: ": str(exc)}),
                 400,
             )
-
         # send dataset as deposition to Zenodo
         data = {}
         try:
@@ -134,6 +137,7 @@ def list_dataset():
 @login_required
 def upload():
     file = request.files["file"]
+    printRojo(file)
     temp_folder = current_user.temp_folder()
 
     if not file or not file.filename.endswith(".uvl"):
@@ -174,6 +178,66 @@ def upload():
     )
 
 
+@dataset_bp.route("/dataset/<int:dataset_id>/upload/files", methods=["POST"])
+@login_required
+def upload_update_files(dataset_id):
+    temp_folder = current_user.temp_folder()
+    files = dataset_service.get_or_404(dataset_id).files()
+    
+    # En caso de que exista la carpeta temporal, se borra y se crea de nuevo
+    if os.path.exists(temp_folder):
+        shutil.rmtree(temp_folder)
+    os.makedirs(temp_folder)
+        
+    for file in files:
+        if not file or not file.name.endswith(".uvl"):
+            return (jsonify({"message": "No valid file"}), 400)
+        file_path = os.path.join(temp_folder, file.name)
+        if os.path.exists(file_path):
+            base_name, extension = os.path.splitext(file.name)
+            i = 1
+            while os.path.exists(
+                os.path.join(temp_folder, f"{base_name} ({i}){extension}")
+            ):
+                i += 1
+            new_filename = f"{base_name} ({i}){extension}"
+            file_path = os.path.join(temp_folder, new_filename)
+        else:
+            new_filename = file.name
+        try:
+            directory_path = f"uploads/user_{file.feature_model.data_set.user_id}/dataset_{dataset_id}/"
+            parent_directory_path = os.path.dirname(current_app.root_path)
+
+            file_path_old = os.path.join(parent_directory_path, directory_path, file.name)
+            body = request.get_json()
+            
+            # Se van copiando y subiendo todos los archivos antiguos
+            # En el caso del editado, se sube la nueva información
+            printRojo(file_path_old)
+            if os.path.exists(file_path_old):
+                printRojo('EXISTE')
+                with open(file_path_old, 'r') as f2:
+                    content = f2.read()
+                    with open(file_path, 'w') as f:
+                        if str(file.id) == body.get("file_id"):
+                            printRojo("EDITAR")
+                            f.write(body.get("content"))
+                        else:
+                            printRojo("ESCRIBE")
+                            f.write(content)
+        except Exception as e:
+            return (jsonify({"message": str(e)}), 500)
+    return (
+        jsonify(
+            {
+                "message": "UVL uploaded and validated successfully",
+                "filename": new_filename,
+            }
+        ),
+        200,
+    )
+
+
 def printRojo(text):
     print("\033[31m" + str(text) + "\033[0m")
 
@@ -181,16 +245,12 @@ def printRojo(text):
 @dataset_bp.route("/dataset/update/<int:dataset_id>", methods=["GET", "POST"])
 @login_required
 def update_dataset(dataset_id):
-    # printRojo(str(dataset_id)*100)
     dataset = dataset_service.get_or_404(dataset_id)
-    # printRojo(dataset)
     form = DataSetForm()
 
     if request.method == "POST":
-
+        printRojo100("*")
         dataset = None
-        print(form)
-        return jsonify({"message": form.errors}), 400
 
         if not form.validate_on_submit():
             return jsonify({"message": form.errors}), 400
@@ -261,37 +321,37 @@ def update_dataset(dataset_id):
             dataset_doi=dataset.ds_meta_data.dataset_doi,
             tags=dataset.ds_meta_data.tags,
             authors=dataset.ds_meta_data.authors,
-            feature_models=dataset.feature_models
+            feature_models=dataset.feature_models,
         )
-        return render_template("dataset/update_dataset.html", form=form, dataset_id=dataset_id)
+        return render_template(
+            "dataset/update_dataset.html", form=form, dataset_id=dataset_id
+        )
 
 
 @dataset_bp.route("/dataset/<int:dataset_id>/file/<int:file_id>", methods=["POST"])
 def edit_file(dataset_id, file_id):
-    
+
     dataset = dataset_service.get_or_404(dataset_id)
     file = hubfile_service.get_or_404(file_id)
-    filename = file.name
-    
-    directory_path = f"uploads/user_{file.feature_model.data_set.user_id}/dataset_{file.feature_model.data_set_id}/"
-    parent_directory_path = os.path.dirname(current_app.root_path)
-    file_path = os.path.join(parent_directory_path, directory_path, filename)
-    file_path = file_path.replace(".uvl", "_v2.uvl")
+
+    path = (
+        "uploads/temp"
+        + "/user_"
+        + str(file.feature_model.data_set.user_id)
+        + "/dataset_"
+        + str(file.feature_model.data_set_id)
+        + "/edit_"
+        + str(file_id)
+        + ".uvl"
+    )
+
     body = request.get_json()
 
-    with open(file_path, "w") as f:
+    with open(path, "w") as f:
         f.write(body.get("content"))
 
-    file.id = None
-    file.name = file_path.split("/")[-1]
-    hubfile_service.create(file)
     return (
-        jsonify(
-            {
-                "dataset": dataset.to_dict(),
-                # "file": file.to_dict()
-            }
-        ),
+        jsonify({"dataset": dataset.to_dict()}),
         200,
     )
 

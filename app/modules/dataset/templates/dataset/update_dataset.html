@@ -218,7 +218,7 @@
 
             <div id="uploaded_models_form" style="padding-left: 2rem">
 
-                <form action="{{ url_for('dataset.update_dataset', dataset_id=dataset_id) }}" class="dropzone" style="background-color:#161b22" id="myDropzone">
+                <form action="{{ url_for('dataset.upload') }}" class="dropzone" style="background-color:#161b22" id="myDropzone">
                     <div id="dropzone-text"></div>
                 </form>
 
@@ -441,8 +441,23 @@
 
                         }
                     };
+                    var flat = true
+                    function onTime() {
+                        if(flat){
+                            fetch("/dataset/{{ dataset_id }}/upload/files", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: localStorage.getItem("edit_file")
+                            })
 
-
+                        }
+                    
+                    }
+                    console.log(JSON.parse(localStorage.getItem("edit_file")))
+                    onTime()
+                    
                 </script>
 
             </div>
@@ -450,7 +465,7 @@
 
     </div>
 
-    <div class="row" id="upload_dataset" style="display: none">
+    <div class="row" id="upload_dataset" style="display: block">
 
         <div class="col-12">
 
@@ -528,5 +543,5 @@
 
 {% block scripts %}
     <script src="{{ url_for('zenodo.scripts') }}"></script>
-    <script src="{{ url_for('dataset.scripts') }}"></script>
+    <!-- <script src="{{ url_for('dataset.scripts') }}"></script> -->
 {% endblock %}
