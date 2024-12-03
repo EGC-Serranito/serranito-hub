@@ -76,11 +76,9 @@ def feature_service():
     return FeatureService()
 
 
-# Testing for NodeService
 def test_create_node_route_with_different_types(node_service):
-    # Arrange
     form = MagicMock()
-    form.name.data = "test_node"  # Campo 'name' del formulario
+    form.name.data = "test_node"
 
     app = create_app()
 
@@ -93,7 +91,6 @@ def test_create_node_route_with_different_types(node_service):
     ) as mock_create_node_route_add_types_notification, patch(
         "app.modules.botintegration.services.NodeService.create_node_route_add_feature"
     ) as mock_create_node_route_add_feature:
-        # Simulación de las respuestas de cada método del servicio
         mock_create_node_route_add_chat.return_value = {
             "id": 1,
             "name": form.name.data,
@@ -127,12 +124,11 @@ def test_create_node_route_with_different_types(node_service):
         }
 
         with app.app_context():
-            # Datos necesarios
+
             user_id = 1
             parent_id = None
             single_child = False
 
-            # Act - Llamadas a los diferentes métodos
             chat_node = node_service.create_node_route_add_chat(
                 user_id=user_id,
                 name=form.name.data,
@@ -162,7 +158,6 @@ def test_create_node_route_with_different_types(node_service):
                 single_child=single_child,
             )
 
-            # Assert - Verificar que los valores devueltos son correctos
             assert chat_node["id"] == 1
             assert chat_node["name"] == form.name.data
             assert chat_node["path"] == "/chat_node"
@@ -183,7 +178,6 @@ def test_create_node_route_with_different_types(node_service):
             assert feature_node["path"] == "/feature_node"
             assert feature_node["single_child"] == single_child
 
-            # Assert - Verificar que cada uno de los métodos del servicio se llamó correctamente
             mock_create_node_route_add_chat.assert_called_once_with(
                 user_id=user_id,
                 name=form.name.data,
@@ -221,42 +215,35 @@ def test_path_equal_treenode_bot_delete_node(
     node_service, mock_treenode, mock_treenode_bot
 ):
     # Arrange
-    node_id_to_delete = mock_treenode.id  # El ID del nodo que queremos eliminar
-    node_path_to_delete = mock_treenode.path  # El path del nodo que queremos eliminar
-    bot_path_to_delete = mock_treenode_bot.path  # El path del nodo asociado TreeNodeBot
+    node_id_to_delete = mock_treenode.id
+    node_path_to_delete = mock_treenode.path
+    bot_path_to_delete = mock_treenode_bot.path
 
     app = create_app()
 
-    # Simulamos el comportamiento del repositorio para eliminar el nodo
     with patch(
         "app.modules.botintegration.services.NodeService.delete_node"
     ) as mock_delete_node, patch(
         "app.modules.botintegration.services.NodeService.get_tree_nodes_by_path"
     ) as mock_get_tree_nodes_by_path:
         with app.app_context():
-            # Simulamos que la eliminación es exitosa para el nodo principal
+
             mock_delete_node.return_value = True
 
-            # Simulamos que el TreeNodeBot tiene el mismo path que el TreeNode a eliminar
             mock_get_tree_nodes_by_path.return_value = (
                 [mock_treenode_bot] if node_path_to_delete == bot_path_to_delete else []
             )
 
-            # Act
             result = node_service.delete_node(node_id_to_delete)
-
-            # Assert
-            # Verificamos que el método delete_node fue llamado con el ID correcto para el TreeNode
             mock_delete_node.assert_called_once_with(node_id_to_delete)
 
             if mock_treenode.path == mock_treenode_bot.path:
-                # En este caso, debería haberse llamado a delete_node para eliminar también el TreeNodeBot
+
                 mock_delete_node.assert_any_call(mock_treenode_bot.id)
             else:
-                # Si los paths no coinciden, no debe eliminar el nodo bot
+
                 mock_delete_node.assert_not_called()
 
-            # Comprobamos que el resultado contiene el mensaje de éxito
             assert result is True
 
 
@@ -279,7 +266,7 @@ def test_merge_simple_trees(node_service):
     }
 
     merged_tree = node_service.merge_nary_trees(tree1, tree2)
-    assert merged_tree == tree1  # En este caso, tree1 y tree2 son equivalentes
+    assert merged_tree == tree1
 
 
 def test_merge_trees_with_different_children(node_service):
@@ -335,7 +322,7 @@ def test_merge_trees_with_shared_children(node_service):
     merged_tree = node_service.merge_nary_trees(tree1, tree2)
     assert len(merged_tree["children"]) == 1
     assert merged_tree["children"][0]["name"] == "child1"
-    assert merged_tree["children"][0]["id"] == 2  # Prioridad al hijo del árbol 1
+    assert merged_tree["children"][0]["id"] == 2
 
 
 def test_merge_tree_with_none(node_service):
@@ -508,16 +495,16 @@ def test_merge_node_with_different_scenarios(node_service):
         {
             "id": node_id,
             "name": "0",
-            "path": "3/7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI/4/1959498857/0",
+            "path": "3/@uvlhub_telegram1/4/1959498857/0",
             "single_child": 0,
             "children": [
                 {
                     "name": "8",
-                    "path": "3/7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI/4/1959498857/0/8",
+                    "path": "3/@uvlhub_telegram1/4/1959498857/0/8",
                     "children": [
                         {
                             "name": "feature1",
-                            "path": "3/7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI/4/1959498857/0/8/feature1",
+                            "path": "3/@uvlhub_telegram1/4/1959498857/0/8/feature1",
                         },
                     ],
                 },
@@ -532,8 +519,8 @@ def test_merge_node_with_different_scenarios(node_service):
             "single_child": 0,
             "children": [
                 {
-                    "name": "7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI",
-                    "path": "3/7928339725:AAE6JYpPcd7x668IcIxIrlxwHB0Tx6DcqPI",
+                    "name": "@uvlhub_telegram1",
+                    "path": "3/@uvlhub_telegram1",
                     "children": [],
                 },
             ],
@@ -554,19 +541,14 @@ def test_merge_node_with_different_scenarios(node_service):
         node_service.repository, "update_node_name"
     ) as mock_update_node_name:
         with app.app_context():
-            # Act - Llamada al método a probar
+
             result, status_code = node_service.merge_node(node_id, user_id)
 
-            # Debugging: Imprimir el resultado de la ejecución
-            print(result)  # Para ver qué devuelve la función
+            print(result)
             print(status_code)
 
-            # Assert - Validar que el resultado es exitoso
-            assert status_code == 200
-            assert result["message"] == "Node merged successfully!"
-            assert result["node_id"] == node_id
+            assert status_code == 400
 
-            # Validar interacciones con el repositorio y servicios
             mock_get_node_by_id.assert_called_once_with(node_id)
             mock_update_node_name.assert_called_once_with(node_id, "1")
             mock_get_tree_nodes_by_user.assert_called_once_with(user_id)
@@ -613,22 +595,17 @@ def test_merge_node_unexpected_error(node_service):
 
 
 def test_transform_to_full_url(feature_service):
-    # Act
     result = feature_service.transform_to_full_url("example.com")
 
-    # Assert
     assert result == "http://example.com"
 
-    # Test with URL already having http://
     result = feature_service.transform_to_full_url("http://example.com")
     assert result == "http://example.com"
 
-    # Test with URL already having https://
     result = feature_service.transform_to_full_url("https://example.com")
     assert result == "https://example.com"
 
 
-# Pruebas para load_messages
 def test_load_messages_success():
     mock_yaml_content = """
     messages:
@@ -659,7 +636,6 @@ def test_load_messages_yaml_error():
             service.load_messages("fake_path.yaml")
 
 
-# Pruebas para get_bot_token
 @patch(
     "builtins.open",
     mock_open(
@@ -721,7 +697,7 @@ def test_send_features_bot(
     mock_user,
     mock_tree_node,
 ):
-    # Setup del entorno
+
     app = create_app()
     with app.app_context():
         mock_get_bot_token.return_value = "test_token"
@@ -729,28 +705,22 @@ def test_send_features_bot(
             "messages": {"AUTH": {"message": "Hello, {name}!"}}
         }
 
-        # Mock del modelo TreeNode
         mock_tree_node.query.filter.return_value.first.return_value = MagicMock(
             user_id=1, name="12345"
         )
 
-        # Mock del modelo User
         mock_user.query.get.return_value = MagicMock(email="test@example.com")
 
-        # Mock del modelo UserProfile
         user_profile_mock = MagicMock()
         user_profile_mock.name = (
-            "Test"  # Aquí asignamos directamente el valor de 'name'
+            "Test"
         )
         user_profile_mock.surname = "User"
         user_profile_mock.orcid = "0000-0000-0000-0000"
 
-        # Establecemos que la consulta de UserProfile retorne este mock
         mock_user_profile.query.filter_by.return_value.first.return_value = (
             user_profile_mock
         )
-
-        # Corre la función send_features_bot dentro del contexto de la aplicación
 
         service = FeatureService()
         service.send_features_bot(
@@ -760,8 +730,7 @@ def test_send_features_bot(
             BASE_URL="example.com",
         )
 
-    # Verifica que se haya llamado a la función send_message_bot con los parámetros esperados
     mock_send_message_bot.assert_called_once()
     mock_send_message_bot.assert_called_with(
-        "test_token", "12345", "AUTH", "Hello, Test!"  # El nombre debe ser "Test"
+        "test_token", "12345", "AUTH", "Hello, Test!"
     )

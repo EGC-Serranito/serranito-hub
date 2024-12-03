@@ -243,7 +243,6 @@ def merge_node(node_id):
             flash("You are not authorized to delete this node", "error")
             return redirect(url_for("botintegration.index"))
 
-        # Desempaquetar el resultado de la función merge_node
         result, status_code = tree_node_service.merge_node(node_id, current_user.id)
 
         if status_code != 200:
@@ -264,9 +263,6 @@ def save_node_states():
     data = request.get_json()
     open_nodes = data.get("open_nodes")
 
-    # Aquí puedes guardar el estado de los nodos en la sesión
     session["open_nodes"] = open_nodes
-
-    # O hacer cualquier otro procesamiento que desees
 
     return jsonify({"status": "success", "message": "Estado guardado correctamente"})
