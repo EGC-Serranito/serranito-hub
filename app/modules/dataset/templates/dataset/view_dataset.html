@@ -101,7 +101,7 @@
                             {% endif %}
                         </p>
                         {% endfor %}
-                    </div>        <p>// Insertar el mensaje debajo del botón de calificación</p>
+                    </div>       
                 </div>
 
                 {% if dataset.ds_meta_data.publication_doi %}
@@ -885,17 +885,8 @@
     .then(response => response.json())
     .then(data => {
         console.log("Respuesta del servidor:", data);
-        // Mostrar mensaje de éxito
-        const successMessage = document.createElement('div');
-        successMessage.className = 'alert alert-success mt-3';
-        successMessage.textContent = "Calificación enviada con éxito.";
-        
-        document.querySelector('.card-body').appendChild(successMessage);
-
-        // Ocultar el mensaje después de 3 segundos
-        setTimeout(() => {
-            successMessage.remove();
-        }, 3000);
+        alert('Rating sent successfully');
+        window.location.reload();
     })
     .catch(error => {
         console.error('Error al enviar la calificación:', error);

@@ -241,9 +241,9 @@ class DatasetRatingService(BaseService):
 
         existing_rating = self.repository.find_user_rating(dataset_id, user_id)
         if existing_rating:
-            self.repository.update_rating(existing_rating, rate)
+            return self.repository.update_rating(existing_rating, rate)
         else:
-            self.repository.add_rating(dataset_id, user_id, rate)
+            return self.repository.add_rating(dataset_id, user_id, rate)
 
     def get_average_rating(self, dataset_id):
         ratings = self.repository.get_all_ratings(dataset_id)
@@ -255,7 +255,7 @@ class DatasetRatingService(BaseService):
         return self.repository.find_user_rating(dataset_id, user_id)
 
     def update_rate(self, rating, rate):
-        self.repository.update_rating(rating, rate)
+        return self.repository.update_rating(rating, rate)
 
 
 class SizeService:
