@@ -1,17 +1,5 @@
-from selenium.common.exceptions import NoSuchElementException
-import time
-
-from core.environment.host import get_host_for_selenium_testing
-from core.selenium.common import initialize_driver, close_driver
-import os
-import time
-
+from core.selenium.common import initialize_driver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-
-from core.environment.host import get_host_for_selenium_testing
-from core.selenium.common import initialize_driver, close_driver
 
 
 class TestDownloaddall:

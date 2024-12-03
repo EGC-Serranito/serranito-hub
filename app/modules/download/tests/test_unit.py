@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from app.modules.dataset.services import DataSetService
 from app.modules.dataset.models import DataSet
 from app import create_app
