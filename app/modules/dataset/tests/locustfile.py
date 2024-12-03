@@ -1,7 +1,6 @@
 from locust import HttpUser, TaskSet, task
 from core.locust.common import get_csrf_token
 from core.environment.host import get_host_for_locust_testing
-import random
 
 
 class DatasetBehavior(TaskSet):
@@ -15,8 +14,9 @@ class DatasetBehavior(TaskSet):
 
     @task(1)
     def dataset_rate(self):
-        dataset_id = random.choice([1, 2, 3, 4])
-        self.client.post(f"/rate_dataset/{dataset_id}", data={"rate": 5})
+        for i in range(4):
+            dataset_id = i + 1
+            self.client.post(f"/rate_dataset/{dataset_id}", data={"rate": (i*2) % 5})
 
 
 class DatasetUser(HttpUser):
