@@ -223,7 +223,7 @@ function updateViewsOverTimeChart() {
 
         if (publicationTypeChartCanvas.style.display === "none") {
             publicationTypeChartCanvas.style.display = "block";
-            initializePublicationTypeChart();  // Llamar a la función que inicializa el gráfico
+            initializePublicationTypeChart();
         } else {
             publicationTypeChartCanvas.style.display = "none";
         }
@@ -303,7 +303,7 @@ function updateViewsOverTimeChart() {
         const datasetNames = JSON.parse(dataContainer.getAttribute('data-dataset-names'));
         let totalSizes = JSON.parse(dataContainer.getAttribute('data-total-sizes'));
 
-        let unit = "Bytes"; // Valor predeterminado
+        let unit = "Bytes";
         if (totalSizes.length > 0 && typeof totalSizes[0] === 'string') {
             const match = totalSizes[0].match(/\s([A-Za-z]+)$/);
             if (match) {
@@ -398,19 +398,22 @@ function updateViewsOverTimeChart() {
 
     function initializePublicationTypeChart() {
         const publicationTypesCount = JSON.parse(dataContainer.getAttribute('data-publication-types-count'));
-        const labels = Object.keys(publicationTypesCount); // Los tipos de publicación
-        const data = Object.values(publicationTypesCount); // Las cantidades de datasets
+        const labels = Object.keys(publicationTypesCount);
+        const data = Object.values(publicationTypesCount);
 
         const ctx = document.getElementById('publicationTypeChart').getContext('2d');
 
         publicationTypeChartInstance = new Chart(ctx, {
-            type: 'pie', // Cambié el tipo a 'pie' para el gráfico de rosco
+            type: 'doughnut',
             data: {
                 labels: labels,
                 datasets: [{
                     label: 'Tipos de Publicaciones',
                     data: data,
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#FFB6C1', '#B0E57C', '#8B74FF', '#F39C12', '#A9338E'],
+                    backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#FFB6C1', '#B0E57C', 
+                    '#8B74FF', '#F39C12', '#A9338E', '#E74C3C', '#3498DB', '#F1C40F', '#1ABC9C', 
+                    '#9B59B6', '#16A085', '#2ECC71', '#D35400', '#7F8C8D'], 
                     borderColor: 'white',
                     borderWidth: 2
                 }]
@@ -433,27 +436,26 @@ function updateViewsOverTimeChart() {
         });
     }
     function initializeDownloadHeatmap() {
-    const downloadCounts = JSON.parse(dataContainer.getAttribute('data-download-counts'));  // Asegúrate de que estos datos existen
+    const downloadCounts = JSON.parse(dataContainer.getAttribute('data-download-counts'));
 
-    console.log('Datos de descargas:', downloadCounts);  // Verifica los datos que recibes
+    console.log('Datos de descargas:', downloadCounts);
 
     const dates = Object.keys(downloadCounts);
     const values = Object.values(downloadCounts);
 
     const ctx = document.getElementById('downloadHeatmap').getContext('2d');
     if (downloadBubbleInstance) {
-        downloadBubbleInstance.destroy(); // Destruir la instancia anterior si existe
+        downloadBubbleInstance.destroy();
     }
 
-    // Si no hay datos, crea un gráfico vacío
     const bubbleData = dates.length === 0 ? [] : dates.map((date, index) => ({
-        x: date,       // Usar la fecha como valor en el eje X
-        y: values[index],  // Usar el valor de descargas como valor en el eje Y
-        r: values[index] / 2  // El tamaño de la burbuja, puedes ajustar la división
+        x: date,
+        y: values[index],
+        r: values[index] / 2
     }));
 
     downloadBubbleInstance = new Chart(ctx, {
-        type: 'bubble',  // Puedes cambiar esto si usas un gráfico diferente
+        type: 'bubble',
         data: {
             datasets: [{
                 label: 'Descargas por día',
@@ -474,7 +476,7 @@ function updateViewsOverTimeChart() {
                     }
                 },
                 x: {
-                    type: 'category',  // Cambia el tipo a 'category' si usas fechas como etiquetas
+                    type: 'category',
                     title: {
                         display: true,
                         text: 'Fecha'

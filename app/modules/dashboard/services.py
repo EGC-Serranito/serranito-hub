@@ -42,10 +42,9 @@ class DashBoardService(BaseService):
             group_by_filter = func.date_format(DSViewRecord.view_date, '%Y-%m')
         elif filter_type == "year":
             group_by_filter = func.date_format(DSViewRecord.view_date, '%Y')
-        else:  # Default to "day"
+        else:
             group_by_filter = func.date_format(DSViewRecord.view_date, '%Y-%m-%d')
 
-        # Construcción de la consulta
         result = (
             self.repository.session.query(
                 group_by_filter.label("view_dates"),
@@ -59,7 +58,6 @@ class DashBoardService(BaseService):
         if not result:
             return [], []
 
-        # Formatear las fechas y los datos
         dates = [record.view_dates for record in result]
         view_counts = [record.view_counts_over_time for record in result]
 
