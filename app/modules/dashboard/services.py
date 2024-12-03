@@ -78,17 +78,13 @@ class DashBoardService(BaseService):
         return publication_types_count
 
     def get_downloads_by_day(self):
-        """
-        Agrupa las descargas por día y devuelve un diccionario con el número de descargas por fecha.
-        Esta versión cuenta todas las descargas, incluso si el mismo usuario descarga el mismo dataset múltiples veces.
-        """
         result = (
             db.session.query(
                 func.date(DSDownloadRecord.download_date).label("download_date"),
-                func.count(DSDownloadRecord.id).label("download_count")  # Contar todas las descargas
+                func.count(DSDownloadRecord.id).label("download_count")
             )
-            .group_by(func.date(DSDownloadRecord.download_date))  # Agrupar por fecha
-            .order_by(func.date(DSDownloadRecord.download_date))  # Ordenar por fecha
+            .group_by(func.date(DSDownloadRecord.download_date))
+            .order_by(func.date(DSDownloadRecord.download_date))
             .all()
         )
 
