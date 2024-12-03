@@ -6,7 +6,9 @@ from app.modules.dataset.services import DatasetRatingService
 from app.modules.dataset.models import DataSet, DSMetaData, DatasetUserRate
 from app.modules.auth.models import User
 import os
-from app import create_app
+from app import create_app, db
+from app.modules.profile.models import UserProfile
+from app.modules.conftest import login, logout
 
 
 @pytest.fixture
@@ -62,6 +64,23 @@ def mock_dataset_rating():
         dataset_user_rating.dataset_id = 1
         dataset_user_rating.user_id = 1
         return dataset_user_rating
+
+
+@pytest.fixture(scope="module")
+def test_client(test_client):
+    """
+    Extends the test_client fixture to add additional specific data for module testing.
+    """
+    with test_client.application.app_context():
+        user_test = User(email='user@example.com', password='test1234')
+        db.session.add(user_test)
+        db.session.commit()
+
+        profile = UserProfile(user_id=user_test.id, name="Name", surname="Surname")
+        db.session.add(profile)
+        db.session.commit()
+
+    yield test_client
 
 
 def test_move_feature_models(dataset_service, mock_user, mock_dataset):
@@ -320,3 +339,13 @@ def test_find_rating_by_user_and_dataset(dataset_rating_service, mock_dataset_ra
 
             assert result == mock_dataset_rating
             mock_find_rating.assert_called_once_with(dataset_id, user_id)
+
+
+def test_rate_dataset(test_client):
+    login_response = login(test_client, "user@example.com", "test1234")
+    assert login_response.status_code == 200, "Login was unsuccessful."
+
+    response = test_client.post('/rate_dataset/1', data={
+        'rate': '4'
+    }, follow_redirects=True)
+    assert response.status_code == 200
