@@ -349,3 +349,4 @@ def test_rate_dataset(test_client):
         'rate': '4'
     }, follow_redirects=True)
     assert response.status_code == 200
+    logout(test_client)
