@@ -228,6 +228,7 @@
                 <ul class="mt-2" id="file-list"></ul>
 
                 <script>
+
                     let dropzone = Dropzone.options.myDropzone = {
                         url: "/dataset/file/upload",
                         paramName: 'file',
@@ -235,12 +236,14 @@
                         acceptedFiles: '.uvl',
                         init: function () {
 
+                            let dropzoneInstance = this;
+
                             let fileList = document.getElementById('file-list');
                             let dropzoneText = document.getElementById('dropzone-text');
                             let alerts = document.getElementById('alerts');
 
                             this.on('addedfile', function (file) {
-
+                                console.log(typeof(file))
                                 let ext = file.name.split('.').pop();
                                 if (ext !== 'uvl') {
                                     this.removeFile(file);
@@ -254,7 +257,6 @@
                             });
 
                             this.on('success', function (file, response) {
-
                                 let dropzone = this;
 
                                 show_upload_dataset();
@@ -351,10 +353,9 @@
                                 formContainer.id = formUniqueId + "_form";
                                 formContainer.classList.add('uvl_form', "mt-3");
                                 formContainer.style.display = "none";
-
                                 formContainer.innerHTML = `
                                     <div class="row">
-                                        <input type="hidden" value="${response.filename}" name="feature_models-${formUniqueId}-uvl_filename">
+                                        <input type="hidden" value="${response.filename || response.name}" name="feature_models-${formUniqueId}-uvl_filename">
                                         <div class="col-12">
                                             <div class="row">
                                                 <div class="col-12">
@@ -428,7 +429,7 @@
 
                                 listItem.appendChild(formContainer);
                                 fileList.appendChild(listItem);
-
+                                
                             });
 
                             this.on('error', function (file, response) {
@@ -439,24 +440,30 @@
                                 alerts.style.display = 'block';
                             });
 
-                        }
-                    };
-                    var flat = true
-                    function onTime() {
-                        if(flat){
-                            fetch("/dataset/{{ dataset_id }}/upload/files", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: localStorage.getItem("edit_file")
-                            })
+
+                            function files() {
+                                fetch("/dataset/{{dataset_id}}/upload/files", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: localStorage.getItem("edit_file")
+                                }).then(data => data.json())
+                                .then(json => json["files"])
+                                .then(files => Object.keys(files).forEach(filename => {
+                                    const file = new File([files[filename]], filename, { type: "text/plain" })
+                                    dropzoneInstance.files.push(file);
+                                    dropzoneInstance.emit('addedfile', file);
+                                    dropzoneInstance.emit('success', file, file);
+                                }
+                                ))
+
+                            }
+                            
+                            files()
 
                         }
-                    
-                    }
-                    console.log(JSON.parse(localStorage.getItem("edit_file")))
-                    onTime()
+                    };
                     
                 </script>
 
@@ -465,7 +472,7 @@
 
     </div>
 
-    <div class="row" id="upload_dataset" style="display: block">
+    <div class="row" id="upload_dataset" style="display: none">
 
         <div class="col-12">
 
@@ -543,5 +550,5 @@
 
 {% block scripts %}
     <script src="{{ url_for('zenodo.scripts') }}"></script>
-    <!-- <script src="{{ url_for('dataset.scripts') }}"></script> -->
+    <script src="{{ url_for('dataset.scripts') }}"></script>
 {% endblock %}

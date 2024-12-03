@@ -64,9 +64,11 @@ def create_dataset():
 
         try:
             logger.info("Creating dataset...")
+            printRojo("1")
             dataset = dataset_service.create_from_form(
                 form=form, current_user=current_user
             )
+            printRojo("2")
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
 
@@ -183,12 +185,13 @@ def upload():
 def upload_update_files(dataset_id):
     temp_folder = current_user.temp_folder()
     files = dataset_service.get_or_404(dataset_id).files()
-    
+
     # En caso de que exista la carpeta temporal, se borra y se crea de nuevo
     if os.path.exists(temp_folder):
         shutil.rmtree(temp_folder)
     os.makedirs(temp_folder)
-        
+
+    diccionario = dict()
     for file in files:
         if not file or not file.name.endswith(".uvl"):
             return (jsonify({"message": "No valid file"}), 400)
@@ -208,22 +211,22 @@ def upload_update_files(dataset_id):
             directory_path = f"uploads/user_{file.feature_model.data_set.user_id}/dataset_{dataset_id}/"
             parent_directory_path = os.path.dirname(current_app.root_path)
 
-            file_path_old = os.path.join(parent_directory_path, directory_path, file.name)
+            file_path_old = os.path.join(
+                parent_directory_path, directory_path, file.name
+            )
             body = request.get_json()
-            
+
             # Se van copiando y subiendo todos los archivos antiguos
             # En el caso del editado, se sube la nueva información
-            printRojo(file_path_old)
             if os.path.exists(file_path_old):
-                printRojo('EXISTE')
-                with open(file_path_old, 'r') as f2:
+                with open(file_path_old, "r") as f2:
                     content = f2.read()
-                    with open(file_path, 'w') as f:
+                    with open(file_path, "w") as f:
                         if str(file.id) == body.get("file_id"):
-                            printRojo("EDITAR")
+                            diccionario[file.name] = body.get("content")
                             f.write(body.get("content"))
                         else:
-                            printRojo("ESCRIBE")
+                            diccionario[file.name] = content
                             f.write(content)
         except Exception as e:
             return (jsonify({"message": str(e)}), 500)
@@ -231,7 +234,7 @@ def upload_update_files(dataset_id):
         jsonify(
             {
                 "message": "UVL uploaded and validated successfully",
-                "filename": new_filename,
+                "files": diccionario,
             }
         ),
         200,
