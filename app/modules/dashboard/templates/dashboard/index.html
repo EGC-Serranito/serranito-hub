@@ -10,24 +10,27 @@
 
 <!-- Botón para mostrar/ocultar los gráficos -->
 <div class="custom-buttons">
-    <button type="button" class="btn-dashboard" onclick="toggleDropdownAndChart()">Ver gráfica por autor</button>
-    <button type="button" class="btn-dashboard" onclick="toggleDatasetSizeChart()">Ver tamaño de archivos por dataset</button>
-    <button type="button" class="btn-dashboard" onclick="toggleViewsOverTimeChart()">Ver evolución de visualizaciones</button>
-    <button type="button" class="btn-dashboard" onclick="togglePublicationTypeChart()">Ver gráfico de tipos de publicación</button>
-    <button type="button" class="btn-dashboard" onclick="toggleDownloadHeatmap()">Ver mapa de calor de descargas</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('chartCanvas')">Ver gráfica por autor</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('datasetSizeChart')">Ver tamaño de archivos por dataset</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('viewsOverTimeChart')">Ver evolución de visualizaciones</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('publicationTypeChart')">Ver gráfico de tipos de publicación</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('downloadHeatmap')">Ver gráfico de descargas</button>
 </div>
 
+
 <!-- Dropdown para seleccionar el tipo de datos (inicialmente oculto) -->
-<div class="custom-dropdown" id="data-type-container" style="display: none;">
+<div class="custom-dropdown" id="data-type-container" style="display: none; margin-top: 10px;">
     <label for="data-type">Selecciona el tipo de datos: </label>
-    <select id="data-type" onchange="updateChart()">
+    <select class="btn btn-primary" id="data-type" onchange="updateChart()">
         <option value="datasets">Datasets por autor</option>
         <option value="views">Visualizaciones por autor</option>
     </select>
 </div>
+
+<!-- Dropdown para seleccionar el tipo de filtrado (inicialmente oculto) -->
 <div id="views-filter-container" style="display: none; margin-top: 10px;">
     <label for="views-filter">Filtrar por:</label>
-    <select id="views-filter" onchange="updateViewsOverTimeChart()">
+    <select class="btn btn-primary" id="views-filter" onchange="updateViewsOverTimeChart()">
         <option value="day" selected>Día</option>
         <option value="month">Mes</option>
         <option value="year">Año</option>
@@ -46,10 +49,10 @@
 <!-- Contenedor para la gráfica de tipos de publicación (rosco) -->
 <canvas id="publicationTypeChart" width="400" height="400" style="margin-top: 20px; display: none;"></canvas>
 
-<!-- Contenedor para el mapa de calor de descargas -->
+<!-- Contenedor para el gráfico de descargas -->
 <canvas id="downloadHeatmap" width="800" height="400" style="margin-top: 20px; display: none;"></canvas>
 
-<!-- Div oculto para almacenar los datos de autores, cantidad de datasets, visualizaciones y tamaños de datasets -->
+<!-- Div oculto para almacenar los datos -->
 <div id="data-container"
      data-author-names-datasets='{{ author_names_dataset | tojson | safe }}'
      data-datasets-count='{{ datasets_count | tojson | safe }}'
@@ -66,20 +69,6 @@
 
 {% endblock %}
 
-{% block styles %}
-<style>
-    .custom-buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .custom-dropdown {
-        margin-top: 10px;
-        font-weight: bold;
-    }
-</style>
-{% endblock %}
 
 {% block scripts %}
 <!-- Incluye Chart.js -->
@@ -91,8 +80,53 @@
     let datasetSizeChartInstance;
     let viewsOverTimeChartInstance;
     let publicationTypeChartInstance;
-    let downloadHeatmapInstance;
+    let downloadBubbleInstance;
 
+    function showDashboard(dashboardId) {
+    // Primero, ocultamos todos los gráficos
+    const dashboards = ['chartCanvas', 'datasetSizeChart', 'viewsOverTimeChart', 'publicationTypeChart', 'downloadHeatmap'];
+    dashboards.forEach(dashboard => {
+        const canvas = document.getElementById(dashboard);
+        canvas.style.display = 'none'; // Ocultar todos los gráficos
+    });
+
+    // Ocultar el dropdown si no es necesario
+    const dropdownContainer = document.getElementById('data-type-container');
+    const viewsFilterContainer = document.getElementById('views-filter-container');
+    dropdownContainer.style.display = 'none'; // Ocultar siempre al principio
+    viewsFilterContainer.style.display = 'none'; // Ocultar siempre al principio
+
+    const selectedDashboard = document.getElementById(dashboardId);
+    if (selectedDashboard.style.display === 'block') {
+        // Si el gráfico ya está visible, lo ocultamos
+        selectedDashboard.style.display = 'none';
+        return; // Salir para no hacer más acciones
+    }
+
+    // Si el gráfico no está visible, lo mostramos
+    selectedDashboard.style.display = 'block';
+
+    // Mostrar dropdown dependiendo del gráfico
+    if (dashboardId === 'chartCanvas') {
+        dropdownContainer.style.display = 'block'; // Mostrar el dropdown cuando sea necesario
+    }
+    else if (dashboardId === 'viewsOverTimeChart') {
+        viewsFilterContainer.style.display = 'block'; // Mostrar el filtro de visualizaciones
+    }
+
+    // Ahora inicializamos el gráfico si no ha sido inicializado aún
+    if (dashboardId === 'chartCanvas' && !chartInstance) {
+        initializeChart();
+    } else if (dashboardId === 'datasetSizeChart' && !datasetSizeChartInstance) {
+        initializeDatasetSizeChart();
+    } else if (dashboardId === 'viewsOverTimeChart' && !viewsOverTimeChartInstance) {
+        initializeViewsOverTimeChart();
+    } else if (dashboardId === 'publicationTypeChart' && !publicationTypeChartInstance) {
+        initializePublicationTypeChart();
+    } else if (dashboardId === 'downloadHeatmap' && !downloadBubbleInstance) {
+        initializeDownloadHeatmap();
+    }
+}
     function toggleDropdownAndChart() {
         const dropdownContainer = document.getElementById('data-type-container');
         const chartCanvas = document.getElementById('chartCanvas');
@@ -189,7 +223,7 @@ function updateViewsOverTimeChart() {
 
         if (publicationTypeChartCanvas.style.display === "none") {
             publicationTypeChartCanvas.style.display = "block";
-            initializePublicationTypeChart();  // Llamar a la función que inicializa el gráfico
+            initializePublicationTypeChart();
         } else {
             publicationTypeChartCanvas.style.display = "none";
         }
@@ -269,7 +303,7 @@ function updateViewsOverTimeChart() {
         const datasetNames = JSON.parse(dataContainer.getAttribute('data-dataset-names'));
         let totalSizes = JSON.parse(dataContainer.getAttribute('data-total-sizes'));
 
-        let unit = "Bytes"; // Valor predeterminado
+        let unit = "Bytes";
         if (totalSizes.length > 0 && typeof totalSizes[0] === 'string') {
             const match = totalSizes[0].match(/\s([A-Za-z]+)$/);
             if (match) {
@@ -364,19 +398,22 @@ function updateViewsOverTimeChart() {
 
     function initializePublicationTypeChart() {
         const publicationTypesCount = JSON.parse(dataContainer.getAttribute('data-publication-types-count'));
-        const labels = Object.keys(publicationTypesCount); // Los tipos de publicación
-        const data = Object.values(publicationTypesCount); // Las cantidades de datasets
+        const labels = Object.keys(publicationTypesCount);
+        const data = Object.values(publicationTypesCount);
 
         const ctx = document.getElementById('publicationTypeChart').getContext('2d');
 
         publicationTypeChartInstance = new Chart(ctx, {
-            type: 'pie', // Cambié el tipo a 'pie' para el gráfico de rosco
+            type: 'doughnut',
             data: {
                 labels: labels,
                 datasets: [{
                     label: 'Tipos de Publicaciones',
                     data: data,
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#FFB6C1', '#B0E57C', '#8B74FF', '#F39C12', '#A9338E'],
+                    backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#FFB6C1', '#B0E57C', 
+                    '#8B74FF', '#F39C12', '#A9338E', '#E74C3C', '#3498DB', '#F1C40F', '#1ABC9C', 
+                    '#9B59B6', '#16A085', '#2ECC71', '#D35400', '#7F8C8D'], 
                     borderColor: 'white',
                     borderWidth: 2
                 }]
@@ -399,33 +436,26 @@ function updateViewsOverTimeChart() {
         });
     }
     function initializeDownloadHeatmap() {
-    const downloadCounts = JSON.parse(dataContainer.getAttribute('data-download-counts'));  // Asegúrate de que estos datos existen
+    const downloadCounts = JSON.parse(dataContainer.getAttribute('data-download-counts'));
 
-    console.log('Datos de descargas:', downloadCounts);  // Verifica los datos que recibes
-
-    // Si no hay datos, no inicialices el gráfico
-    if (Object.keys(downloadCounts).length === 0) {
-        console.log("No hay datos de descargas para mostrar.");
-        return;
-    }
+    console.log('Datos de descargas:', downloadCounts);
 
     const dates = Object.keys(downloadCounts);
     const values = Object.values(downloadCounts);
 
     const ctx = document.getElementById('downloadHeatmap').getContext('2d');
-    if (downloadHeatmapInstance) {
-        downloadHeatmapInstance.destroy(); // Destruir la instancia anterior si existe
+    if (downloadBubbleInstance) {
+        downloadBubbleInstance.destroy();
     }
 
-    // Convertir los datos a formato de gráfico de burbujas
-    const bubbleData = dates.map((date, index) => ({
-        x: date,       // Usar la fecha como valor en el eje X
-        y: values[index],  // Usar el valor de descargas como valor en el eje Y
-        r: values[index] / 10  // El tamaño de la burbuja, puedes ajustar la división
+    const bubbleData = dates.length === 0 ? [] : dates.map((date, index) => ({
+        x: date,
+        y: values[index],
+        r: values[index] / 2
     }));
 
-    downloadHeatmapInstance = new Chart(ctx, {
-        type: 'bubble',  // Puedes cambiar esto si usas un gráfico diferente
+    downloadBubbleInstance = new Chart(ctx, {
+        type: 'bubble',
         data: {
             datasets: [{
                 label: 'Descargas por día',
@@ -446,7 +476,7 @@ function updateViewsOverTimeChart() {
                     }
                 },
                 x: {
-                    type: 'category',  // Cambia el tipo a 'category' si usas fechas como etiquetas
+                    type: 'category',
                     title: {
                         display: true,
                         text: 'Fecha'
