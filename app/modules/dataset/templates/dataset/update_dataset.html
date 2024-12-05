@@ -243,7 +243,6 @@
                             let alerts = document.getElementById('alerts');
 
                             this.on('addedfile', function (file) {
-                                console.log(typeof(file))
                                 let ext = file.name.split('.').pop();
                                 if (ext !== 'uvl') {
                                     this.removeFile(file);
@@ -261,7 +260,6 @@
 
                                 show_upload_dataset();
 
-                                console.log("File uploaded: ", response);
                                 // actions when UVL model is uploaded
                                 let listItem = document.createElement('li');
                                 let h4Element = document.createElement('h4');
@@ -490,7 +488,7 @@
                             </span>
                 </label>
 
-                <button id="upload_button" class="btn btn-primary mt-2" disabled>
+                <button id="upload_button" update-type class="btn btn-primary mt-2" disabled>
                     <i data-feather="upload" class="center-button-icon"></i>
                     Upload dataset</button>
 

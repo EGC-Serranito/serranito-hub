@@ -64,11 +64,10 @@ def create_dataset():
 
         try:
             logger.info("Creating dataset...")
-            printRojo("1")
+            printRojo(request.args)
             dataset = dataset_service.create_from_form(
                 form=form, current_user=current_user
             )
-            printRojo("2")
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
 
@@ -261,7 +260,7 @@ def update_dataset(dataset_id):
         try:
             logger.info("Creating dataset...")
             dataset = dataset_service.create_from_form(
-                form=form, current_user=current_user
+                form=form, current_user=current_user, last_dataset_id=dataset_id
             )
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
