@@ -1,18 +1,47 @@
 from unittest.mock import patch, MagicMock
 from app.modules.dashboard.services import DashBoardService
+from datetime import datetime
+from app import create_app
+from app.modules.dashboard.repositories import DashboardRepository
+from sqlalchemy.orm.query import Query
+import pytest
 
 
 # Test para 'get_all_author_names_and_dataset_counts'
-def test_get_all_author_names_and_dataset_counts():
-    # Simula los datos que debería devolver la base de datos
+@pytest.fixture
+def dashboard_repository():
+    app = create_app()
+    with app.app_context():
+        repository = DashboardRepository()
+        yield repository 
+
+
+# Test de 'get_all_author_names_and_dataset_counts' para cubrirlo en el repository
+def test_get_all_author_names_and_dataset_counts_repository(dashboard_repository):
+    # Simula los datos que debería devolver la base de datos como una lista de tuplas
     mock_author_data = [
-        MagicMock(name='author1', dataset_count=1),
-        MagicMock(name='author2', dataset_count=2),
+        ('author1', 1),  # Tupla con nombre de autor y cantidad de datasets
+        ('author2', 2),
     ]
 
-    # Asigna el valor correcto a 'name' para cada MagicMock
-    mock_author_data[0].name = 'author1'
-    mock_author_data[1].name = 'author2'
+    # Mock del método 'all' para simular el comportamiento de la consulta
+    with patch.object(Query, 'all', return_value=mock_author_data):
+        # Llamamos al método del repositorio a probar
+        result = dashboard_repository.get_author_names_and_dataset_counts()
+
+        # Imprimimos el resultado para verificar
+        print(result)
+
+        # Verificamos que el resultado sea el esperado
+        assert result == [('author1', 1), ('author2', 2)]
+        Query.all.assert_called_once()  # Verificamos que 'all' fue llamado una vez
+
+
+def test_get_all_author_names_and_dataset_counts():
+    mock_author_data = [
+        ('author1', 1),  # Tupla con nombre de autor y cantidad de datasets
+        ('author2', 2),
+    ]
 
     # Mock del repository DashBoardRepository
     with patch('app.modules.dashboard.repositories.DashboardRepository.get_author_names_and_dataset_counts', 
@@ -29,13 +58,9 @@ def test_get_all_author_names_and_dataset_counts():
 def test_get_all_author_names_and_view_counts():
     # Simula los datos que debería devolver la base de datos
     mock_author_data = [
-        MagicMock(name='author1', view_count=5),
-        MagicMock(name='author2', view_count=0),
+        ('author1', 5),  # Tupla con nombre de autor y cantidad de datasets
+        ('author2', 0),
     ]
-
-    # Asigna el valor correcto a 'name' para cada MagicMock
-    mock_author_data[0].name = 'author1'
-    mock_author_data[1].name = 'author2'
 
     # Mock del repository DashBoardRepository
     with patch('app.modules.dashboard.repositories.DashboardRepository.get_author_names_and_view_counts', 
@@ -71,3 +96,75 @@ def test_get_datasets_and_total_sizes():
         # Verificamos que los resultados sean correctos
         assert dataset_names == ['dataset1', 'dataset2']
         assert total_sizes == [300, 700]  # 100+200 y 300+400
+
+
+def test_get_views_over_time_with_filter():
+    # Simula los datos que debería devolver la base de datos
+    mock_result = [
+        MagicMock(view_dates='2021-01-01', view_counts_over_time=5),
+        MagicMock(view_dates='2021-01-02', view_counts_over_time=0),
+    ]
+
+    # Mock del repository DashboardRepository
+    with patch('app.modules.dashboard.repositories.DashboardRepository.get_views_over_time',
+               return_value=mock_result):
+        dashboard_service = DashBoardService()
+
+        # Llamamos al método a probar
+        dates, view_counts = dashboard_service.get_views_over_time_with_filter()
+
+        # Verificamos que los resultados sean correctos
+        assert dates == ['2021-01-01', '2021-01-02']
+        assert view_counts == [5, 0]
+
+
+def test_get_views_over_time_with_filter_empty_result():
+    # Mock del repository DashboardRepository
+    with patch('app.modules.dashboard.repositories.DashboardRepository.get_views_over_time',
+               return_value=[]):
+        dashboard_service = DashBoardService()
+
+        # Llamamos al método a probar
+        dates, view_counts = dashboard_service.get_views_over_time_with_filter()
+
+        # Verificamos que los resultados sean correctos
+        assert dates == []
+        assert view_counts == []
+
+
+def test_get_publication_types_data():
+    # Simula los datos que debería devolver la base de datos
+    mock_result = [
+        ('type1', 5),
+        ('type2', 0),
+    ]
+
+    # Mock del repository DashboardRepository
+    with patch('app.modules.dashboard.repositories.DashboardRepository.get_publication_types_count',
+               return_value=mock_result):
+        dashboard_service = DashBoardService()
+
+        # Llamamos al método a probar
+        publication_types_count = dashboard_service.get_publication_types_data()
+
+        # Verificamos que los resultados sean correctos
+        assert publication_types_count == {'type1': 5, 'type2': 0}
+
+
+def test_get_downloads_by_day():
+    # Simula los datos que debería devolver la base de datos
+    mock_result = [
+        MagicMock(download_date=datetime(2021, 1, 1), download_count=5),  # Usamos datetime en lugar de cadena
+        MagicMock(download_date=datetime(2021, 1, 2), download_count=0),  # Usamos datetime en lugar de cadena
+    ]
+
+    # Mock del repository DashboardRepository
+    with patch('app.modules.dashboard.repositories.DashboardRepository.get_downloads_by_day_data',
+               return_value=mock_result):
+        dashboard_service = DashBoardService()
+
+        # Llamamos al método a probar
+        downloads_by_day = dashboard_service.get_downloads_by_day()
+
+        # Verificamos que los resultados sean correctos
+        assert downloads_by_day == {'2021-01-01': 5, '2021-01-02': 0}
