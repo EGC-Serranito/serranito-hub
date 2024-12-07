@@ -86,19 +86,22 @@ class DataSet(db.Model):
     # Cambios del modelo dataset relacionados a UVL Editor
     version = db.Column(db.Integer, default=1)
     # Clave foránea para la relación autoreferencial (referencia a la misma tabla)
-    last_version_id = db.Column(db.Integer, db.ForeignKey("data_set.id"), nullable=True)
+    last_version_id = db.Column(db.Integer, db.ForeignKey("data_set.id", ondelete='SET NULL'), nullable=True)
     # Relación autoreferencial para "última versión"
     last_version = db.relationship(
         "DataSet",
         backref=db.backref("previous_versions", uselist=True),
         remote_side="DataSet.id",
         uselist=False,
+        cascade="all, delete-orphan"
     )
 
     def get_versions(self):
+        print(self.last_version_id)
         if self.last_version_id is None:
             return DataSet.query.filter(
                 or_(
+                    DataSet.id == self.id,
                     DataSet.last_version_id == self.id
                 )
             ).order_by(DataSet.version).all()
