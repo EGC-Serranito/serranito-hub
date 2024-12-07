@@ -199,7 +199,7 @@ var currentId = 0;
                     if (checked_orcid && checked_name) {
                         const dataset_id = window.location.href.split("/").pop()
                         const url = document.getElementById("upload_button").getAttribute("update-type") != null ?
-                            "/dataset/upload?dataset_id="+dataset_id :
+                            "/dataset/update/"+dataset_id :
                             '/dataset/upload'
                         fetch(url, {
                             method: 'POST',
