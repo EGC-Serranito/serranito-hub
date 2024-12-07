@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from flask import request
-from sqlalchemy import Enum as SQLAlchemyEnum
+from sqlalchemy import Enum as SQLAlchemyEnum, or_
 
 from app import db
 
@@ -94,6 +94,20 @@ class DataSet(db.Model):
         remote_side="DataSet.id",
         uselist=False,
     )
+
+    def get_versions(self):
+        if self.last_version_id is None:
+            return DataSet.query.filter(
+                or_(
+                    DataSet.last_version_id == self.id
+                )
+            ).order_by(DataSet.version).all()
+        return DataSet.query.filter(
+                    or_(
+                        DataSet.id == self.last_version_id,
+                        DataSet.last_version_id == self.last_version_id,
+                    )
+                ).order_by(DataSet.version).all()
 
     def name(self):
         return self.ds_meta_data.title

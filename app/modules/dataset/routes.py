@@ -455,9 +455,10 @@ def subdomain_index(doi):
     # Get dataset
     dataset = ds_meta_data.data_set
 
+    versions = dataset.get_versions()
     # Save the cookie to the user's browser
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
-    resp = make_response(render_template("dataset/view_dataset.html", dataset=dataset))
+    resp = make_response(render_template("dataset/view_dataset.html", dataset=dataset, versions=versions))
     resp.set_cookie("view_cookie", user_cookie)
 
     return resp
