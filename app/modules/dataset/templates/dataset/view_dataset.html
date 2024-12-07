@@ -370,14 +370,66 @@
             <i data-feather="download" class="center-button-icon"></i>
             Download all ({{ dataset.get_file_total_size_for_human() }})
         </a>
-        <ul>
+        {% if versions|length > 1 %}
+        <ul class="version-list">
+            <li>VERSIONS</li>
         {% for version in versions %}
-            <li>
+            <li class="version-item {% if version.id == dataset.id %}highlight{% endif %}">
                 <span>V{{version.version}}</span>
-                <span>{{version.ds_meta_data.title}}</span>
+                <span>{{version.created_at}}</span>
+                <span>
+                    <a href="/doi/{{version.ds_meta_data.dataset_doi}}" class="doi">
+                        {{version.ds_meta_data.dataset_doi}}
+                    </a>
+                </span>
             </li>
         {% endfor %}
         </ul>
+        {% endif %}
+        <style>
+            .version-list {
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
+                margin-top: 10px;
+                font-family: Arial, sans-serif;
+            }
+
+            .version-list > li:first-child {
+                font-size: 1.5rem;
+                font-weight: bold;
+                text-align: center;
+                background-color: #2a3597;
+                color: rgb(206, 206, 206);
+                padding: 10px;
+                border-bottom: 2px solid #2a3597;
+            }
+        
+            .version-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px;
+                background-color: #5460cf;
+                border-bottom: 1px solid #ccc;
+                border: 2px solid #333; /* Borde más grueso y oscuro */
+            }
+        
+            .version-item.highlight {
+                background-color: #1d2147;
+                color: yellowgreen;
+                font-weight: bold;
+            }
+        
+            .version-item span {
+                margin: 0 5px;
+            }
+        
+            .doi {
+                color: #ccc;
+                text-decoration: none;
+            }
+        </style>
     </div>
 
 </div>
