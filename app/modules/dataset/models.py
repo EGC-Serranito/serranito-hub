@@ -92,8 +92,7 @@ class DataSet(db.Model):
         "DataSet",
         backref=db.backref("previous_versions", uselist=True),
         remote_side="DataSet.id",
-        uselist=False,
-        cascade="all, delete-orphan"
+        uselist=False
     )
 
     def get_versions(self):

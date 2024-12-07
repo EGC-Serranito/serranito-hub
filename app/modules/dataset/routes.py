@@ -48,6 +48,10 @@ dataset_rating_service = DatasetRatingService()
 hubfile_service = HubfileService()
 
 
+def printRojo(text):
+    print("\033[31m" + str(text) + "\033[0m")
+
+
 def printRojo100(text=""):
     printRojo(str(text) * 100)
 
@@ -64,7 +68,6 @@ def create_dataset():
 
         try:
             logger.info("Creating dataset...")
-            printRojo(request.args)
             dataset = dataset_service.create_from_form(
                 form=form, current_user=current_user
             )
@@ -138,7 +141,6 @@ def list_dataset():
 @login_required
 def upload():
     file = request.files["file"]
-    printRojo(file)
     temp_folder = current_user.temp_folder()
 
     if not file or not file.filename.endswith(".uvl"):
@@ -240,10 +242,6 @@ def upload_update_files(dataset_id):
     )
 
 
-def printRojo(text):
-    print("\033[31m" + str(text) + "\033[0m")
-
-
 @dataset_bp.route("/dataset/update/<int:dataset_id>", methods=["GET", "POST"])
 @login_required
 def update_dataset(dataset_id):
@@ -251,7 +249,6 @@ def update_dataset(dataset_id):
     form = DataSetForm()
 
     if request.method == "POST":
-        printRojo100("*")
         dataset = None
 
         if not form.validate_on_submit():
@@ -328,34 +325,6 @@ def update_dataset(dataset_id):
         return render_template(
             "dataset/update_dataset.html", form=form, dataset_id=dataset_id
         )
-
-
-@dataset_bp.route("/dataset/<int:dataset_id>/file/<int:file_id>", methods=["POST"])
-def edit_file(dataset_id, file_id):
-
-    dataset = dataset_service.get_or_404(dataset_id)
-    file = hubfile_service.get_or_404(file_id)
-
-    path = (
-        "uploads/temp"
-        + "/user_"
-        + str(file.feature_model.data_set.user_id)
-        + "/dataset_"
-        + str(file.feature_model.data_set_id)
-        + "/edit_"
-        + str(file_id)
-        + ".uvl"
-    )
-
-    body = request.get_json()
-
-    with open(path, "w") as f:
-        f.write(body.get("content"))
-
-    return (
-        jsonify({"dataset": dataset.to_dict()}),
-        200,
-    )
 
 
 @dataset_bp.route("/dataset/file/delete", methods=["POST"])
