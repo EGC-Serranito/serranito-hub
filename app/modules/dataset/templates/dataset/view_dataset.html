@@ -395,7 +395,7 @@
                 <span>V{{version.version}}</span>
                 <span>{{version.created_at}}</span>
                 <span>
-                    {% if version.ds_meta_data.dataset_doi is not None}
+                    {% if version.ds_meta_data.dataset_doi %}
                     <a class="doi">
                         {{version.ds_meta_data.dataset_doi}}
                     </a>
