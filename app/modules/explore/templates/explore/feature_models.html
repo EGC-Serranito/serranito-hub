@@ -5,93 +5,169 @@ Feature Models
 {% endblock %}
 
 {% block content %}
-<h1 class="h2 mb-3"><b>Feature Models for tag: "{{ tag }}"</b></h1>
+<div class="container mt-4">
+    <h1 class="h2 mb-4 text-info"><b>Feature Models for tag: "{{ tag }}"</b></h1>
 
-<div class="row">
-    <div class="col-md-4">
-        <div class="mb-4">
-            <span class="text-secondary">Filtered Feature Models: {{ feature_models|length }}</span>
+    <!-- Sección de Bienvenida -->
+    <div class="card mb-4 shadow-sm welcome-card">
+        <div class="card-body">
+            <p class="card-text lead">
+                Welcome! Explore, search, and interact with Feature Models easily using the advanced search box below.
+            </p>
+            <p class="text-muted">Type a name to dynamically search for relevant feature models in real-time.</p>
         </div>
     </div>
 
-    <div class="col-md-8">
-        <div class="list-group" id="featureModelsForTag">
-            {% if feature_models %}
-                {% for fm in feature_models %}
-                    <div class="list-group-item">
-                        <div class="row">
-                            <div class="col-8">
-                                <i data-feather="file"></i> 
-                                {{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title' }}
-                                <br>
-                                <small class="text-muted">
-                                    {{ fm.fm_meta_data.description if fm.fm_meta_data else 'No Description' }}
-                                </small>
-                            </div>
-                            <div class="col-4 text-end">
-                                <!-- Export Button Only -->
-                                <div class="btn-group" role="group">
-                                    <button id="btnGroupDropExport{{ fm.id }}" type="button"
-                                        class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown"
-                                        aria-expanded="false" style="border-radius: 5px;">
-                                        <i data-feather="download"></i> Export
-                                    </button>
-                                    <ul class="dropdown-menu custom-navbar" aria-labelledby="btnGroupDropExport{{ fm.id }}">
-                                        <li>
-                                            <a class="dropdown-item custom-navbar"
-                                                href="{{ url_for('hubfile.download_file', file_id=fm.id) }}">UVL</a>
-                                            <a class="dropdown-item custom-navbar"
-                                                href="{{ url_for('flamapy.to_glencoe', file_id=fm.id) }}">Glencoe</a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item custom-navbar" href="{{ url_for('flamapy.to_cnf', file_id=fm.id) }}">
-                                                DIMACS
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item custom-navbar" href="{{ url_for('flamapy.to_splot', file_id=fm.id) }}">
-                                                SPLOT
-                                            </a>
-                                        </li>
-                                    </ul>
+    <!-- Barra de Búsqueda con Icono Lupa Interactivo -->
+    <div class="mb-4">
+        <div class="search-container">
+            <div class="input-group input-group-lg">
+                <!-- Icono Lupa Estilizado -->
+                <span class="input-group-text bg-gradient-info text-white search-icon-container">
+                    <i class="bi bi-search search-icon"></i>
+                </span>
+                <input 
+                    type="text"
+                    class="form-control"
+                    id="searchInput"
+                    placeholder="Search Feature Models..."
+                    oninput="filterFeatureModels()" 
+                    onfocus="addFocusStyle()" 
+                    onblur="removeFocusStyle()"
+                >
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor para mostrar los Feature Models encontrados -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="list-group" id="featureModelsForTag">
+                {% if feature_models %}
+                    {% for fm in feature_models %}
+                        <div class="list-group-item feature-card shadow-sm">
+                            <div class="row">
+                                <div class="col-8">
+                                    <i data-feather="file"></i>
+                                    <b>{{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title Found' }}</b>
+                                    <br>
+                                    <small class="text-muted">UVL File: {{ fm.fm_meta_data.uvl_filename if fm.fm_meta_data else 'Unknown' }}</small>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <div class="btn-group">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="openDescriptionModal('{{ fm.fm_meta_data.description }}')">
+                                            <i data-feather="info"></i> Details
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                            <i data-feather="download"></i> Export
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" style="background-color: white; z-index: 1051; position: absolute;">
+                                            <li><a class="dropdown-item" href="{{ url_for('hubfile.download_file', file_id=fm.id) }}">Download UVL</a></li>
+                                            <li><a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=fm.id) }}">Glencoe Format</a></li>
+                                            <li><a class="dropdown-item" href="{{ url_for('flamapy.to_cnf', file_id=fm.id) }}">DIMACS Format</a></li>
+                                            <li><a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=fm.id) }}">SPLOT Format</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p>No feature models found for this tag.</p>
-            {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center mt-3">No feature models found for this tag. Try searching!</p>
+                {% endif %}
+            </div>
         </div>
+    </div>
+
+    <!-- Botón de Regreso -->
+    <div class="mt-4">
+        <a href="{{ url_for('explore.index') }}" class="btn btn-secondary">Back to Explore</a>
     </div>
 </div>
 
-<a href="{{ url_for('explore.index') }}" class="btn btn-secondary mt-3">Back to Explore</a>
-
-<!-- Modal -->
-<div class="modal fade" id="fileViewerModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="height: 80vh; display: flex; align-items: center;">
-        <div class="modal-content" style="height: 80vh;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h5 class="modal-title" id="fileViewerModalLabel">Feature model view</h5>
-                <div>
-                    <a href="#" class="btn btn-outline-primary btn-sm" id="downloadButton"
-                        style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
-                        <i data-feather="download"></i>
-                    </a>
-                    <button onclick="copyToClipboard()" class="btn btn-outline-secondary btn-sm"
-                        style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
-                        <i data-feather="copy"></i>
-                    </button>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+<!-- Modal para ver las descripciones de los Feature Models -->
+<div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="descriptionModalLabel">Feature Model Description</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
-                <pre id="fileContent"
-                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
+            <div class="modal-body">
+                <p id="descriptionContent" style="white-space: pre-wrap; word-wrap: break-word;">Loading description...</p>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Scripts Interactivos con JS -->
+<script>
+    function openDescriptionModal(description) {
+        const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+        document.getElementById('descriptionContent').textContent = description || 'No description provided';
+        modal.show();
+    }
+
+    function filterFeatureModels() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const container = document.getElementById('featureModelsForTag');
+        const items = Array.from(container.getElementsByClassName('list-group-item'));
+
+        items.forEach(item => {
+            const titleElement = item.querySelector('b');
+            if (titleElement) {
+                const titleText = titleElement.textContent.toLowerCase();
+                item.style.display = titleText.includes(input) ? '' : 'none';
+            }
+        });
+    }
+
+    function addFocusStyle() {
+        const searchInput = document.getElementById('searchInput');
+        searchInput.style.boxShadow = '0 0 8px rgba(0, 123, 255, 0.5)';
+    }
+
+    function removeFocusStyle() {
+        const searchInput = document.getElementById('searchInput');
+        searchInput.style.boxShadow = '';
+    }
+</script>
+
+<!-- Estilización con CSS Adicional -->
+<style>
+    /* Solución: Asegurar el posicionamiento correcto */
+    .dropdown-menu {
+        position: absolute !important; /* Asegura que el menú se ubique de forma fija */
+        background-color: #FFFFFF !important; 
+        color: #000000 !important;
+        border: 1px solid #ddd;
+        z-index: 1050; /* Eleva el menú por encima de cualquier otro elemento */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Solucionar el desplazamiento y hover para hacer la experiencia amigable */
+    .btn-outline-secondary.btn-sm.dropdown-toggle {
+        position: relative;
+    }
+    
+    /* Asegurar que las animaciones no afecten la navegación */
+    .dropdown-item:hover {
+        background-color: #f1f1f1;
+        transition: background 0.2s ease;
+    }
+    
+    /* Ajuste visual para botones exportación */
+    .btn-outline-secondary.btn-sm {
+        border-radius: 5px;
+        background: white;
+        color: #000000;
+        border: 1px solid #000000;
+        transition: background 0.3s ease;
+    }
+    
+    .btn-outline-secondary.btn-sm:hover {
+        background: #e0e0e0;
+    }
+    </style>
+    
 {% endblock %}
