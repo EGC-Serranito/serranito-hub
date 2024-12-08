@@ -197,9 +197,9 @@ def test_get_dashboard_data(test_client):
 def test_post_dashboard_data(test_client):
     mock_view_dates = ['2024-01-01', '2024-01-02']
     mock_view_counts_over_time = [200, 150]
-
     with patch('app.modules.dashboard.services.DashBoardService.get_views_over_time_with_filter',
-               return_value=(mock_view_dates, mock_view_counts_over_time)):
+               return_value=(mock_view_dates, mock_view_counts_over_time)), \
+         patch('app.modules.dashboard.services.DashBoardService.__init__', return_value=None):
 
         response = test_client.post('/dashboard', json={'filter': 'month'})
 
