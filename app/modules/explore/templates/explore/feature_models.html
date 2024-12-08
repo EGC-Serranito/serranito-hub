@@ -54,20 +54,29 @@ Feature Models
                                     <small class="text-muted">UVL File: {{ fm.fm_meta_data.uvl_filename if fm.fm_meta_data else 'Unknown' }}</small>
                                 </div>
                                 <div class="col-4 text-end">
-                                    <div class="btn-group">
-                                        <button class="btn btn-outline-primary btn-sm" onclick="openDescriptionModal('{{ fm.fm_meta_data.description }}')">
-                                            <i data-feather="info"></i> Details
-                                        </button>
-                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
-                                            <i data-feather="download"></i> Export
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end" style="background-color: white; z-index: 1051; position: absolute;">
-                                            <li><a class="dropdown-item" href="{{ url_for('hubfile.download_file', file_id=fm.id) }}">Download UVL</a></li>
-                                            <li><a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=fm.id) }}">Glencoe Format</a></li>
-                                            <li><a class="dropdown-item" href="{{ url_for('flamapy.to_cnf', file_id=fm.id) }}">DIMACS Format</a></li>
-                                            <li><a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=fm.id) }}">SPLOT Format</a></li>
-                                        </ul>
-                                    </div>
+                                    <button 
+                                        class="btn btn-outline-primary btn-sm options-btn"
+                                        onclick="toggleOptions('{{ fm.id }}')">
+                                        <i data-feather="menu"></i> Options
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Opciones de exportación y detalles (inicialmente ocultas) -->
+                            <div id="options-{{ fm.id }}" class="options-container mt-2">
+                                <div class="btn-group w-100">
+                                    <button class="btn btn-outline-info btn-sm w-100" onclick="openDescriptionModal('{{ fm.fm_meta_data.description }}')">
+                                        <i data-feather="info"></i> View Description
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm w-100 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i data-feather="download"></i> Export
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" style="background-color: white; z-index: 1051; position: absolute; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); border-radius: 8px;">
+                                        <li><a class="dropdown-item" href="{{ url_for('hubfile.download_file', file_id=fm.id) }}">Download UVL</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=fm.id) }}">Glencoe Format</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_cnf', file_id=fm.id) }}">DIMACS Format</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=fm.id) }}">SPLOT Format</a></li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -102,12 +111,25 @@ Feature Models
 
 <!-- Scripts Interactivos con JS -->
 <script>
+    // Función para abrir el modal con la descripción
     function openDescriptionModal(description) {
         const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
         document.getElementById('descriptionContent').textContent = description || 'No description provided';
         modal.show();
     }
 
+    // Función para alternar la visibilidad de las opciones
+    function toggleOptions(fmId) {
+        const optionsContainer = document.getElementById(`options-${fmId}`);
+        // Si las opciones están visibles, las ocultamos, y si están ocultas, las mostramos
+        if (optionsContainer.style.display === "block") {
+            optionsContainer.style.display = "none";
+        } else {
+            optionsContainer.style.display = "block";
+        }
+    }
+
+    // Función para filtrar los Feature Models según la búsqueda
     function filterFeatureModels() {
         const input = document.getElementById('searchInput').value.toLowerCase();
         const container = document.getElementById('featureModelsForTag');
@@ -122,52 +144,107 @@ Feature Models
         });
     }
 
+    // Función para añadir estilo cuando el campo de búsqueda tiene el foco
     function addFocusStyle() {
         const searchInput = document.getElementById('searchInput');
         searchInput.style.boxShadow = '0 0 8px rgba(0, 123, 255, 0.5)';
     }
 
+    // Función para quitar el estilo cuando el campo de búsqueda pierde el foco
     function removeFocusStyle() {
         const searchInput = document.getElementById('searchInput');
         searchInput.style.boxShadow = '';
     }
+
+    // Cerrar las opciones si se hace clic fuera de ellas
+    document.addEventListener('click', function(event) {
+        const optionsButtons = document.querySelectorAll('.options-btn');
+        optionsButtons.forEach(button => {
+            const optionsContainer = button.closest('.list-group-item').querySelector('.options-container');
+            if (!button.contains(event.target) && !optionsContainer.contains(event.target)) {
+                optionsContainer.style.display = 'none';
+            }
+        });
+    });
 </script>
 
 <!-- Estilización con CSS Adicional -->
 <style>
-    /* Solución: Asegurar el posicionamiento correcto */
+    .search-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        /* Sin animación en hover */
+    }
+
+    .welcome-card {
+        background: linear-gradient(135deg, #007bff, #00c6ff);
+        color: white;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    /* Estilo para los botones de opciones */
+    .btn-outline-info {
+        border-color: #17a2b8;
+        color: #17a2b8;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-outline-success {
+        border-color: #28a745;
+        color: #28a745;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #28a745;
+        color: white;
+    }
+
     .dropdown-menu {
-        position: absolute !important; /* Asegura que el menú se ubique de forma fija */
-        background-color: #FFFFFF !important; 
-        color: #000000 !important;
-        border: 1px solid #ddd;
-        z-index: 1050; /* Eleva el menú por encima de cualquier otro elemento */
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        background-color: white !important;
+        z-index: 1051;
+        position: absolute;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        min-width: 200px;
     }
-    
-    /* Solucionar el desplazamiento y hover para hacer la experiencia amigable */
-    .btn-outline-secondary.btn-sm.dropdown-toggle {
-        position: relative;
+
+    .dropdown-item {
+        color: #28a745;
     }
-    
-    /* Asegurar que las animaciones no afecten la navegación */
+
     .dropdown-item:hover {
-        background-color: #f1f1f1;
-        transition: background 0.2s ease;
+        background-color: #28a745;
+        color: white;
     }
-    
-    /* Ajuste visual para botones exportación */
-    .btn-outline-secondary.btn-sm {
-        border-radius: 5px;
-        background: white;
-        color: #000000;
-        border: 1px solid #000000;
-        transition: background 0.3s ease;
+
+    .dropdown-item:active {
+        background-color: #218838;
     }
-    
-    .btn-outline-secondary.btn-sm:hover {
-        background: #e0e0e0;
+
+    /* Estilo para las opciones */
+    .options-container {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 100%;
+        margin-left: 10px;
+        width: 170px;
+        transition: max-height 0.3s ease;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
     }
-    </style>
-    
+
+    .options-btn {
+        padding: 5px 10px; /* Botones más pequeños */
+        font-size: 0.9rem;
+    }
+</style>
 {% endblock %}
