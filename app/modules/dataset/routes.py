@@ -21,7 +21,7 @@ from flask import (
 from flask_login import login_required, current_user
 
 from app.modules.dataset.forms import DataSetForm
-from app.modules.dataset.models import DSDownloadRecord, DataSet
+from app.modules.dataset.models import DSDownloadRecord
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.services import (
     AuthorService,
@@ -192,7 +192,7 @@ def upload_update_files(dataset_id):
     if os.path.exists(temp_folder):
         shutil.rmtree(temp_folder)
     os.makedirs(temp_folder)
-    
+
     diccionario = dict()
     for file in files:
         if not file or not file.name.endswith(".uvl"):
