@@ -378,9 +378,11 @@
                 <span>V{{version.version}}</span>
                 <span>{{version.created_at}}</span>
                 <span>
-                    <a href="/doi/{{version.ds_meta_data.dataset_doi}}" class="doi">
+                    {% if version.ds_meta_data.dataset_doi is not None}
+                    <a class="doi">
                         {{version.ds_meta_data.dataset_doi}}
                     </a>
+                    {% endif %}
                 </span>
             </li>
         {% endfor %}
