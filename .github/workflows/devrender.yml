@@ -3,7 +3,7 @@ name: Deploy develop to Render
 on:
     push:
       branches:
-        - main
+        - develop
 
 jobs:
 
