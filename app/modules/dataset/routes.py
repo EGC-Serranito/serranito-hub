@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from zipfile import ZipFile
 
 from flask import (
+    current_app,
     redirect,
     render_template,
     request,
@@ -16,7 +17,6 @@ from flask import (
     make_response,
     abort,
     url_for,
-    send_file,
 )
 from flask_login import login_required, current_user
 
@@ -32,6 +32,7 @@ from app.modules.dataset.services import (
     DOIMappingService,
     DatasetRatingService,
 )
+from app.modules.hubfile.services import HubfileService
 from app.modules.zenodo.services import ZenodoService
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,15 @@ zenodo_service = ZenodoService()
 doi_mapping_service = DOIMappingService()
 ds_view_record_service = DSViewRecordService()
 dataset_rating_service = DatasetRatingService()
+hubfile_service = HubfileService()
+
+
+def printRojo(text):
+    print("\033[31m" + str(text) + "\033[0m")
+
+
+def printRojo100(text="-"):
+    printRojo(str(text) * 100)
 
 
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
@@ -53,7 +63,6 @@ def create_dataset():
     if request.method == "POST":
 
         dataset = None
-
         if not form.validate_on_submit():
             return jsonify({"message": form.errors}), 400
 
@@ -64,13 +73,13 @@ def create_dataset():
             )
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
+
         except Exception as exc:
             logger.exception(f"Exception while create dataset data in local {exc}")
             return (
                 jsonify({"Exception while create dataset data in local: ": str(exc)}),
                 400,
             )
-
         # send dataset as deposition to Zenodo
         data = {}
         try:
@@ -172,6 +181,168 @@ def upload():
     )
 
 
+@dataset_bp.route("/dataset/<int:dataset_id>/upload/files", methods=["POST"])
+# @login_required
+def upload_update_files(dataset_id):
+    printRojo100()
+    temp_folder = current_user.temp_folder()
+    files = dataset_service.get_or_404(dataset_id).files()
+    printRojo100()
+    # En caso de que exista la carpeta temporal, se borra y se crea de nuevo
+    if os.path.exists(temp_folder):
+        shutil.rmtree(temp_folder)
+    os.makedirs(temp_folder)
+
+    diccionario = dict()
+    for file in files:
+        if not file or not file.name.endswith(".uvl"):
+            return (jsonify({"message": "No valid file"}), 400)
+        file_path = os.path.join(temp_folder, file.name)
+        if os.path.exists(file_path):
+            base_name, extension = os.path.splitext(file.name)
+            i = 1
+            while os.path.exists(
+                os.path.join(temp_folder, f"{base_name} ({i}){extension}")
+            ):
+                i += 1
+            new_filename = f"{base_name} ({i}){extension}"
+            file_path = os.path.join(temp_folder, new_filename)
+        else:
+            new_filename = file.name
+        try:
+            directory_path = f"uploads/user_{file.feature_model.data_set.user_id}/dataset_{dataset_id}/"
+            parent_directory_path = os.path.dirname(current_app.root_path)
+
+            file_path_old = os.path.join(
+                parent_directory_path, directory_path, file.name
+            )
+            body = request.get_json()
+
+            # Se van copiando y subiendo todos los archivos antiguos
+            # En el caso del editado, se sube la nueva información
+            if os.path.exists(file_path_old):
+                with open(file_path_old, "r") as f2:
+                    content = f2.read()
+                    with open(file_path, "w") as f:
+                        if str(file.id) == body.get("file_id"):
+                            diccionario[file.name] = body.get("content")
+                            f.write(body.get("content"))
+                        else:
+                            diccionario[file.name] = content
+                            f.write(content)
+        except Exception as e:
+            return (jsonify({"message": str(e)}), 500)
+    return (
+        jsonify(
+            {
+                "message": "UVL uploaded and validated successfully",
+                "files": diccionario,
+            }
+        ),
+        200,
+    )
+
+
+@dataset_bp.route("/dataset/update/<int:dataset_id>", methods=["GET", "POST"])
+@login_required
+def update_dataset(dataset_id):
+    dataset = dataset_service.get_or_404(dataset_id)
+    form = DataSetForm()
+    printRojo("1")
+    printRojo(request.method)
+    if request.method == "POST":
+        dataset = None
+        if not form.validate_on_submit():
+            return jsonify({"message": form.errors}), 400
+        printRojo("2")
+
+        try:
+            logger.info("Creating dataset...")
+            printRojo("3.1.1---")
+            dataset = dataset_service.update_from_form(
+                form=form, current_user=current_user, last_dataset_id=dataset_id
+            )
+            printRojo("3.1.2---")
+            logger.info(f"Created dataset: {dataset}")
+            printRojo("3.1.3---")
+            dataset_service.move_feature_models(dataset)
+            printRojo("3.1.4---")
+        except Exception as exc:
+            printRojo("3.2---")
+            logger.exception(f"Exception while create dataset data in local {exc}")
+            return (
+                jsonify({"Exception while create dataset data in local: ": str(exc)}),
+                400,
+            )
+
+        # send dataset as deposition to Zenodo
+        data = {}
+        try:
+            printRojo("4.1.1---")
+            zenodo_response_json = zenodo_service.create_new_deposition(dataset)
+            printRojo("4.1.2---")
+            response_data = json.dumps(zenodo_response_json)
+            printRojo("4.1.3---")
+            data = json.loads(response_data)
+            printRojo("4.1.4---")
+        except Exception as exc:
+            printRojo("4.2---")
+            data = {}
+            zenodo_response_json = {}
+            logger.exception(f"Exception while create dataset data in Zenodo {exc}")
+
+        if data.get("conceptrecid"):
+            printRojo("5")
+            deposition_id = data.get("id")
+
+            # update dataset with deposition id in Zenodo
+            dataset_service.update_dsmetadata(
+                dataset.ds_meta_data_id, deposition_id=deposition_id
+            )
+
+            try:
+                printRojo("6.1---")
+                # iterate for each feature model (one feature model = one request to Zenodo)
+                for feature_model in dataset.feature_models:
+                    zenodo_service.upload_file(dataset, deposition_id, feature_model)
+
+                # publish deposition
+                zenodo_service.publish_deposition(deposition_id)
+
+                # update DOI
+                deposition_doi = zenodo_service.get_doi(deposition_id)
+                dataset_service.update_dsmetadata(
+                    dataset.ds_meta_data_id, dataset_doi=deposition_doi
+                )
+            except Exception as e:
+                printRojo("6.2---")
+                msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
+                return jsonify({"message": msg}), 200
+
+        printRojo("7")
+        # Delete temp folder
+        file_path = current_user.temp_folder()
+        if os.path.exists(file_path) and os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+
+        msg = "Everything works!"
+        return jsonify({"message": msg}), 200
+    else:
+        form = DataSetForm(
+            title=dataset.ds_meta_data.title,
+            desc=dataset.ds_meta_data.description,
+            publication_type=dataset.ds_meta_data.publication_type,
+            publication_doi=dataset.ds_meta_data.publication_doi,
+            dataset_doi=dataset.ds_meta_data.dataset_doi,
+            tags=dataset.ds_meta_data.tags,
+            authors=dataset.ds_meta_data.authors,
+            feature_models=dataset.feature_models,
+        )
+        return render_template(
+            "dataset/update_dataset.html", form=form, dataset_id=dataset_id
+        )
+
+
 @dataset_bp.route("/dataset/file/delete", methods=["POST"])
 def delete():
     data = request.get_json()
@@ -269,9 +440,10 @@ def subdomain_index(doi):
     # Get dataset
     dataset = ds_meta_data.data_set
 
+    versions = dataset.get_versions()
     # Save the cookie to the user's browser
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
-    resp = make_response(render_template("dataset/view_dataset.html", dataset=dataset))
+    resp = make_response(render_template("dataset/view_dataset.html", dataset=dataset, versions=versions))
     resp.set_cookie("view_cookie", user_cookie)
 
     return resp
@@ -287,31 +459,8 @@ def get_unsynchronized_dataset(dataset_id):
     if not dataset:
         abort(404)
 
-    return render_template("dataset/view_dataset.html", dataset=dataset)
-
-
-@dataset_bp.route("/dataset/download/all", methods=["GET"])
-def download_all_datasets():
-
-    try:
-        # Create a zip buffer with all datasets
-        master_zip_buffer = dataset_service.zip_all_datasets()
-
-        # Generate a unique filename for the download
-        localtime = datetime.now().strftime("%Y%m%d")
-        download_filename = f"serranitohub_datasets_{localtime}.zip"
-
-        # Return the zip buffer as a file download
-        return send_file(
-            master_zip_buffer,
-            as_attachment=True,
-            mimetype="application/zip",
-            download_name=download_filename,
-        )
-
-    except Exception as e:
-        logging.error(f"Error while downloading all datasets: {e}")
-        abort(500, description="An error occurred while downloading the datasets")
+    versions = dataset.get_versions()
+    return render_template("dataset/view_dataset.html", dataset=dataset, versions=versions)
 
 
 @dataset_bp.route("/rate_dataset/<int:dataset_id>", methods=["POST"])
@@ -323,7 +472,7 @@ def rate_dataset(dataset_id):
         return jsonify({"message": "Invalid JSON data"}), 400
 
     user_id = current_user.id
-    rate = int(data.get('rate'))
+    rate = int(data.get("rate"))
 
     if rate is None:
         return jsonify({"message": "Rate is required"}), 400

@@ -1,49 +1,250 @@
 {% extends "base_template.html" %}
 
-{% block title %}Feature Models for tag: "{{ tag }}"{% endblock %}
+{% block title %}
+Feature Models
+{% endblock %}
 
 {% block content %}
-<h1 class="h2 mb-3"><b>Feature Models for tag: "{{ tag }}"</b></h1>
+<div class="container mt-4">
+    <h1 class="h2 mb-4 text-info"><b>Feature Models for tag: "{{ tag }}"</b></h1>
 
-<div class="row">
-    <div class="col-md-4">
-        <div class="mb-4">
-            <span class="text-secondary">Filtered Feature Models: {{ feature_models|length }}</span>
-            <div class="mt-2">
-                {% for tag_option in tags %}
-                    <button class="btn btn-secondary tag-button" onclick="loadFeatureModelsForTag('{{ tag_option }}')">
-                        {{ tag_option }}
-                    </button>
-                {% endfor %}
+    <!-- Sección de Bienvenida -->
+    <div class="card mb-4 shadow-sm welcome-card">
+        <div class="card-body">
+            <p class="card-text lead">
+                Welcome! Explore, search, and interact with Feature Models easily using the advanced search box below.
+            </p>
+            <p class="text-muted">Type a name to dynamically search for relevant feature models in real-time.</p>
+        </div>
+    </div>
+
+    <!-- Barra de Búsqueda con Icono Lupa Interactivo -->
+    <div class="mb-4">
+        <div class="search-container">
+            <div class="input-group input-group-lg">
+                <!-- Icono Lupa Estilizado -->
+                <span class="input-group-text bg-gradient-info text-white search-icon-container">
+                    <i class="bi bi-search search-icon"></i>
+                </span>
+                <input 
+                    type="text"
+                    class="form-control"
+                    id="searchInput"
+                    placeholder="Search Feature Models..."
+                    oninput="filterFeatureModels()" 
+                    onfocus="addFocusStyle()" 
+                    onblur="removeFocusStyle()"
+                >
             </div>
         </div>
     </div>
 
-    <div class="col-md-8">
-        <div class="list-group" id="featureModelsForTag">
-            {% if feature_models %}
-                {% for fm in feature_models %}
-                    <div class="list-group-item">
-                        <div class="row">
-                            <div class="col-8">
-                                <i data-feather="file"></i> {{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title' }}
-                                <br>
-                                <small class="text-muted">{{ fm.fm_meta_data.description if fm.fm_meta_data else 'No Description' }}</small>
+    <!-- Contenedor para mostrar los Feature Models encontrados -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="list-group" id="featureModelsForTag">
+                {% if feature_models %}
+                    {% for fm in feature_models %}
+                        <div class="list-group-item feature-card shadow-sm">
+                            <div class="row">
+                                <div class="col-8">
+                                    <i data-feather="file"></i>
+                                    <b>{{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title Found' }}</b>
+                                    <br>
+                                    <small class="text-muted">UVL File: {{ fm.fm_meta_data.uvl_filename if fm.fm_meta_data else 'Unknown' }}</small>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <button 
+                                        class="btn btn-outline-primary btn-sm options-btn"
+                                        onclick="toggleOptions('{{ fm.id }}')">
+                                        <i data-feather="menu"></i> Options
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-4 text-end">
+
+                            <!-- Opciones de exportación y detalles (inicialmente ocultas) -->
+                            <div id="options-{{ fm.id }}" class="options-container mt-2">
+                                <div class="btn-group w-100">
+                                    <button class="btn btn-outline-info btn-sm w-100" onclick="openDescriptionModal('{{ fm.fm_meta_data.description }}')">
+                                        <i data-feather="info"></i> View Description
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm w-100 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i data-feather="download"></i> Export
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" style="background-color: white; z-index: 1051; position: absolute; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); border-radius: 8px;">
+                                        <li><a class="dropdown-item" href="{{ url_for('hubfile.download_file', file_id=fm.id) }}">Download UVL</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=fm.id) }}">Glencoe Format</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_cnf', file_id=fm.id) }}">DIMACS Format</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=fm.id) }}">SPLOT Format</a></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p>No feature models found for this tag.</p>
-            {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center mt-3">No feature models found for this tag. Try searching!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón de Regreso -->
+    <div class="mt-4">
+        <a href="{{ url_for('explore.index') }}" class="btn btn-secondary">Back to Explore</a>
+    </div>
+</div>
+
+<!-- Modal para ver las descripciones de los Feature Models -->
+<div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="descriptionModalLabel">Feature Model Description</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="descriptionContent" style="white-space: pre-wrap; word-wrap: break-word;">Loading description...</p>
+            </div>
         </div>
     </div>
 </div>
 
-<a href="{{ url_for('explore.index') }}" class="btn btn-secondary mt-3">Back to Explore</a>
+<!-- Scripts Interactivos con JS -->
+<script>
+    // Función para abrir el modal con la descripción
+    function openDescriptionModal(description) {
+        const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+        document.getElementById('descriptionContent').textContent = description || 'No description provided';
+        modal.show();
+    }
 
+    // Función para alternar la visibilidad de las opciones
+    function toggleOptions(fmId) {
+        const optionsContainer = document.getElementById(`options-${fmId}`);
+        // Si las opciones están visibles, las ocultamos, y si están ocultas, las mostramos
+        if (optionsContainer.style.display === "block") {
+            optionsContainer.style.display = "none";
+        } else {
+            optionsContainer.style.display = "block";
+        }
+    }
 
+    // Función para filtrar los Feature Models según la búsqueda
+    function filterFeatureModels() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const container = document.getElementById('featureModelsForTag');
+        const items = Array.from(container.getElementsByClassName('list-group-item'));
 
+        items.forEach(item => {
+            const titleElement = item.querySelector('b');
+            if (titleElement) {
+                const titleText = titleElement.textContent.toLowerCase();
+                item.style.display = titleText.includes(input) ? '' : 'none';
+            }
+        });
+    }
+
+    // Función para añadir estilo cuando el campo de búsqueda tiene el foco
+    function addFocusStyle() {
+        const searchInput = document.getElementById('searchInput');
+        searchInput.style.boxShadow = '0 0 8px rgba(0, 123, 255, 0.5)';
+    }
+
+    // Función para quitar el estilo cuando el campo de búsqueda pierde el foco
+    function removeFocusStyle() {
+        const searchInput = document.getElementById('searchInput');
+        searchInput.style.boxShadow = '';
+    }
+
+    // Cerrar las opciones si se hace clic fuera de ellas
+    document.addEventListener('click', function(event) {
+        const optionsButtons = document.querySelectorAll('.options-btn');
+        optionsButtons.forEach(button => {
+            const optionsContainer = button.closest('.list-group-item').querySelector('.options-container');
+            if (!button.contains(event.target) && !optionsContainer.contains(event.target)) {
+                optionsContainer.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+<!-- Estilización con CSS Adicional -->
+<style>
+    .search-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        /* Sin animación en hover */
+    }
+
+    .welcome-card {
+        background: linear-gradient(135deg, #007bff, #00c6ff);
+        color: white;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    /* Estilo para los botones de opciones */
+    .btn-outline-info {
+        border-color: #17a2b8;
+        color: #17a2b8;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-outline-success {
+        border-color: #28a745;
+        color: #28a745;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .dropdown-menu {
+        background-color: white !important;
+        z-index: 1051;
+        position: absolute;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        min-width: 200px;
+    }
+
+    .dropdown-item {
+        color: #28a745;
+    }
+
+    .dropdown-item:hover {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .dropdown-item:active {
+        background-color: #218838;
+    }
+
+    /* Estilo para las opciones */
+    .options-container {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 100%;
+        margin-left: 10px;
+        width: 170px;
+        transition: max-height 0.3s ease;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+    }
+
+    .options-btn {
+        padding: 5px 10px; /* Botones más pequeños */
+        font-size: 0.9rem;
+    }
+</style>
 {% endblock %}

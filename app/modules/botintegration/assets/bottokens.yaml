@@ -1,0 +1,5 @@
+bottokens:
+  - name: "@uvlhub_telegram1"
+    token: "BOT_TELEGRAM1"
+  - name: "@uvlhub_discord1"
+    token: "BOT_DISCORD1"
