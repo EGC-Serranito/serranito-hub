@@ -4,22 +4,36 @@
 
 {% block content %}
 
-<h1 class="h3 mb-3"><b style="color:white">Dashboards</b></h1>
+<h1 class="h3 mb-3"><b>Dashboards</b></h1>
 
 <p>Para ver los diferentes Dashboards de UVLHub, seleccione una opción:</p>
 
-<!-- Botón para mostrar/ocultar el dropdown y la gráfica -->
+<!-- Botón para mostrar/ocultar los gráficos -->
 <div class="custom-buttons">
-    <button type="button" class="btn-dashboard" onclick="toggleDropdownAndChart()">Ver gráfica por autor</button>
-    <button type="button" class="btn-dashboard" onclick="toggleDatasetSizeChart()">Ver tamaño de archivos por dataset</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('chartCanvas')">Ver gráfica por autor</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('datasetSizeChart')">Ver tamaño de archivos por dataset</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('viewsOverTimeChart')">Ver evolución de visualizaciones</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('publicationTypeChart')">Ver gráfico de tipos de publicación</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('downloadHeatmap')">Ver gráfico de descargas</button>
 </div>
 
+
 <!-- Dropdown para seleccionar el tipo de datos (inicialmente oculto) -->
-<div class="custom-dropdown" id="data-type-container" style="display: none;">
+<div id="data-type-container" style="display: none; margin-top: 10px;">
     <label for="data-type">Selecciona el tipo de datos: </label>
-    <select id="data-type" onchange="updateChart()">
+    <select class="btn btn-primary" id="data-type" onchange="updateChart()">
         <option value="datasets">Datasets por autor</option>
         <option value="views">Visualizaciones por autor</option>
+    </select>
+</div>
+
+<!-- Dropdown para seleccionar el tipo de filtrado (inicialmente oculto) -->
+<div id="views-filter-container" style="display: none; margin-top: 10px;">
+    <label for="views-filter">Filtrar por:</label>
+    <select class="btn btn-primary" id="views-filter" onchange="updateViewsOverTimeChart()">
+        <option value="day" selected>Día</option>
+        <option value="month">Mes</option>
+        <option value="year">Año</option>
     </select>
 </div>
 
@@ -29,55 +43,97 @@
 <!-- Contenedor para la gráfica de tamaños de dataset -->
 <canvas id="datasetSizeChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
 
-<!-- Div oculto para almacenar los datos de autores, cantidad de datasets, visualizaciones y tamaños de datasets -->
+<!-- Contenedor para la gráfica de evolución de visualizaciones -->
+<canvas id="viewsOverTimeChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
+
+<!-- Contenedor para la gráfica de tipos de publicación (rosco) -->
+<canvas id="publicationTypeChart" width="400" height="400" style="margin-top: 20px; display: none;"></canvas>
+
+<!-- Contenedor para el gráfico tipo bubble de descargas -->
+<canvas id="downloadHeatmap" width="800" height="400" style="margin-top: 20px; display: none;"></canvas>
+
+<!-- Div oculto para almacenar los datos -->
 <div id="data-container"
      data-author-names-datasets='{{ author_names_dataset | tojson | safe }}'
      data-datasets-count='{{ datasets_count | tojson | safe }}'
+
      data-author-names-views='{{ author_names_view | tojson | safe }}'
      data-view-counts='{{ view_counts | tojson | safe }}'
+
      data-dataset-names='{{ dataset_names | tojson | safe }}'
      data-total-sizes='{{ total_sizes | tojson | safe }}'
+
+     data-view-dates='{{ view_dates | tojson | safe }}'
+     data-view-counts-over-time='{{ view_counts_over_time | tojson | safe }}'
+
+     data-publication-types-count='{{ publication_types_count | tojson | safe }}'
+     data-download-counts='{{ download_counts | tojson | safe }}'
      style="display: none;">
 </div>
 
 {% endblock %}
 
-{% block styles %}
-<style>
-    .custom-buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .custom-dropdown {
-        margin-top: 10px;
-        font-weight: bold;
-    }
-</style>
-{% endblock %}
 
 {% block scripts %}
-<!-- Incluye Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     const dataContainer = document.getElementById('data-container');
     let chartInstance;
     let datasetSizeChartInstance;
+    let viewsOverTimeChartInstance;
+    let publicationTypeChartInstance;
+    let downloadBubbleInstance;
+
+    function showDashboard(dashboardId) {
+        const dashboards = ['chartCanvas', 'datasetSizeChart', 'viewsOverTimeChart', 'publicationTypeChart', 'downloadHeatmap'];
+        const selectedDashboard = document.getElementById(dashboardId);
+        const dropdownContainer = document.getElementById('data-type-container');
+        const viewsFilterContainer = document.getElementById('views-filter-container');
+
+        dashboards.forEach(dashboard => {
+            const canvas = document.getElementById(dashboard);
+            canvas.style.display = 'none';
+        });
+        
+        dropdownContainer.style.display = 'none';
+        viewsFilterContainer.style.display = 'none';
+
+        if (selectedDashboard.style.display === 'block') {
+            selectedDashboard.style.display = 'none';
+            return;
+        }
+        selectedDashboard.style.display = 'block';
+
+        if (dashboardId === 'chartCanvas') {
+            dropdownContainer.style.display = 'block';
+        }
+        else if (dashboardId === 'viewsOverTimeChart') {
+            viewsFilterContainer.style.display = 'block';
+        }
+        if (dashboardId === 'chartCanvas' && !chartInstance) {
+            initializeDatasetCountsChart();
+        } else if (dashboardId === 'datasetSizeChart' && !datasetSizeChartInstance) {
+            initializeDatasetSizeChart();
+        } else if (dashboardId === 'viewsOverTimeChart' && !viewsOverTimeChartInstance) {
+            initializeViewsOverTimeChart();
+        } else if (dashboardId === 'publicationTypeChart' && !publicationTypeChartInstance) {
+            initializePublicationTypeChart();
+        } else if (dashboardId === 'downloadHeatmap' && !downloadBubbleInstance) {
+            initializeDownloadBubbleChart();
+        }
+    }
 
     function toggleDropdownAndChart() {
         const dropdownContainer = document.getElementById('data-type-container');
         const chartCanvas = document.getElementById('chartCanvas');
 
-        // Alternar visibilidad del dropdown y el canvas de la gráfica
         if (dropdownContainer.style.display === "none") {
             dropdownContainer.style.display = "block";
             chartCanvas.style.display = "block";
 
-            // Inicializar la gráfica solo si no existe aún
             if (!chartInstance) {
-                initializeChart();
+                initializeDatasetCountsChart();
             }
         } else {
             dropdownContainer.style.display = "none";
@@ -88,11 +144,9 @@
     function toggleDatasetSizeChart() {
         const datasetSizeChart = document.getElementById('datasetSizeChart');
 
-        // Alternar visibilidad del canvas de la gráfica de tamaños de dataset
         if (datasetSizeChart.style.display === "none") {
             datasetSizeChart.style.display = "block";
             
-            // Inicializar la gráfica solo si no existe aún
             if (!datasetSizeChartInstance) {
                 initializeDatasetSizeChart();
             }
@@ -101,9 +155,71 @@
         }
     }
 
+    function toggleViewsOverTimeChart() {
+        const viewsOverTimeChartCanvas = document.getElementById('viewsOverTimeChart');
+        const viewsFilterContainer = document.getElementById('views-filter-container');
+
+        if (viewsOverTimeChartCanvas.style.display === "none") {
+            viewsOverTimeChartCanvas.style.display = "block";
+            viewsFilterContainer.style.display = "block";
+
+            if (!viewsOverTimeChartInstance) {
+                initializeViewsOverTimeChart();
+            }
+        } else {
+            viewsOverTimeChartCanvas.style.display = "none";
+            viewsFilterContainer.style.display = "none";
+        }
+    }
+
+    function updateViewsOverTimeChart() {
+        const selectedFilter = document.getElementById('views-filter').value;
+
+        fetch('/dashboard', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filter: selectedFilter })
+        })
+            .then(response => response.json())
+            .then(result => {
+                console.log(`Filter: ${selectedFilter}, Data:`, result);
+                const labels = result.view_dates;
+                const data = result.view_counts_over_time;
+
+                let label;
+                if (selectedFilter === 'day') {
+                    label = 'Visualizaciones Diarias';
+                } else if (selectedFilter === 'month') {
+                    label = 'Visualizaciones Mensuales';
+                } else if (selectedFilter === 'year') {
+                    label = 'Visualizaciones Anuales';
+                }
+
+                viewsOverTimeChartInstance.data.labels = labels;
+                viewsOverTimeChartInstance.data.datasets[0].data = data;
+                viewsOverTimeChartInstance.data.datasets[0].label = label;
+                viewsOverTimeChartInstance.update();
+            })
+            .catch(error => {
+                console.error('Error al actualizar la gráfica de visualizaciones:', error);
+            });
+    }
+
+    function togglePublicationTypeChart() {
+        const publicationTypeChartCanvas = document.getElementById('publicationTypeChart');
+
+        if (publicationTypeChartCanvas.style.display === "none") {
+            publicationTypeChartCanvas.style.display = "block";
+            initializePublicationTypeChart();
+        } else {
+            publicationTypeChartCanvas.style.display = "none";
+        }
+    }
+
     function updateChart() {
         const selectedType = document.getElementById('data-type').value;
-        
         let labels, data, label;
 
         if (selectedType === 'datasets') {
@@ -116,18 +232,27 @@
             label = 'Número de Visualizaciones por Autor';
         }
 
-        // Actualizar los datos de la gráfica
         chartInstance.data.labels = labels;
         chartInstance.data.datasets[0].data = data;
         chartInstance.data.datasets[0].label = label;
         chartInstance.update();
     }
 
-    function initializeChart() {
+    function toggleDownloadBubbleChart() {
+        const heatmapCanvas = document.getElementById('downloadHeatmap');
+        if (heatmapCanvas.style.display === "none") {
+            heatmapCanvas.style.display = "block";
+            initializeDownloadBubbleChart();
+        } else {
+            heatmapCanvas.style.display = "none";
+        }
+    }
+
+    function initializeDatasetCountsChart() {
         const labels = JSON.parse(dataContainer.getAttribute('data-author-names-datasets'));
         const data = JSON.parse(dataContainer.getAttribute('data-datasets-count'));
-        
         const ctx = document.getElementById('chartCanvas').getContext('2d');
+
         chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -162,45 +287,187 @@
     }
 
     function initializeDatasetSizeChart() {
-    const datasetNames = JSON.parse(dataContainer.getAttribute('data-dataset-names'));
-    let totalSizes = JSON.parse(dataContainer.getAttribute('data-total-sizes'));
+        const datasetNames = JSON.parse(dataContainer.getAttribute('data-dataset-names'));
+        const ctx = document.getElementById('datasetSizeChart').getContext('2d');
+        let totalSizes = JSON.parse(dataContainer.getAttribute('data-total-sizes'));
+        let unit = "Bytes";
 
-    totalSizes = totalSizes.map(size => {
-        return parseFloat(size.replace(" KB", ""));
-    });
+        if (totalSizes.length > 0 && typeof totalSizes[0] === 'string') {
+            const match = totalSizes[0].match(/\s([A-Za-z]+)$/);
+            if (match) {
+                unit = match[1];
+            }
+        }
 
-    const ctx = document.getElementById('datasetSizeChart').getContext('2d');
-    datasetSizeChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: datasetNames,
-            datasets: [{
-                label: 'Tamaño Total de Archivos por Dataset (KBytes)',
-                data: totalSizes,
-                backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Tamaño en KBytes'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Datasets'
+        totalSizes = totalSizes.map(size => {
+            if (typeof size === 'string' && size.match(/\d+\s[A-Za-z]+/)) {
+                return parseFloat(size.replace(/[^\d.]/g, ''));
+            }
+            return parseFloat(size);
+        });
+
+        datasetSizeChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: datasetNames,
+                datasets: [{
+                    label: `Tamaño Total de Archivos por Dataset (${unit})`,
+                    data: totalSizes,
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: `Tamaño en ${unit}`
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Datasets'
+                        }
                     }
                 }
             }
+        });
+    }
+
+    function initializeViewsOverTimeChart() {
+        const viewDates = JSON.parse(dataContainer.getAttribute('data-view-dates'));
+        const viewCountsOverTime = JSON.parse(dataContainer.getAttribute('data-view-counts-over-time'));
+        const ctx = document.getElementById('viewsOverTimeChart').getContext('2d');
+
+        viewsOverTimeChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: viewDates,
+                datasets: [{
+                    label: 'Visualizaciones a lo largo del tiempo',
+                    data: viewCountsOverTime,
+                    fill: false,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cantidad de Visualizaciones'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Fecha'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    function initializePublicationTypeChart() {
+        const publicationTypesCount = JSON.parse(dataContainer.getAttribute('data-publication-types-count'));
+        const labels = Object.keys(publicationTypesCount);
+        const data = Object.values(publicationTypesCount);
+        const ctx = document.getElementById('publicationTypeChart').getContext('2d');
+
+        publicationTypeChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Tipos de Publicaciones',
+                    data: data,
+                    backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40', '#FFB6C1', '#B0E57C', 
+                    '#8B74FF', '#F39C12', '#A9338E', '#E74C3C', '#3498DB', '#F1C40F', '#1ABC9C', 
+                    '#9B59B6', '#16A085', '#2ECC71', '#D35400', '#7F8C8D'], 
+                    borderColor: 'white',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + ' datasets';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    function initializeDownloadBubbleChart() {
+        const downloadCounts = JSON.parse(dataContainer.getAttribute('data-download-counts'));
+        const dates = Object.keys(downloadCounts);
+        const values = Object.values(downloadCounts);
+        const ctx = document.getElementById('downloadHeatmap').getContext('2d');
+        const bubbleData = dates.length === 0 ? [] : dates.map((date, index) => ({
+            x: date,
+            y: values[index],
+            r: values[index] / 2
+        }));
+
+        if (downloadBubbleInstance) {
+            downloadBubbleInstance.destroy();
         }
-    });
-}
+
+        downloadBubbleInstance = new Chart(ctx, {
+            type: 'bubble',
+            data: {
+                datasets: [{
+                    label: 'Descargas por día',
+                    data: bubbleData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Número de Descargas'
+                        }
+                    },
+                    x: {
+                        type: 'category',
+                        title: {
+                            display: true,
+                            text: 'Fecha'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
 </script>
 {% endblock %}

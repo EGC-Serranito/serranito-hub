@@ -3,6 +3,7 @@ from enum import Enum
 
 from flask import request
 from sqlalchemy import Enum as SQLAlchemyEnum, or_
+from sqlalchemy import func
 
 from app import db
 
@@ -111,6 +112,10 @@ class DataSet(db.Model):
                     )
                 ).order_by(DataSet.version).all()
 
+    def get_average_rating(self):
+        average_rating = db.session.query(func.avg(DatasetUserRate.rate)).filter_by(dataset_id=self.id).scalar()
+        return round(average_rating, 1) if average_rating else 0
+
     def name(self):
         return self.ds_meta_data.title
 
@@ -149,25 +154,24 @@ class DataSet(db.Model):
 
     def to_dict(self):
         return {
-            "title": self.ds_meta_data.title,
-            "id": self.id,
-            "created_at": self.created_at,
-            "created_at_timestamp": int(self.created_at.timestamp()),
-            "description": self.ds_meta_data.description,
-            "authors": [author.to_dict() for author in self.ds_meta_data.authors],
-            "publication_type": self.get_cleaned_publication_type(),
-            "publication_doi": self.ds_meta_data.publication_doi,
-            "dataset_doi": self.ds_meta_data.dataset_doi,
-            "tags": self.ds_meta_data.tags.split(",") if self.ds_meta_data.tags else [],
-            "url": self.get_uvlhub_doi(),
-            "download": f'{request.host_url.rstrip("/")}/dataset/download/{self.id}',
-            "zenodo": self.get_zenodo_url(),
-            "files": [
-                file.to_dict() for fm in self.feature_models for file in fm.files
-            ],
-            "files_count": self.get_files_count(),
-            "total_size_in_bytes": self.get_file_total_size(),
-            "total_size_in_human_format": self.get_file_total_size_for_human(),
+            'title': self.ds_meta_data.title,
+            'id': self.id,
+            'created_at': self.created_at,
+            'created_at_timestamp': int(self.created_at.timestamp()),
+            'description': self.ds_meta_data.description,
+            'authors': [author.to_dict() for author in self.ds_meta_data.authors],
+            'publication_type': self.get_cleaned_publication_type(),
+            'publication_doi': self.ds_meta_data.publication_doi,
+            'dataset_doi': self.ds_meta_data.dataset_doi,
+            'tags': self.ds_meta_data.tags.split(",") if self.ds_meta_data.tags else [],
+            'url': self.get_uvlhub_doi(),
+            'download': f'{request.host_url.rstrip("/")}/dataset/download/{self.id}',
+            'zenodo': self.get_zenodo_url(),
+            'files': [file.to_dict() for fm in self.feature_models for file in fm.files],
+            'files_count': self.get_files_count(),
+            'total_size_in_bytes': self.get_file_total_size(),
+            'total_size_in_human_format': self.get_file_total_size_for_human(),
+            'rating': self.get_average_rating(),
         }
 
     def __repr__(self):

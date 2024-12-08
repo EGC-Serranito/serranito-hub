@@ -47,7 +47,7 @@ var currentId = 0;
         function createAuthorBlock(idx, suffix) {
             let newAuthor = document.createElement('div');
             newAuthor.className = 'author row';
-            newAuthor.style.cssText = "border:2px dotted #444;border-radius:10px;padding:10px;margin:10px 0; background-color: #161b22; color: white";
+            newAuthor.classList.add('new-author-style');
         
             addField(newAuthor, `${suffix}authors-${idx}-name`, 'Name *');
             addField(newAuthor, `${suffix}authors-${idx}-affiliation`, 'Affiliation');
@@ -123,6 +123,7 @@ var currentId = 0;
             let alert = document.createElement('p');
             alert.style.margin = '0';
             alert.style.padding = '0';
+            alert.style.color = 'black';
             alert.textContent = 'Upload error: ' + error_message;
             upload_error.appendChild(alert);
             upload_error.style.display = 'block';

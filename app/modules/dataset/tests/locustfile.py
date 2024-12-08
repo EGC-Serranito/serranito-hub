@@ -7,10 +7,16 @@ class DatasetBehavior(TaskSet):
     def on_start(self):
         self.dataset()
 
-    @task
+    @task(2)
     def dataset(self):
         response = self.client.get("/dataset/upload")
         get_csrf_token(response)
+
+    @task(1)
+    def dataset_rate(self):
+        for i in range(4):
+            dataset_id = i + 1
+            self.client.post(f"/rate_dataset/{dataset_id}", data={"rate": (i*2) % 5})
 
 
 class DatasetUser(HttpUser):

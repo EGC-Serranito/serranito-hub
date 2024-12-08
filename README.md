@@ -6,10 +6,10 @@
 </div>
 
 <div style="text-align: center;">
-  <img src="https://www.uvlhub.io/static/img/logos/logo-light.svg" alt="Logo">
+  <img src="app/static/img/logos/logo-dark.svg" alt="Logo">
 </div>
 
-# uvlhub.io
+# serranito-hub
 
 Repository of feature models in UVL format integrated with Zenodo and flamapy following Open Science principles - Developed by DiversoLab
 
