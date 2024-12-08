@@ -96,7 +96,7 @@ Feature Models
 
 <!-- Modal para ver las descripciones de los Feature Models -->
 <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="descriptionModalLabel">Feature Model Description</h5>
@@ -175,9 +175,7 @@ Feature Models
         margin: 0 auto;
     }
 
-    .feature-card {
-        /* Sin animación en hover */
-    }
+
 
     .welcome-card {
         background: linear-gradient(135deg, #007bff, #00c6ff);
@@ -243,8 +241,18 @@ Feature Models
     }
 
     .options-btn {
-        padding: 5px 10px; /* Botones más pequeños */
+        padding: 5px 10px; 
         font-size: 0.9rem;
+    }
+
+    .modal-dialog-centered {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .feature-models-container {
+        max-height: 500px; /* Limita la altura del contenedor */
+        overflow-y: auto;  /* Añade un scroll interno si es necesario */
     }
 </style>
 {% endblock %}
