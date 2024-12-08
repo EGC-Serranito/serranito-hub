@@ -1,6 +1,8 @@
 {% extends "base_template.html" %}
 
-{% block title %}Feature Models for tag: "{{ tag }}"{% endblock %}
+{% block title %}
+Feature Models
+{% endblock %}
 
 {% block content %}
 <h1 class="h2 mb-3"><b>Feature Models for tag: "{{ tag }}"</b></h1>
@@ -9,13 +11,6 @@
     <div class="col-md-4">
         <div class="mb-4">
             <span class="text-secondary">Filtered Feature Models: {{ feature_models|length }}</span>
-            <div class="mt-2">
-                {% for tag_option in tags %}
-                    <button class="btn btn-secondary tag-button" onclick="loadFeatureModelsForTag('{{ tag_option }}')">
-                        {{ tag_option }}
-                    </button>
-                {% endfor %}
-            </div>
         </div>
     </div>
 
@@ -26,11 +21,40 @@
                     <div class="list-group-item">
                         <div class="row">
                             <div class="col-8">
-                                <i data-feather="file"></i> {{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title' }}
+                                <i data-feather="file"></i> 
+                                {{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title' }}
                                 <br>
-                                <small class="text-muted">{{ fm.fm_meta_data.description if fm.fm_meta_data else 'No Description' }}</small>
+                                <small class="text-muted">
+                                    {{ fm.fm_meta_data.description if fm.fm_meta_data else 'No Description' }}
+                                </small>
                             </div>
                             <div class="col-4 text-end">
+                                <!-- Export Button Only -->
+                                <div class="btn-group" role="group">
+                                    <button id="btnGroupDropExport{{ fm.id }}" type="button"
+                                        class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown"
+                                        aria-expanded="false" style="border-radius: 5px;">
+                                        <i data-feather="download"></i> Export
+                                    </button>
+                                    <ul class="dropdown-menu custom-navbar" aria-labelledby="btnGroupDropExport{{ fm.id }}">
+                                        <li>
+                                            <a class="dropdown-item custom-navbar"
+                                                href="{{ url_for('hubfile.download_file', file_id=fm.id) }}">UVL</a>
+                                            <a class="dropdown-item custom-navbar"
+                                                href="{{ url_for('flamapy.to_glencoe', file_id=fm.id) }}">Glencoe</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item custom-navbar" href="{{ url_for('flamapy.to_cnf', file_id=fm.id) }}">
+                                                DIMACS
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item custom-navbar" href="{{ url_for('flamapy.to_splot', file_id=fm.id) }}">
+                                                SPLOT
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -44,6 +68,30 @@
 
 <a href="{{ url_for('explore.index') }}" class="btn btn-secondary mt-3">Back to Explore</a>
 
-
+<!-- Modal -->
+<div class="modal fade" id="fileViewerModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="height: 80vh; display: flex; align-items: center;">
+        <div class="modal-content" style="height: 80vh;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h5 class="modal-title" id="fileViewerModalLabel">Feature model view</h5>
+                <div>
+                    <a href="#" class="btn btn-outline-primary btn-sm" id="downloadButton"
+                        style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
+                        <i data-feather="download"></i>
+                    </a>
+                    <button onclick="copyToClipboard()" class="btn btn-outline-secondary btn-sm"
+                        style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
+                        <i data-feather="copy"></i>
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
+                <pre id="fileContent"
+                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
