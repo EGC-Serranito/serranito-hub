@@ -459,8 +459,7 @@ def get_unsynchronized_dataset(dataset_id):
     if not dataset:
         abort(404)
 
-    # dataset.get_versions()
-    versions = []
+    versions = dataset.get_versions()
     return render_template("dataset/view_dataset.html", dataset=dataset, versions=versions)
 
 
