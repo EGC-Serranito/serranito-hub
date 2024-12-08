@@ -39,28 +39,30 @@ Feature Models
         </div>
     </div>
 
-    <!-- Contenedor para mostrar los Feature Models encontrados -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="list-group" id="featureModelsForTag">
-                {% if feature_models %}
-                    {% for fm in feature_models %}
-                        <div class="list-group-item feature-card shadow-sm">
-                            <div class="row">
-                                <div class="col-8">
-                                    <i data-feather="file"></i>
-                                    <b>{{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title Found' }}</b>
-                                    <br>
-                                    <small class="text-muted">UVL File: {{ fm.fm_meta_data.uvl_filename if fm.fm_meta_data else 'Unknown' }}</small>
-                                </div>
-                                <div class="col-4 text-end">
-                                    <button 
-                                        class="btn btn-outline-primary btn-sm options-btn"
-                                        onclick="toggleOptions('{{ fm.id }}')">
-                                        <i data-feather="menu"></i> Options
-                                    </button>
-                                </div>
+   <!-- Contenedor con Barra de Scroll -->
+   <div class="row">
+    <div class="col-md-12">
+        <div class="list-group scrollable-content" id="featureModelsForTag">
+            {% if feature_models %}
+                {% for fm in feature_models %}
+                    <div class="list-group-item feature-card shadow-sm">
+                        <div class="row">
+                            <div class="col-8">
+                                <i data-feather="file"></i>
+                                <b>{{ fm.fm_meta_data.title if fm.fm_meta_data else 'No Title Found' }}</b>
+                                <br>
+                                <small class="text-muted">UVL File: {{ fm.fm_meta_data.uvl_filename if fm.fm_meta_data else 'Unknown' }}</small>
                             </div>
+                            <div class="col-4 text-end">
+                                <button 
+                                    class="btn btn-outline-primary btn-sm options-btn"
+                                    onclick="toggleOptions('{{ fm.id }}')">
+                                    <i data-feather="menu"></i> Options
+                                </button>
+                            </div>
+                        </div>
+
+                
 
                             <!-- Opciones de exportación y detalles (inicialmente ocultas) -->
                             <div id="options-{{ fm.id }}" class="options-container mt-2">
@@ -254,5 +256,16 @@ Feature Models
         max-height: 500px; /* Limita la altura del contenedor */
         overflow-y: auto;  /* Añade un scroll interno si es necesario */
     }
+    scrollable-content {
+        border: none !important;
+        box-shadow: none !important; /* También eliminamos cualquier sombra */
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
 </style>
 {% endblock %}
