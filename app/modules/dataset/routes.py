@@ -182,12 +182,10 @@ def upload():
 
 
 @dataset_bp.route("/dataset/<int:dataset_id>/upload/files", methods=["POST"])
-# @login_required
+@login_required
 def upload_update_files(dataset_id):
-    printRojo100()
     temp_folder = current_user.temp_folder()
     files = dataset_service.get_or_404(dataset_id).files()
-    printRojo100()
     # En caso de que exista la carpeta temporal, se borra y se crea de nuevo
     if os.path.exists(temp_folder):
         shutil.rmtree(temp_folder)
@@ -249,7 +247,6 @@ def update_dataset(dataset_id):
     dataset = dataset_service.get_or_404(dataset_id)
     form = DataSetForm()
     printRojo("1")
-    printRojo(request.method)
     if request.method == "POST":
         dataset = None
         if not form.validate_on_submit():
