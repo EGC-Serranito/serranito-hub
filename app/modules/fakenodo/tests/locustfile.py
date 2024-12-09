@@ -1,21 +1,39 @@
-from locust import HttpUser, TaskSet, task
-from core.environment.host import get_host_for_locust_testing
-
-
-class FakenodoBehavior(TaskSet):
-    def on_start(self):
-        self.index()
-
-    @task
-    def index(self):
-        response = self.client.get("/fakenodo")
-
-        if response.status_code != 200:
-            print(f"Fakenodo index failed: {response.status_code}")
+from locust import HttpUser, task, between
 
 
 class FakenodoUser(HttpUser):
-    tasks = [FakenodoBehavior]
-    min_wait = 5000
-    max_wait = 9000
-    host = get_host_for_locust_testing()
+    wait_time = between(1, 5)
+
+    @task
+    def test_connection(self):
+        """Simulate GET request to test_connection_fakenodo"""
+        self.client.get("/fakenodo/api")
+
+    @task
+    def create_fakenodo(self):
+        """Simulate POST request to create_fakenodo"""
+        self.client.post("/fakenodo/api")
+
+    @task
+    def deposition_files(self):
+        """Simulate POST request to deposition_files_fakenodo"""
+        depositionid = "12345"
+        self.client.post(f"/fakenodo/api/{depositionid}/files")
+
+    @task
+    def delete_deposition(self):
+        """Simulate DELETE request to delete_deposition_fakenodo"""
+        depositionid = "12345"
+        self.client.delete(f"/fakenodo/api/{depositionid}")
+
+    @task
+    def publish_deposition(self):
+        """Simulate POST request to publish_deposition_fakenodo"""
+        depositionid = "12345"
+        self.client.post(f"/fakenodo/api/{depositionid}/actions/publish")
+
+    @task
+    def get_deposition(self):
+        """Simulate GET request to get_deposition_fakenodo"""
+        depositionid = "12345"
+        self.client.get(f"/fakenodo/api/{depositionid}")
