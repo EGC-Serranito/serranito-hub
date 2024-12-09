@@ -13,7 +13,7 @@ def dashboard_repository():
     with app.app_context():
         repository = DashboardRepository()
         yield repository
-        
+
 
 @pytest.fixture(scope="module")
 def test_client():
