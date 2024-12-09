@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
 
-class TestSelenium():
+class TestExplore:
     def setup_method(self, method):
         chrome_options = Options()
         chrome_options.add_argument("--headless")
