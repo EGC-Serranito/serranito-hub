@@ -3,6 +3,20 @@ import yaml
 import json
 import os
 from datetime import datetime
+from flamapy.metamodels.fm_metamodel.transformations import UVLReader
+from antlr4.error.ErrorListener import ErrorListener
+import tempfile
+
+
+class CustomErrorListener(ErrorListener):
+    """
+    Listener personalizado para capturar errores de sintaxis.
+    """
+    def __init__(self):
+        self.errors = []
+
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        self.errors.append(f"Line {line}:{column} - {msg}")
 
 
 class FeatureService:
@@ -243,7 +257,7 @@ class FeatureService:
                         formatted_message = f"✨ *Explore the datasets below* ✨\n\n{formatted_datasets}"
                 case "FLAMAPY":
                     message_template = messages.get("FLAMAPY", {}).get("message", "")
-                    self.send_messages_flamapy(bot_token, chat_id, BASE_URL)
+                    self.send_messages_flamapy(bot_token, chat_id)
                     formatted_message = message_template
                 case "FAKENODO":
                     data = {"status": "success", "message": "Connected to Fakenodo API"}
@@ -296,230 +310,213 @@ class FeatureService:
                     f"Error formateando el mensaje para la característica {feature}: Faltan datos {e}"
                 )
 
-    def send_messages_flamapy(self, bot_token, chat_id, BASE_URL):
+    @staticmethod
+    def validate_uvl_model(uvl_text):
         """
-        Obtiene los mensajes enviados al bot y responde a cada uno de ellos con "Hola, soy el bot".
+        Valida un modelo UVL y devuelve el resultado como texto.
         """
-        from flamapy.metamodels.fm_metamodel.transformations import (
-            UVLReader
-        )
-        import tempfile
-        from antlr4.error.ErrorListener import ErrorListener
-        if len(bot_token.split(":")) == 2 and not len(bot_token) == 64:
-            url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
-            response = requests.get(url, timeout=10)
-            webhook_info = response.json()
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".uvl") as temp_file:
+                temp_file.write(uvl_text.encode("utf-8"))
+                temp_path = temp_file.name
 
-            if webhook_info["result"]["url"]:
-                delete_webhook_url = (
-                    f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
-                )
-                delete_response = requests.get(delete_webhook_url, timeout=10)
-                if delete_response.status_code == 200:
-                    print("Webhook eliminado con éxito.")
-                else:
-                    print(f"Error al eliminar el webhook: {delete_response.text}")
-            last_update_id = None
-            url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
-            if last_update_id is not None:
-                url += f"?offset={last_update_id + 1}"
+            try:
+                UVLReader(temp_path).transform()
+                return "Valid Model"
+            except Exception as e:
+                return f"Error in the validation of the model: {str(e)}"
+        except Exception as e:
+            return f"General error: {str(e)}"
 
-            response = requests.get(url, timeout=10)
-            if response.status_code != 200:
-                print(f"Error al obtener actualizaciones: {response.text}")
-                return
+    @staticmethod
+    def handle_telegram_webhook(bot_token):
+        """
+        Verifica y elimina un webhook activo en Telegram.
+        """
+        url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
+        response = requests.get(url, timeout=10)
+        webhook_info = response.json()
 
-            updates = response.json()
-
-            for update in updates.get("result", []):
-                last_update_id = update["update_id"]
-                url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
-                if last_update_id is not None:
-                    url += f"?offset={last_update_id + 1}"
-                response = requests.get(url, timeout=10)
-
-                if "message" in update:
-                    chat_id_messages = update["message"]["chat"]["id"]
-                    message_id = update["message"]["message_id"]
-                    uvl_message = update["message"].get("text", "Mensaje sin texto")
-
-                    if int(chat_id) == int(chat_id_messages):
-                        class CustomErrorListener(ErrorListener):
-                            def __init__(self):
-                                self.errors = []
-
-                            def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-                                self.errors.append(f"Line {line}:{column} - {msg}")
-
-                        try:
-                            uvl_text = uvl_message
-
-                            with tempfile.NamedTemporaryFile(delete=False, suffix=".uvl") as temp_file:
-                                temp_file.write(uvl_text.encode("utf-8"))
-                                temp_path = temp_file.name
-
-                            try:
-                                UVLReader(temp_path).transform()
-                                response_text = "Valid Model"
-                            except Exception as e:
-                                response_text = f"Error in the validation of the model: {str(e)}"
-
-                        except Exception as e:
-                            response_text = f"General error: {str(e)}"
-
-                        data = {
-                            "chat_id": chat_id,
-                            "text": response_text,
-                            "reply_to_message_id": message_id,
-                        }
-
-                        send_response = requests.post(
-                            f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                            data=data,
-                            timeout=10,
-                        )
-
-                        if send_response.status_code == 200:
-                            print(f"Respondido al mensaje {message_id} en el chat {chat_id}")
-                        else:
-                            print(f"Error al responder al mensaje {message_id}: {send_response.text}")
-
-        else:
-            url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
-
-            params = {"limit": 10}
-
-            headers = {"Authorization": f"Bot {bot_token}"}
-
-            response = requests.get(url, headers=headers, params=params, timeout=10)
-
-            if response.status_code == 200:
-                messages = response.json()
-
-                for message in messages:
-                    if not message["author"].get("bot", False):
-                        print(
-                            f"Autor: {message['author']['username']} - Contenido: {message['content']}"
-                        )
-
-                        class CustomErrorListener(ErrorListener):
-                            def __init__(self):
-                                self.errors = []
-
-                            def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-                                self.errors.append(f"Line {line}:{column} - {msg}")
-
-                        try:
-                            uvl_text = message["content"]
-
-                            with tempfile.NamedTemporaryFile(delete=False, suffix=".uvl") as temp_file:
-                                temp_file.write(uvl_text.encode("utf-8"))
-                                temp_path = temp_file.name
-
-                            try:
-                                UVLReader(temp_path).transform()
-                                response_text = "Valid Model"
-                            except Exception as e:
-                                response_text = f"Error in the validation of the model: {str(e)}"
-                        except Exception as e:
-                            response_text = f"General error: {str(e)}"
-
-                        headers = {
-                            "Authorization": f"Bot {bot_token}",
-                            "Content-Type": "application/json",
-                        }
-
-                        data = {
-                            "content": response_text,
-                            "message_reference": {"message_id": message["id"]},
-                        }
-
-                        send_response = requests.post(
-                            url, data=json.dumps(data), headers=headers, timeout=10
-                        )
-
-                        if send_response.status_code == 200:
-                            print(
-                                f"Respondido al mensaje {message['id']} en el chat {chat_id}"
-                            )
-                        else:
-                            print(
-                                f"Error al responder al mensaje {message['id']}: {send_response.text}"
-                            )
+        if webhook_info["result"]["url"]:
+            delete_webhook_url = f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
+            delete_response = requests.get(delete_webhook_url, timeout=10)
+            if delete_response.status_code == 200:
+                print("Webhook eliminado con éxito.")
             else:
-                print(f"Error al obtener los mensajes: {response.status_code}")
+                print(f"Error al eliminar el webhook: {delete_response.text}")
 
-    def send_message_bot(self, bot_token, chat_id, feature, formatted_message):
+    @staticmethod
+    def get_telegram_updates(bot_token, last_update_id=None):
         """
-        Envía un mensaje formateado a un bot de Telegram.
-        :param bot_token: Token del bot de Telegram.
-        :param chat_id: ID del chat de Telegram al que enviar el mensaje.
-        :param feature: La característica para la que se está enviando el mensaje.
-        :param formatted_message: Mensaje ya formateado con los datos correspondientes.
+        Obtiene actualizaciones del bot de Telegram.
         """
+        url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
+        if last_update_id:
+            url += f"?offset={last_update_id + 1}"
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("result", [])
+        print(f"Error al obtener actualizaciones: {response.text}")
+        return []
 
-        message = (
+    @staticmethod
+    def respond_to_telegram_message(bot_token, chat_id, message_id, response_text):
+        """
+        Responde a un mensaje en Telegram.
+        """
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        data = {
+            "chat_id": chat_id,
+            "text": response_text,
+            "reply_to_message_id": message_id,
+        }
+        response = requests.post(url, data=data, timeout=10)
+        if response.status_code == 200:
+            print(f"Respondido al mensaje {message_id} en el chat {chat_id}")
+        else:
+            print(f"Error al responder al mensaje {message_id}: {response.text}")
+
+    @staticmethod
+    def get_discord_messages(bot_token, chat_id):
+        """
+        Obtiene mensajes recientes de un canal de Discord.
+        """
+        url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
+        headers = {"Authorization": f"Bot {bot_token}"}
+        params = {"limit": 10}
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        print(f"Error al obtener los mensajes: {response.status_code}")
+        return []
+
+    @staticmethod
+    def respond_to_discord_message(bot_token, chat_id, message_id, response_text):
+        """
+        Responde a un mensaje en Discord.
+        """
+        url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
+        headers = {
+            "Authorization": f"Bot {bot_token}",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "content": response_text,
+            "message_reference": {"message_id": message_id},
+        }
+        response = requests.post(url, data=json.dumps(data), headers=headers, timeout=10)
+        if response.status_code == 200:
+            print(f"Respondido al mensaje {message_id} en el chat {chat_id}")
+        else:
+            print(f"Error al responder al mensaje {message_id}: {response.text}")
+
+    def send_messages_flamapy(self, bot_token, chat_id):
+        """
+        Procesa mensajes de Telegram o Discord y responde a cada uno.
+        """
+        if len(bot_token.split(":")) == 2 and not len(bot_token) == 64:
+            self.handle_telegram_webhook(bot_token)
+            updates = self.get_telegram_updates(bot_token)
+
+            for update in updates:
+                chat_id_messages = update["message"]["chat"]["id"]
+                message_id = update["message"]["message_id"]
+                uvl_message = update["message"].get("text", "Mensaje sin texto")
+
+                if int(chat_id) == int(chat_id_messages):
+                    response_text = self.validate_uvl_model(uvl_message)
+                    self.respond_to_telegram_message(
+                        bot_token, chat_id, message_id, response_text
+                    )
+        else:
+            messages = self.get_discord_messages(bot_token, chat_id)
+
+            for message in messages:
+                if not message["author"].get("bot", False):
+                    response_text = self.validate_uvl_model(message["content"])
+                    self.respond_to_discord_message(
+                        bot_token, chat_id, message["id"], response_text
+                    )
+
+    @staticmethod
+    def format_message(feature, formatted_message):
+        """
+        Formatea un mensaje para ser enviado.
+        """
+        return (
             f"Message for {feature}:\n{formatted_message}\n\n"
             + "*Para más información sobre este bot, visita:* \n"
             + "[serranito-hub-dev](https://serranito-hub-dev.onrender.com/botintegration)"
         )
 
-        def split_message(message, limit=2000):
-            """
-            Divide un mensaje largo en fragmentos de menos de `limit` caracteres.
-            """
-            lines = message.splitlines()
-            chunks = []
-            current_chunk = ""
+    @staticmethod
+    def split_message(message, limit=2000):
+        """
+        Divide un mensaje largo en fragmentos de menos de `limit` caracteres.
+        """
+        lines = message.splitlines()
+        chunks = []
+        current_chunk = ""
 
-            for line in lines:
-                if len(current_chunk) + len(line) + 1 > limit:
-                    chunks.append(current_chunk)
-                    current_chunk = line + "\n"
-                else:
-                    current_chunk += line + "\n"
-
-            if current_chunk:
+        for line in lines:
+            if len(current_chunk) + len(line) + 1 > limit:
                 chunks.append(current_chunk)
+                current_chunk = line + "\n"
+            else:
+                current_chunk += line + "\n"
 
-            return chunks
+        if current_chunk:
+            chunks.append(current_chunk)
+
+        return chunks
+
+    @staticmethod
+    def send_to_telegram(bot_token, chat_id, chunks):
+        """
+        Envía mensajes a Telegram en fragmentos.
+        """
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        for chunk in chunks:
+            payload = {
+                "chat_id": chat_id,
+                "text": chunk,
+                "parse_mode": "Markdown",
+            }
+            response = requests.post(url, data=payload, timeout=10)
+            if response.status_code == 200:
+                print(f"Mensaje enviado a {chat_id} exitosamente.")
+            else:
+                print(f"Error al enviar mensaje: {response.status_code}, {response.text}")
+
+    @staticmethod
+    def send_to_discord(bot_token, chat_id, chunks):
+        """
+        Envía mensajes a Discord en fragmentos.
+        """
+        url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
+        headers = {
+            "Authorization": f"Bot {bot_token}",
+            "Content-Type": "application/json",
+        }
+
+        for chunk in chunks:
+            data = {"content": chunk}
+            response = requests.post(
+                url, data=json.dumps(data), headers=headers, timeout=10
+            )
+            if response.status_code == 200:
+                print("Mensaje enviado exitosamente.")
+            else:
+                print(f"Error al enviar mensaje: {response.status_code}, {response.text}")
+
+    def send_message_bot(self, bot_token, chat_id, feature, formatted_message):
+        """
+        Envía un mensaje a Telegram o Discord dependiendo del formato del token.
+        """
+        message = self.format_message(feature, formatted_message)
+        chunks = self.split_message(message)
 
         if len(bot_token.split(":")) == 2 and not len(bot_token) == 64:
-
-            chunks = split_message(message)
-            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            for chunk in chunks:
-                payload = {
-                    "chat_id": chat_id,
-                    "text": chunk,
-                    "parse_mode": "Markdown",
-                }
-
-                response = requests.post(url, data=payload, timeout=10)
-
-                if response.status_code == 200:
-                    print(f"Mensaje enviado a {chat_id} exitosamente para {feature}.")
-                else:
-                    print(
-                        f"Error al enviar mensaje para {feature}: {response.status_code}"
-                    )
+            self.send_to_telegram(bot_token, chat_id, chunks)
         else:
-            chunks = split_message(message)
-            url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
-            headers = {
-                "Authorization": f"Bot {bot_token}",
-                "Content-Type": "application/json",
-            }
-
-            for chunk in chunks:
-                data = {"content": chunk}
-                response = requests.post(
-                    url, data=json.dumps(data), headers=headers, timeout=10
-                )
-
-                if response.status_code == 200:
-                    print("Mensaje enviado exitosamente.")
-                else:
-                    print(
-                        f"Error al enviar el mensaje: {response.status_code}, {response.text}"
-                    )
+            self.send_to_discord(bot_token, chat_id, chunks)
