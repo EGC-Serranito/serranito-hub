@@ -158,15 +158,15 @@
 </style>
 <div class="flash-messages">
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div>
-            {% for category, message in messages %}
-                <div style="color: #1b82d6;" class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+        {% if messages %}
+            <div>
+                {% for category, message in messages %}
+                    <div style="color: #1b82d6;" class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
     {% endwith %}
 </div>
 

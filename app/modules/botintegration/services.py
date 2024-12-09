@@ -34,13 +34,17 @@ class NodeService(BaseService):
         :param single_child: Whether the node allows only a single child
         :return: Created node
         """
-        return self.repository.create_node_route_add_chat(
-            user_id=user_id,
-            name=name,
-            parent_id=parent_id,
-            path=path,
-            single_child=single_child,
-        )
+        print(self.repository.get_children_count(parent_id))
+        if self.repository.get_children_count(parent_id) <= 2:
+            return self.repository.create_node_route_add_chat(
+                user_id=user_id,
+                name=name,
+                parent_id=parent_id,
+                path=path,
+                single_child=single_child,
+            )
+        else:
+            return {"error": "A bot can be configured with a maximum of 3 chats at a time."}, 400
 
     def create_node_route_add_bot(self, user_id, name, parent_id, path, single_child):
         """
@@ -53,13 +57,17 @@ class NodeService(BaseService):
         :param single_child: Whether the node allows only a single child
         :return: Created node
         """
-        return self.repository.create_node_route_add_bot(
-            user_id=user_id,
-            name=name,
-            parent_id=parent_id,
-            path=path,
-            single_child=single_child,
-        )
+        print(self.repository.get_children_count(parent_id))
+        if self.repository.get_children_count(parent_id) <= 4:
+            return self.repository.create_node_route_add_bot(
+                user_id=user_id,
+                name=name,
+                parent_id=parent_id,
+                path=path,
+                single_child=single_child,
+            )
+        else:
+            return {"error": "A maximum of 5 bots can be configured."}, 400
 
     def create_node_route_add_types_notification(
         self, user_id, name, parent_id, path, single_child
@@ -95,13 +103,16 @@ class NodeService(BaseService):
         :param single_child: Whether the node allows only a single child
         :return: Created node
         """
-        return self.repository.create_node_route_add_feature(
-            user_id=user_id,
-            name=name,
-            parent_id=parent_id,
-            path=path,
-            single_child=single_child,
-        )
+        if self.repository.get_children_count(parent_id) <= 2:
+            return self.repository.create_node_route_add_feature(
+                user_id=user_id,
+                name=name,
+                parent_id=parent_id,
+                path=path,
+                single_child=single_child,
+            )
+        else:
+            return {"error": "A bot can be configured with a maximum of 3 features at a time."}, 400
 
     def delete_node(self, node_id):
         """

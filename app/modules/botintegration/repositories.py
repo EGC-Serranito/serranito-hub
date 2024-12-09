@@ -89,6 +89,20 @@ class BotIntegrationRepository(BaseRepository):
             db.session.rollback()
             return {"error": "Error al guardar el árbol en la base de datos. Intente nuevamente."}, 500
 
+    def get_children_count(self, node_id):
+        """
+        Obtiene el número de hijos de un nodo específico basado en su ID.
+
+        :param node_id: ID del nodo para el cual contar los hijos.
+        :return: El número de hijos del nodo.
+        """
+        try:
+            children_count = db.session.query(TreeNode).filter(TreeNode.parent_id == node_id).count()
+            return children_count
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            raise e
+
     def create_node_route_add_chat(self, user_id, name, parent_id, path, single_child):
         try:
             new_node = TreeNode(
@@ -156,7 +170,7 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(features_node)
             db.session.commit()
 
-            return new_node
+            return {"message": "Node created successfully!", "node": new_node}, 200
 
         except Exception as e:
             db.session.rollback()
@@ -218,7 +232,7 @@ class BotIntegrationRepository(BaseRepository):
                 db.session.add(child_one_node)
                 db.session.commit()
 
-            return new_node
+            return {"message": "Node created successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
@@ -234,7 +248,7 @@ class BotIntegrationRepository(BaseRepository):
             )
             db.session.add(new_node)
             db.session.commit()
-            return new_node
+            return {"message": "Node created successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
@@ -255,7 +269,7 @@ class BotIntegrationRepository(BaseRepository):
             )
             db.session.add(new_node)
             db.session.commit()
-            return new_node
+            return {"message": "Node created successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
