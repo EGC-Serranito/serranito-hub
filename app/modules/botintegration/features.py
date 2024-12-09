@@ -467,11 +467,11 @@ class FeatureService:
     @staticmethod
     def format_message(feature, formatted_message):
         """
-        Formatea un mensaje para ser enviado.
+        Formats a message to be sent.
         """
         return (
             f"Message for {feature}:\n{formatted_message}\n\n"
-            + "*Para más información sobre este bot, visita:* \n"
+            + "*For more information about this bot, visit:* \n"
             + "[serranito-hub-dev](https://serranito-hub-dev.onrender.com/botintegration)"
         )
 
