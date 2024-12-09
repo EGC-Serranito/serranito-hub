@@ -13,6 +13,13 @@ def dashboard_repository():
     with app.app_context():
         repository = DashboardRepository()
         yield repository
+        
+
+@pytest.fixture(scope="module")
+def test_client():
+    app = create_app()
+    with app.test_client() as client:
+        yield client
 
 
 def test_repository_get_all_author_names_and_dataset_counts(dashboard_repository):
@@ -153,14 +160,7 @@ def test_service_get_downloads_by_day():
         assert downloads_by_day == {'2021-01-01': 5, '2021-01-02': 0}
 
 
-@pytest.fixture(scope="module")
-def test_client():
-    app = create_app()
-    with app.test_client() as client:
-        yield client
-
-
-def test_get_dashboard_data(test_client):
+def test_route_get_dashboard_data(test_client):
     mock_author_names_dataset = ['author1', 'author2']
     mock_dataset_counts = [10, 5]
     mock_author_names_view = ['author1', 'author2']
