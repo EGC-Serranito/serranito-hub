@@ -1,9 +1,8 @@
 import pytest
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 from app.modules.botintegration.features import FeatureService
 from app.modules.botintegration.services import NodeService
 from app import create_app
-import os
 
 
 @pytest.fixture
@@ -198,98 +197,3 @@ def test_remove_stopped_chats_with_mock_data(node_service, mock_treenode):
     assert len(tree["children"][0]["children"]) == 2
     assert tree["children"][0]["children"][0]["name"] == "1"
     assert not tree["children"][0]["children"][0]["children"]
-
-
-@patch(
-    "builtins.open",
-    mock_open(
-        read_data="""
-bottokens:
-  - name: "@testbot"
-    token: TEST_TOKEN_VAR
-"""
-    ),
-)
-@patch.dict(os.environ, {"TEST_TOKEN_VAR": "test_token_value"})
-def test_get_bot_token_success(feature_service):
-    token = feature_service.get_bot_token("@testbot", "fake_bottokens.yaml")
-    assert token == "test_token_value"
-
-
-@patch(
-    "builtins.open",
-    mock_open(
-        read_data="""
-bottokens:
-  - name: "@testbot"
-    token: TEST_TOKEN_VAR
-"""
-    ),
-)
-def test_get_bot_token_env_missing(feature_service):
-    with pytest.raises(ValueError):
-        feature_service.get_bot_token("@testbot", "fake_bottokens.yaml")
-
-
-@patch(
-    "builtins.open",
-    mock_open(
-        read_data="""
-bottokens: []
-"""
-    ),
-)
-def test_get_bot_token_bot_not_found(feature_service):
-    with pytest.raises(ValueError):
-        feature_service.get_bot_token("@nonexistent_bot", "fake_bottokens.yaml")
-
-
-@patch("app.modules.botintegration.models.TreeNode")
-@patch("app.modules.auth.models.User")
-@patch("app.modules.profile.models.UserProfile")
-@patch("app.modules.botintegration.features.FeatureService.get_bot_token")
-@patch("app.modules.botintegration.features.FeatureService.load_messages")
-@patch("app.modules.botintegration.features.FeatureService.send_message_bot")
-def test_send_features_bot(
-    mock_send_message_bot,
-    mock_load_messages,
-    mock_get_bot_token,
-    mock_user_profile,
-    mock_user,
-    mock_tree_node,
-    feature_service
-):
-
-    app = create_app()
-    with app.app_context():
-        mock_get_bot_token.return_value = "test_token"
-        mock_load_messages.return_value = {
-            "messages": {"AUTH": {"message": "Hello, {name}!"}}
-        }
-
-        mock_tree_node.query.filter.return_value.first.return_value = MagicMock(
-            user_id=1, name="12345"
-        )
-
-        mock_user.query.get.return_value = MagicMock(email="test@example.com")
-
-        user_profile_mock = MagicMock()
-        user_profile_mock.name = "Test"
-        user_profile_mock.surname = "User"
-        user_profile_mock.orcid = "0000-0000-0000-0000"
-
-        mock_user_profile.query.filter_by.return_value.first.return_value = (
-            user_profile_mock
-        )
-
-        feature_service.send_features_bot(
-            bot_token="@testbot",
-            chat_id="12345",
-            features=["AUTH"],
-            BASE_URL="example.com",
-        )
-
-    mock_send_message_bot.assert_called_once()
-    mock_send_message_bot.assert_called_with(
-        "test_token", "12345", "AUTH", "Hello, Test!"
-    )

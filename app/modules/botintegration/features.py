@@ -2,6 +2,7 @@ import requests
 import yaml
 import json
 import os
+from datetime import datetime
 
 
 class FeatureService:
@@ -25,7 +26,11 @@ class FeatureService:
             print(f"Error parsing YAML: {e}")
             raise
 
-    def get_bot_token(self, bot_name, bottokens_path="app/modules/botintegration/assets/bottokens.yaml"):
+    def get_bot_token(
+        self,
+        bot_name,
+        bottokens_path="app/modules/botintegration/assets/bottokens.yaml",
+    ):
         """
         Obtiene el token de un bot específico a partir del archivo .env y los datos en bottokens.yaml.
 
@@ -40,12 +45,18 @@ class FeatureService:
                 bottokens_data = yaml.safe_load(file)
 
             bot_entry = next(
-                (entry for entry in bottokens_data.get("bottokens", []) if entry["name"] == bot_name),
-                None
+                (
+                    entry
+                    for entry in bottokens_data.get("bottokens", [])
+                    if entry["name"] == bot_name
+                ),
+                None,
             )
 
             if not bot_entry:
-                raise ValueError(f"Bot name '{bot_name}' not found in {bottokens_path}.")
+                raise ValueError(
+                    f"Bot name '{bot_name}' not found in {bottokens_path}."
+                )
 
             token_var = bot_entry["token"]
 
@@ -88,8 +99,10 @@ class FeatureService:
                 case "AUTH":
                     from app.modules.profile.models import UserProfile
                     from app.modules.auth.models import User
+
                     message_template = messages.get("AUTH", {}).get("message", "")
                     from app.modules.botintegration.models import TreeNode
+
                     tree_node = TreeNode.query.filter(TreeNode.name == chat_id).first()
 
                     user = User.query.get(tree_node.user_id)
@@ -105,12 +118,25 @@ class FeatureService:
                     formatted_message = message_template.format(**user_data)
                 case "DATASET":
                     from app.modules.dataset.models import DSMetaData, DataSet
+                    from app.modules.hubfile.services import HubfileService
+                    from app.modules.hubfile.models import HubfileViewRecord
+                    from app import db
+                    from flask import current_app, jsonify, make_response, request
+                    from flask_login import current_user
+                    import uuid
                     message_template = messages.get("DATASET", {}).get("message", "")
                     from app.modules.botintegration.models import TreeNode
+
                     tree_node = TreeNode.query.filter(TreeNode.name == chat_id).first()
-                    datasets = DataSet.query.join(DSMetaData).filter(
-                        DataSet.user_id == tree_node.user_id, DSMetaData.dataset_doi.isnot(None)
-                    ).order_by(DataSet.created_at.desc()).all()
+                    datasets = (
+                        DataSet.query.join(DSMetaData)
+                        .filter(
+                            DataSet.user_id == tree_node.user_id,
+                            DSMetaData.dataset_doi.isnot(None),
+                        )
+                        .order_by(DataSet.created_at.desc())
+                        .all()
+                    )
 
                     list_content = ""
 
@@ -130,88 +156,134 @@ class FeatureService:
                         for feature_model in d.feature_models:
                             for file in feature_model.files:
                                 list_content += f"\n🔸 *File*: {file.name}\n"
-                                url_view = f"{BASE_URL}/file/view/{file.id}"
-                                print(url_view)
-                                url_download = (
-                                    f"{BASE_URL}/file/download/{file.id}"
-                                )
 
-                                list_content += f"📥 *Download File*: [{file.name}]({url_download})\n"
+                                file_service = HubfileService()
+                                file = file_service.get_or_404(file.id)
+                                filename = file.name
+
+                                directory_path = (
+                                    f"uploads/user_{file.feature_model.data_set.user_id}/"
+                                    f"dataset_{file.feature_model.data_set_id}/"
+                                )
+                                parent_directory_path = os.path.dirname(current_app.root_path)
+                                file_path = os.path.join(parent_directory_path, directory_path, filename)
 
                                 try:
-                                    response = requests.get(url_view, timeout=10)
-                                    if response.status_code == 200:
-                                        data = response.json()
-                                        file_content = data.get("content", "")
-                                        if file_content:
-                                            list_content += (
-                                                "\n*👨‍💻 File Content (UVL)*:\n"
+                                    if os.path.exists(file_path):
+                                        with open(file_path, "r") as f:
+                                            content = f.read()
+
+                                        user_cookie = request.cookies.get("view_cookie")
+                                        if not user_cookie:
+                                            user_cookie = str(uuid.uuid4())
+
+                                        existing_record = HubfileViewRecord.query.filter_by(
+                                            user_id=current_user.id if current_user.is_authenticated else None,
+                                            file_id=file.id,
+                                            view_cookie=user_cookie,
+                                        ).first()
+
+                                        if not existing_record:
+                                            new_view_record = HubfileViewRecord(
+                                                user_id=current_user.id if current_user.is_authenticated else None,
+                                                file_id=file.id,
+                                                view_date=datetime.now(),
+                                                view_cookie=user_cookie,
                                             )
-                                            list_content += f"\n```uvl\n{file_content[:500]}\n```\n"
+                                            db.session.add(new_view_record)
+                                            db.session.commit()
+
+                                        response = jsonify({"success": True, "content": content})
+                                        if not request.cookies.get("view_cookie"):
+                                            response = make_response(response)
+                                            response.set_cookie("view_cookie",
+                                                                user_cookie, max_age=60 * 60 * 24 * 365 * 2)
+
+                                        if response.status_code == 200:
+                                            data = response.get_json()
+                                            file_content = data.get("content", "")
+                                            if file_content:
+                                                list_content += "\n*👨‍💻 File Content (UVL)*:\n"
+                                                list_content += f"\n```uvl\n{file_content[:500]}\n```\n"
+                                            else:
+                                                list_content += "\n*Content not available.*\n"
                                         else:
-                                            list_content += (
-                                                "\n*Content not available.*\n"
-                                            )
+                                            list_content += f"\n(Response code: {response.status_code})\n"
                                     else:
-                                        list_content += f"\n(Response code: {response.status_code})\n"
+                                        list_content += "\n*⚠️ File not found.*\n"
+
                                 except Exception as e:
-                                    list_content += f"\n⚠️ *Error occurred while fetching the file content:* {str(e)}\n"
+                                    list_content += f"\n⚠️ *Error occurred while processing the file:* {str(e)}\n"
 
-                        list_content += "\n"
+                                url_download = f"{BASE_URL}/file/download/{file.id}"
+                                list_content += f"📥 *Download File*: {url_download}\n"
 
-                    user_data = {
-                        "datasets": list_content
-                    }
-
-                    formatted_message = message_template.format(**user_data)
+                        user_data = {"datasets": list_content}
+                        formatted_message = message_template.format(**user_data)
                 case "EXPLORE":
-                    response = requests.post(f"{BASE_URL}/explore", json={}, timeout=10)
-                    if response.status_code == 200:
-                        data = response.json()
-                        print(data)
-
-                        datasets_info = []
-                        for dataset in data:
-                            dataset_info = (
-                                f"📂 *{dataset['title']}*\n"
-                                f"📝 _{dataset['description']}_\n"
-                                f"👨‍💻 *Authors*: {', '.join([author['name'] for author in dataset['authors']])}\n"
-                                f"🏷 *Tags*: {', '.join(dataset['tags'])}\n"
-                                f"📦 *Size*: {dataset['total_size_in_human_format']}\n"
-                                f"🌐 [DOI]({dataset['url']}) | [Download]({dataset['download']})\n"
-                                "-------------------------"
-                            )
-                            datasets_info.append(dataset_info)
+                    from app.modules.explore.services import ExploreService
+                    criteria = {}
+                    datasets = ExploreService().filter(**criteria)
+                    datasets_info = []
+                    for data in datasets:
+                        dataset = data.to_dict()
+                        dataset_info = (
+                            f"📂 *{dataset['title']}*\n"
+                            f"📝 _{dataset['description']}_\n"
+                            f"👨‍💻 *Authors*: {', '.join([author['name'] for author in dataset['authors']])}\n"
+                            f"🏷 *Tags*: {', '.join(dataset['tags'])}\n"
+                            f"📦 *Size*: {dataset['total_size_in_human_format']}\n"
+                            f"🌐 [DOI]({dataset['url']}) | [Download]({dataset['download']})\n"
+                            "-------------------------"
+                        )
+                        datasets_info.append(dataset_info)
 
                         formatted_datasets = "\n\n".join(datasets_info)
 
                         formatted_message = f"✨ *Explore the datasets below* ✨\n\n{formatted_datasets}"
-
-                        print(formatted_message)
-                    else:
-                        print(
-                            f"Failed to fetch data. Status code: {response.status_code}"
-                        )
                 case "FLAMAPY":
                     message_template = messages.get("FLAMAPY", {}).get("message", "")
                     self.send_messages_flamapy(bot_token, chat_id, BASE_URL)
                     formatted_message = message_template
                 case "FAKENODO":
-                    response = requests.get(f"{BASE_URL}/fakenodo/api", timeout=10)
-                    if response.status_code == 200:
-                        data = response.json()
-                        print(data.get("message", "No conection"))
-                    user_data = {
-                        "connection": data.get("message", "No conection")
-                    }
+                    data = {"status": "success", "message": "Connected to Fakenodo API"}
+                    user_data = {"connection": data.get("message", "No conection")}
                     message_template = messages.get("FAKENODO", {}).get("message", "")
                     formatted_message = message_template.format(**user_data)
                 case "HUBSTATS":
-                    response = requests.get(f"{BASE_URL}/hub-stats", timeout=10)
-                    if response.status_code == 200:
-                        data = response.json()
-                        message_template = messages.get("HUBSTATS", {}).get("message", "")
-                        formatted_message = message_template.format(**response.json())
+
+                    from app.modules.dataset.services import DataSetService
+                    from app.modules.featuremodel.services import FeatureModelService
+                    import logging
+
+                    logger = logging.getLogger(__name__)
+                    logger.info("Access index")
+                    dataset_service = DataSetService()
+                    feature_model_service = FeatureModelService()
+
+                    datasets_counter = dataset_service.count_synchronized_datasets()
+                    feature_models_counter = feature_model_service.count_feature_models()
+
+                    total_dataset_downloads = dataset_service.total_dataset_downloads()
+                    total_feature_model_downloads = feature_model_service.total_feature_model_downloads()
+
+                    total_dataset_views = dataset_service.total_dataset_views()
+                    total_feature_model_views = feature_model_service.total_feature_model_views()
+
+                    data = {
+                        "datasets_counter": datasets_counter,
+                        "feature_models_counter": feature_models_counter,
+                        "total_dataset_downloads": total_dataset_downloads,
+                        "total_feature_model_downloads": total_feature_model_downloads,
+                        "total_dataset_views": total_dataset_views,
+                        "total_feature_model_views": total_feature_model_views,
+                    }
+
+                    # Get the message template
+                    message_template = messages.get("HUBSTATS", {}).get("message", "")
+
+                    # Format the message using the data
+                    formatted_message = message_template.format(**data)
                 case _:
                     print(
                         f"Feature {feature} no encontrada en la configuración de mensajes."
@@ -228,13 +300,20 @@ class FeatureService:
         """
         Obtiene los mensajes enviados al bot y responde a cada uno de ellos con "Hola, soy el bot".
         """
-        if (len(bot_token.split(":")) == 2 and not len(bot_token) == 64):
+        from flamapy.metamodels.fm_metamodel.transformations import (
+            UVLReader
+        )
+        import tempfile
+        from antlr4.error.ErrorListener import ErrorListener
+        if len(bot_token.split(":")) == 2 and not len(bot_token) == 64:
             url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
             response = requests.get(url, timeout=10)
             webhook_info = response.json()
 
             if webhook_info["result"]["url"]:
-                delete_webhook_url = f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
+                delete_webhook_url = (
+                    f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
+                )
                 delete_response = requests.get(delete_webhook_url, timeout=10)
                 if delete_response.status_code == 200:
                     print("Webhook eliminado con éxito.")
@@ -261,26 +340,32 @@ class FeatureService:
 
                 if "message" in update:
                     chat_id_messages = update["message"]["chat"]["id"]
-                    message_id = update["message"][
-                        "message_id"
-                    ]
+                    message_id = update["message"]["message_id"]
                     uvl_message = update["message"].get("text", "Mensaje sin texto")
 
                     if int(chat_id) == int(chat_id_messages):
-                        response = requests.post(
-                            f"{BASE_URL}/flamapy/check_uvl",
-                            json={
-                                "text": uvl_message
-                            }, timeout=10)
+                        class CustomErrorListener(ErrorListener):
+                            def __init__(self):
+                                self.errors = []
 
-                        if response.status_code == 200:
-                            response_text = response.json().get(
-                                "message", "Modelo válido"
-                            )
-                        else:
-                            response_text = response.json().get(
-                                "error", "Error al validar el modelo"
-                            )
+                            def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+                                self.errors.append(f"Line {line}:{column} - {msg}")
+
+                        try:
+                            uvl_text = uvl_message
+
+                            with tempfile.NamedTemporaryFile(delete=False, suffix=".uvl") as temp_file:
+                                temp_file.write(uvl_text.encode("utf-8"))
+                                temp_path = temp_file.name
+
+                            try:
+                                UVLReader(temp_path).transform()
+                                response_text = "Valid Model"
+                            except Exception as e:
+                                response_text = f"Error in the validation of the model: {str(e)}"
+
+                        except Exception as e:
+                            response_text = f"General error: {str(e)}"
 
                         data = {
                             "chat_id": chat_id,
@@ -290,15 +375,15 @@ class FeatureService:
 
                         send_response = requests.post(
                             f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                            data=data, timeout=10)
+                            data=data,
+                            timeout=10,
+                        )
+
                         if send_response.status_code == 200:
-                            print(
-                                f"Respondido al mensaje {message_id} en el chat {chat_id}"
-                            )
+                            print(f"Respondido al mensaje {message_id} en el chat {chat_id}")
                         else:
-                            print(
-                                f"Error al responder al mensaje {message_id}: {send_response.text}"
-                            )
+                            print(f"Error al responder al mensaje {message_id}: {send_response.text}")
+
         else:
             url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
 
@@ -312,19 +397,32 @@ class FeatureService:
                 messages = response.json()
 
                 for message in messages:
-                    if not message['author'].get('bot', False):
+                    if not message["author"].get("bot", False):
                         print(
                             f"Autor: {message['author']['username']} - Contenido: {message['content']}"
                         )
 
-                        external_api_url = f"{BASE_URL}/flamapy/check_uvl"
-                        response = requests.post(
-                            external_api_url,
-                            json={
-                                "text": message["content"]
-                            }, timeout=10)
+                        class CustomErrorListener(ErrorListener):
+                            def __init__(self):
+                                self.errors = []
 
-                        response_text = response.json().get("error", "Valid Model")
+                            def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+                                self.errors.append(f"Line {line}:{column} - {msg}")
+
+                        try:
+                            uvl_text = message["content"]
+
+                            with tempfile.NamedTemporaryFile(delete=False, suffix=".uvl") as temp_file:
+                                temp_file.write(uvl_text.encode("utf-8"))
+                                temp_path = temp_file.name
+
+                            try:
+                                UVLReader(temp_path).transform()
+                                response_text = "Valid Model"
+                            except Exception as e:
+                                response_text = f"Error in the validation of the model: {str(e)}"
+                        except Exception as e:
+                            response_text = f"General error: {str(e)}"
 
                         headers = {
                             "Authorization": f"Bot {bot_token}",
@@ -333,13 +431,12 @@ class FeatureService:
 
                         data = {
                             "content": response_text,
-                            "message_reference": {
-                                "message_id": message['id']
-                            }
+                            "message_reference": {"message_id": message["id"]},
                         }
 
                         send_response = requests.post(
-                            url, data=json.dumps(data), headers=headers, timeout=10)
+                            url, data=json.dumps(data), headers=headers, timeout=10
+                        )
 
                         if send_response.status_code == 200:
                             print(
@@ -387,7 +484,7 @@ class FeatureService:
 
             return chunks
 
-        if (len(bot_token.split(":")) == 2 and not len(bot_token) == 64):
+        if len(bot_token.split(":")) == 2 and not len(bot_token) == 64:
 
             chunks = split_message(message)
             url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -416,7 +513,9 @@ class FeatureService:
 
             for chunk in chunks:
                 data = {"content": chunk}
-                response = requests.post(url, data=json.dumps(data), headers=headers, timeout=10)
+                response = requests.post(
+                    url, data=json.dumps(data), headers=headers, timeout=10
+                )
 
                 if response.status_code == 200:
                     print("Mensaje enviado exitosamente.")
