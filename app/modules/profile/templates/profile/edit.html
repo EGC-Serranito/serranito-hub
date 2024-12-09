@@ -18,7 +18,9 @@
                     <h4 class="alert-heading"><i class="align-middle" data-feather="check-circle"></i> Success</h4>
                   {% elif category == 'error' %}
                     <h4 class="alert-heading"><i class="align-middle" data-feather="x-circle"></i> Error</h4>
-                  {% endif %}
+                    {% else %}
+                    <h4 class="alert-heading"><i class="align-middle" data-feather="x-circle"></i> Categoría no definida</h4>
+                    {% endif %}
                   <p style="margin-bottom: 0px">{{ message }}</p>
                 </div>
               </div>
@@ -41,7 +43,7 @@
                     <div class="col-6">
                         {{ form.surname.label(class="form-label") }}
                         {% set surname_value = form.surname.data if form.surname.data else current_user.profile.surname %}
-                        {{ form.surname(class="form-control", placeholder="Enter your surname", required=true, value=surname_value) }}
+                        {{ form.surname(class="form-control custom-search", placeholder="Enter your surname", required=true, value=surname_value) }}
                         {% for error in form.surname.errors %}
                             <span style="color: red;">{{ error }}</span>
                             <br>
@@ -51,7 +53,7 @@
                     <div class="col-6">
                         {{ form.name.label(class="form-label") }}
                         {% set name_value = form.name.data if form.name.data else current_user.profile.name %}
-                        {{ form.name(class="form-control", placeholder="Enter your name",
+                        {{ form.name(class="form-control custom-search", placeholder="Enter your name",
                         required=true, value=name_value) }}
                         {% for error in form.name.errors %}
                             <span style="color: red;">{{ error }}</span>
@@ -66,7 +68,7 @@
                     <div class="col-6">
                         {{ form.affiliation.label(class="form-label") }}
                         {% set affiliation_value = form.affiliation.data if form.affiliation.data else (current_user.profile.affiliation  if current_user.profile.affiliation else '') %}
-                        {{ form.affiliation(class="form-control", placeholder="Enter your affiliation", required=true, value=affiliation_value) }}
+                        {{ form.affiliation(class="form-control custom-search", placeholder="Enter your affiliation", required=true, value=affiliation_value) }}
                         {% for error in form.affiliation.errors %}
                             <span style="color: red;">{{ error }}</span>
                             <br>
@@ -80,7 +82,7 @@
                     <div class="col-12">
                         {{ form.orcid.label(class="form-label") }}
                         {% set orcid_value = form.orcid.data if form.orcid.data else (current_user.profile.orcid  if current_user.profile.orcid else '') %}
-                        {{ form.orcid(class="form-control", placeholder="Enter your ORCID (0000-0123-4567-8901)",
+                        {{ form.orcid(class="form-control custom-search", placeholder="Enter your ORCID (0000-0123-4567-8901)",
                         required=true, value=orcid_value) }}
                         {% for error in form.orcid.errors %}
                             <span style="color: red;">{{ error }}</span>

@@ -1,21 +1,28 @@
-from locust import HttpUser, TaskSet, task
-from core.environment.host import get_host_for_locust_testing
-
-
-class DownloadBehavior(TaskSet):
-    def on_start(self):
-        self.index()
-
-    @task
-    def index(self):
-        response = self.client.get("/download")
-
-        if response.status_code != 200:
-            print(f"Download index failed: {response.status_code}")
+from locust import HttpUser, task, between
 
 
 class DownloadUser(HttpUser):
-    tasks = [DownloadBehavior]
-    min_wait = 5000
-    max_wait = 9000
-    host = get_host_for_locust_testing()
+    wait_time = between(1, 5)
+
+    def on_start(self):
+        self.index()
+
+    @task(1)
+    def index(self):
+        self.client.get("/download")
+
+    @task(2)
+    def download_all(self):
+        self.client.get("/download/all")
+
+    @task(3)
+    def download_datasets_by_date(self):
+        start_date = "2000-01-01"
+        end_date = "2031-01-01"
+
+        self.client.post("/download/by-date", data={"start_date": start_date, "end_date": end_date})
+
+    @task(4)
+    def download_datasets_by_email(self):
+        email = "user1@example.com"
+        self.client.post("/download/by-email", data={"email": email})

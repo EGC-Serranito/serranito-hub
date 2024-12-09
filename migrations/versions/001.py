@@ -183,6 +183,8 @@ def upgrade():
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("ds_meta_data_id", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column('version', sa.Integer(), nullable=True),
+        sa.Column('last_version_id', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(
             ["ds_meta_data_id"],
             ["ds_meta_data.id"],
@@ -190,6 +192,11 @@ def upgrade():
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["user.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["last_version_id"],
+            ["id"],
+            ondelete='SET NULL',
         ),
         sa.PrimaryKeyConstraint("id"),
     )

@@ -36,7 +36,20 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h1><b style="color:white">{{ dataset.ds_meta_data.title }}</b></h1>
+                    <h1><b>{{ dataset.ds_meta_data.title }}</b></h1>
+                    <div class="rating">
+                        {% if dataset.get_average_rating() >= 1 %}
+                            {% for i in range(1, 6) %}
+                                {% if i <= dataset.get_average_rating() %}
+                                    <i class="fas fa-star" style="color: gold;"></i>
+                                {% else %}
+                                    <i class="far fa-star" style="color: gold;"></i>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p>No ratings</p>
+                        {% endif %}
+                    </div>
                     <div>
                         <span class="badge bg-secondary">{{ dataset.get_cleaned_publication_type() }}</span>
                     </div>
@@ -64,7 +77,11 @@
                         </span>
                     </div>
                     <div class="col-md-8 col-12">
-                        <a href="#">{{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
+                        {% if dataset.user.id == current_user.id %}
+                            <a href="{{ url_for('profile.my_profile') }}">{{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
+                        {% else %}
+                            <a href="{{ url_for('profile.view_profile', user_id=dataset.user.id) }}">{{ dataset.user.profile.surname }}, {{ dataset.user.profile.name }}</a>
+                        {% endif %}
                     </div>
 
                 </div>
@@ -88,7 +105,7 @@
                             {% endif %}
                         </p>
                         {% endfor %}
-                    </div>        // Insertar el mensaje debajo del botón de calificación
+                    </div>       
                 </div>
 
                 {% if dataset.ds_meta_data.publication_doi %}
@@ -212,7 +229,7 @@
 
             <div class="card-body">
 
-                <h3 style="color:white"> Related publication </h3>
+                <h3> Related publication </h3>
 
                 David Romero-Organvidez, José A. Galindo, Chico Sundermann, Jose-Miguel Horcas, David Benavides,
                 <i>UVLHub: A feature model data repository using UVL and open science principles</i>,
@@ -227,23 +244,23 @@
 
             <div class="card-body mt-0 pt-0">
 
-                <button onclick="copyText('bibtex_cite')" class="btn btn-light btn-sm"
+                <button onclick="copyText('bibtex_cite')" class="btn btn-custom btn-sm"
                     style="border-radius: 5px; margin-right: 10px">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in BibTex
                 </button>
 
-                <button onclick="copyText('ris_cite')" class="btn btn-light btn-sm" style="border-radius: 5px;">
+                <button onclick="copyText('ris_cite')" class="btn btn-custom btn-sm" style="border-radius: 5px;">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in RIS
                 </button>
 
-                <button onclick="copyText('apa_cite')" class="btn btn-light btn-sm" style="border-radius: 5px;">
+                <button onclick="copyText('apa_cite')" class="btn btn-custom btn-sm" style="border-radius: 5px;">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in APA
                 </button>
 
-                <button onclick="copyText('text_cite')" class="btn btn-light btn-sm" style="border-radius: 5px;">
+                <button onclick="copyText('text_cite')" class="btn btn-custom btn-sm" style="border-radius: 5px;">
                     <i data-feather="clipboard" class="center-button-icon"></i>
                     Copy in text
                 </button>
@@ -259,12 +276,12 @@
 
         <div class="list-group">
 
-            <div class="list-group-item"  style="background-color:#161b22">
+            <div class="list-group-item">
 
                 <div class="row">
                     <div class="col-12 d-flex justify-content-between align-items-center">
-                        <h4 style="margin-bottom: 0px; color:white">UVL models</h4>
-                        <h4 style="margin-bottom: 0px;"><span class="badge bg-dark">{{ dataset.get_files_count()
+                        <h4 style="margin-bottom: 0px;">UVL models</h4>
+                        <h4 style="margin-bottom: 0px;"><span class="badge bg-custom">{{ dataset.get_files_count()
                                 }}</span></h4>
                     </div>
                 </div>
@@ -275,7 +292,7 @@
 
             {% for feature_model in dataset.feature_models %}
             {% for file in feature_model.files %}
-            <div class="list-group-item" style="color:white; background-color:#161b22">
+            <div class="list-group-item">
 
                 <div class="row">
                     <div class="col-12">
@@ -370,6 +387,68 @@
             <i data-feather="download" class="center-button-icon"></i>
             Download all ({{ dataset.get_file_total_size_for_human() }})
         </a>
+        {% if versions|length > 1 %}
+        <ul class="version-list">
+            <li>VERSIONS</li>
+        {% for version in versions %}
+            <li class="version-item {% if version.id == dataset.id %}highlight{% endif %}">
+                <span>V{{version.version}}</span>
+                <span>{{version.created_at}}</span>
+                <span>
+                    {% if version.ds_meta_data.dataset_doi %}
+                    <a class="doi">
+                        {{version.ds_meta_data.dataset_doi}}
+                    </a>
+                    {% endif %}
+                </span>
+            </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+        <style>
+            .version-list {
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
+                margin-top: 10px;
+                font-family: Arial, sans-serif;
+            }
+
+            .version-list > li:first-child {
+                font-size: 1.5rem;
+                font-weight: bold;
+                text-align: center;
+                background-color: #2a3597;
+                color: rgb(206, 206, 206);
+                padding: 10px;
+                border-bottom: 2px solid #2a3597;
+            }
+        
+            .version-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px;
+                background-color: #5460cf;
+                border-bottom: 1px solid #ccc;
+                border: 2px solid #333; /* Borde más grueso y oscuro */
+            }
+        
+            .version-item.highlight {
+                background-color: #1d2147;
+                color: yellowgreen;
+                font-weight: bold;
+            }
+        
+            .version-item span {
+                margin: 0 5px;
+            }
+        
+            .doi {
+                color: #ccc;
+                text-decoration: none;
+            }
+        </style>
     </div>
 
 </div>
@@ -394,8 +473,7 @@
             </div>
             <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
                 <pre id="fileContent"
-                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; background-color: #f5f5f5; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
-
+                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
             </div>
         </div>
     </div>
@@ -405,120 +483,30 @@
     <div class="modal-dialog modal-lg" style="height: 80vh; display: flex; align-items: center;">
         <div class="modal-content" style="height: 80vh;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h5 class="modal-title" id="fileViewerModalLabel">Feature model edit</h5>
+                <h5 class="modal-title" id="fileViewerModalLabel">Feature model view</h5>
                 <div>
+                    <button onclick="editFile()" class="btn btn-outline-success btn-sm"
+                        style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
+                        <i data-feather="save"></i> Save edit
+                    </button>
+                    <a href="#" class="btn btn-outline-primary btn-sm" id="downloadButton"
+                        style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
+                        <i data-feather="download"></i>
+                    </a>
+                    <button onclick="copyToClipboard()" class="btn btn-outline-secondary btn-sm"
+                        style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
+                        <i data-feather="copy"></i>
+                    </button>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
-                <div style="padding: 20px;">
-                    <h6>FEATURES</h6>
-                    <div id="features" class="feature-tree"></div>
-
-                    <h6 style="margin-top: 20px;">CONSTRAINTS</h6>
-                    <div id="constraints" class="constraints-list">
-                        <!-- Restricciones generadas dinámicamente -->
-                    </div>
-                    <button id="addConstraint" class="btn btn-outline-secondary mt-2" onclick="addConstraint()">Add
-                        constraint</button>
-                    <button id="applyChanges" class="btn btn-primary mt-2" data-bs-dismiss="modal" onclick="editFile()">Apply changes</button>
-                </div>
+                <pre id="fileEditContent" contenteditable="true"
+                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; background-color: #21262d; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
             </div>
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="addFeatureModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="height: 30vh; width: 80vh;display: flex; align-items: center;">
-        <div class="modal-content" style="height: 30vh;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h5 class="modal-title" id="fileViewerModalLabel">Add feature</h5>
-                <div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-            </div>
-            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
-                <div style="padding: 20px;">
-                    <input id="newFeatureName" type="text" style="width: 150px;">
-                </div>
-                <button id="applyChanges" class="btn btn-primary mt-2" data-bs-dismiss="modal" onclick="applyNewFeature()">Apply changes</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="addConstraintModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="height: 30vh; width: 80vh;display: flex; align-items: center;">
-        <div class="modal-content" style="height: 30vh;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h5 class="modal-title" id="fileViewerModalLabel">Add constraint</h5>
-                <div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-            </div>
-            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
-                <div style="padding: 20px;">
-
-                    <input id="antecedentConstraint" type="text" style="width: 150px;">
-                    <i data-feather="arrow-right"></i>
-                    <input id="consequentConstraint" type="text" style="width: 150px;">
-
-                </div>
-                <button id="applyConstraint" class="btn btn-primary mt-2" data-bs-dismiss="modal"
-                    onclick="applyNewConstraint()">Apply constraint</button>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- CSS -->
-<style>
-    .feature-tree,
-    .constraints-list {
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-    }
-
-    .feature-node {
-        margin-left: 20px;
-        display: flex;
-        align-items: center;
-    }
-
-    .feature-label {
-        font-weight: bold;
-        margin-right: 8px;
-        width: 100px;
-    }
-
-    .feature-children {
-        margin-left: 20px;
-        padding-left: 15px;
-        border-left: 1px solid #ccc;
-    }
-
-    .constraint {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-    }
-
-    .constraint input {
-        margin: 0 5px;
-        width: 150px;
-    }
-
-    .btn-add {
-        margin-left: 8px;
-    }
-
-    .feature-button {
-        margin-left: 4px;
-        padding: 2px 6px;
-        cursor: pointer;
-    }
-</style>
 
 <script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
 
@@ -529,216 +517,24 @@
     });
 
     let currentFileId;
-    let features;
-    let constraints;
-    var featureModal;
     // UVL-EDITOR
 
-    function addConstraint() {
-        let modal = new bootstrap.Modal(document.getElementById("addConstraintModal"))
-        modal.show()
-    }
-
-    function isValidString(str) {
-        return str !== null && str !== undefined && str.trim() !== "";
-    }
-
-    function applyNewConstraint() {
-        const antecedent = document.getElementById("antecedentConstraint")
-        const consequent = document.getElementById("consequentConstraint")
-
-        if (isValidString(antecedent.value) && isValidString(consequent.value)) {
-            constraints.push([antecedent.value.trim(), consequent.value.trim()])
-            renderConstraints()
-        } else {
-            alert("Invalid constraint")
-        }
-    }
-
-    // Función para añadir el nuevo feature
-    function applyNewFeature() {
-        const newFeatureName = document.getElementById("newFeatureName").value.trim();
-        const {data} = featureModal
-        if(!(newFeatureName in data)){
-            data[newFeatureName] = {}
-            renderFeatureTree()
-        } else {
-            alert(`"${newFeatureName}" is alredy in UVL.`)
-        }
-    }
-
     function editFile(){
-        
-        fetch(`/dataset/{{ dataset.id }}/file/${currentFileId}`, {
-            method: "POST", 
-            headers: {
-                'Content-Type': 'application/json'  // Indicamos que el cuerpo es JSON
-            },
-            body: JSON.stringify({features, constraints})
-        })
-        .then(data => data.json())
-        .then(json => console.log(json))
-        // const response = confirm("Do you want to save changes?")
-        // if(response) {
-        //     fetch(`/file/edit/${currentFileId}`, {
-        //         method: "POST", 
-        //         body: {features, constraints}
-        //     })
-        //     console.log(features)
-        //     console.log(constraints)
-        // }
+        const text = document.getElementById('fileEditContent').textContent
+        localStorage.setItem("edit_file", JSON.stringify({file_id: currentFileId, content: text}))
+        window.location.href = "/dataset/update/{{ dataset.id }}"
     }
 
     function openEditFile(fileId) {
         fetch(`/file/view/${fileId}`)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('fileContent').textContent = data.content;
+                document.getElementById('fileEditContent').textContent = data.content;
                 currentFileId = fileId;
                 var modal = new bootstrap.Modal(document.getElementById('fileEditModal'));
-                const { features_, constraints_ } = parseUVL(data.content)
-                features = features_;
-                constraints = constraints_;
-                renderFeatureTree()
-                renderConstraints()
                 modal.show();
             })
             .catch(error => console.error('Error loading file:', error));
-    }
-
-    function parseUVL(text) {
-        const features_ = {};
-        const constraints_ = [];
-
-        const lines = text.trim().split('\n');
-        let currentSection = null;
-        const stack = []; // Para manejar niveles de indentación y su contexto
-
-        lines.forEach(line => {
-            const trimmedLine = line.trim();
-            if (trimmedLine === "") return; // Ignorar líneas vacía
-
-            // Detectar si estamos en una nueva sección
-            if (trimmedLine.startsWith("features")) {
-                currentSection = "features"; return;
-            } else if (trimmedLine.startsWith("constraints")) {
-                currentSection = "constraints"; return;
-            }
-
-            if (currentSection === "features") {
-                // Obtener nivel de indentación
-                const indentationLevel = line.match(/^\s*/)[0].length;
-                // Actualizar el stack según el nivel de indentación
-                while (stack.length > 0 && stack[stack.length - 1].indentation >= indentationLevel) {
-                    stack.pop();
-                }
-
-                const parent = stack.length > 0 ? stack[stack.length - 1].object : features_;
-
-                const key = trimmedLine.trim();
-                parent[key] = {}; // Crear un nuevo objeto para almacenar valores
-                stack.push({ object: parent[key], key, indentation: indentationLevel });
-
-            } else if (currentSection === "constraints") {
-                const [left, right] = trimmedLine.split("=>").map(part => part.trim());
-                constraints_.push([left, right])
-            }
-        });
-
-        return { features_, constraints_ };
-    }
-
-    function renderFeatureTree(data = features, container = document.getElementById("features")) {
-        container.innerHTML = "";
-        const keys = Object.keys(data)
-        keys.forEach((key, index) => {
-            const node = document.createElement("div");
-            node.classList.add("feature-node");
-
-            const label = document.createElement("input");
-            label.classList.add("feature-label");
-            label.value = key;
-            node.appendChild(label);
-
-            // En caso de no ser la feature principal, se podrá borrar o no
-            if (data !== features) {
-                const deleteButton = document.createElement("button");
-                deleteButton.classList.add("feature-button");
-                deleteButton.textContent = "-";
-                deleteButton.onclick = () => {
-                    const response = confirm("Do you want to delete this feature branch?")
-                    if(response){
-                        delete data[key]; // Elimina el nodo actual
-                        renderFeatureTree(); // Vuelve a renderizar el árbol
-                    }
-                };
-                node.appendChild(deleteButton);
-            }
-
-            const addButton = document.createElement("button");
-            addButton.classList.add("feature-button");
-            addButton.textContent = "+";
-            addButton.onclick = () => {
-                featureModal = new bootstrap.Modal(document.getElementById("addFeatureModal"))
-                featureModal.data = data[key]
-                featureModal.show()
-                renderFeatureTree(); // Vuelve a renderizar el árbol
-            };
-
-            node.appendChild(addButton);
-
-            const childrenContainer = document.createElement("div");
-            childrenContainer.classList.add("feature-children");
-
-            if (Object.keys(data[key]).length > 0) {
-                renderFeatureTree(data[key], childrenContainer);
-            }
-
-            node.appendChild(childrenContainer);
-            container.appendChild(node);
-
-            if (index < keys.length - 1) {
-                const separator = document.createElement("hr");
-                separator.classList.add("feature-separator");
-                container.appendChild(separator);
-            }
-        });
-    }
-
-    function renderConstraints(data = constraints, container = document.getElementById("constraints")) {
-        container.innerHTML = "";
-        data.forEach((constraint, index) => {
-            const constraintDiv = document.createElement("div");
-            constraintDiv.classList.add("constraint");
-
-            const leftInput = document.createElement("input");
-            leftInput.type = "text";
-            leftInput.value = constraint[0];
-
-            const relationSpan = document.createElement("i");
-            relationSpan.setAttribute("data-feather", "arrow-right");
-
-            const rightInput = document.createElement("input");
-            rightInput.type = "text";
-            rightInput.value = constraint[1];
-
-            const deleteButton = document.createElement("button");
-            deleteButton.classList.add("feature-button");
-            deleteButton.textContent = "-";
-            deleteButton.onclick = () => {
-                constraints = data.filter((value, index_) => index !== index_);
-                renderConstraints();
-            };
-
-            constraintDiv.appendChild(leftInput);
-            constraintDiv.appendChild(relationSpan);
-            constraintDiv.appendChild(rightInput);
-            constraintDiv.appendChild(deleteButton)
-
-            container.appendChild(constraintDiv);
-        });
-
-        feather.replace();
     }
 
     function viewFile(fileId) {
@@ -873,17 +669,8 @@
     .then(response => response.json())
     .then(data => {
         console.log("Respuesta del servidor:", data);
-        // Mostrar mensaje de éxito
-        const successMessage = document.createElement('div');
-        successMessage.className = 'alert alert-success mt-3';
-        successMessage.textContent = "Calificación enviada con éxito.";
-        
-        document.querySelector('.card-body').appendChild(successMessage);
-
-        // Ocultar el mensaje después de 3 segundos
-        setTimeout(() => {
-            successMessage.remove();
-        }, 3000);
+        alert('Rating sent successfully');
+        window.location.reload();
     })
     .catch(error => {
         console.error('Error al enviar la calificación:', error);

@@ -20,7 +20,7 @@ var currentId = 0;
 
             let field = document.createElement('input');
             field.name = name;
-            field.className = 'form-control';
+            field.className = 'form-control custom-search';
 
             fieldWrapper.appendChild(label);
             fieldWrapper.appendChild(field);
@@ -47,7 +47,7 @@ var currentId = 0;
         function createAuthorBlock(idx, suffix) {
             let newAuthor = document.createElement('div');
             newAuthor.className = 'author row';
-            newAuthor.style.cssText = "border:2px dotted #444;border-radius:10px;padding:10px;margin:10px 0; background-color: #21262d; color: white";
+            newAuthor.classList.add('new-author-style');
         
             addField(newAuthor, `${suffix}authors-${idx}-name`, 'Name *');
             addField(newAuthor, `${suffix}authors-${idx}-affiliation`, 'Affiliation');
@@ -123,6 +123,7 @@ var currentId = 0;
             let alert = document.createElement('p');
             alert.style.margin = '0';
             alert.style.padding = '0';
+            alert.style.color = 'black';
             alert.textContent = 'Upload error: ' + error_message;
             upload_error.appendChild(alert);
             upload_error.style.display = 'block';
@@ -130,7 +131,7 @@ var currentId = 0;
 
         window.onload = function () {
 
-            test_zenodo_connection();
+            // test_zenodo_connection();
 
             document.getElementById('upload_button').addEventListener('click', function () {
 
@@ -197,7 +198,11 @@ var currentId = 0;
 
 
                     if (checked_orcid && checked_name) {
-                        fetch('/dataset/upload', {
+                        const dataset_id = window.location.href.split("/").pop()
+                        const url = document.getElementById("upload_button").getAttribute("update-type") != null ?
+                            "/dataset/update/"+dataset_id :
+                            '/dataset/upload'
+                        fetch(url, {
                             method: 'POST',
                             body: formUploadData
                         })
@@ -210,6 +215,7 @@ var currentId = 0;
                                     });
                                 } else {
                                     response.json().then(data => {
+                                        console.log(data)
                                         console.error('Error: ' + data.message);
                                         hide_loading();
 

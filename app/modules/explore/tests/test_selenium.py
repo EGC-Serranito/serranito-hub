@@ -4,11 +4,14 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 
 
 class TestSelenium():
     def setup_method(self, method):
-        self.driver = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        self.driver = webdriver.Chrome(options=chrome_options)
         self.vars = {}
 
     def teardown_method(self, method):
@@ -18,8 +21,8 @@ class TestSelenium():
         self.driver.get("http://localhost:5000/")
         self.driver.set_window_size(1920, 1015)
         wait = WebDriverWait(self.driver, 10)
-        elemento = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR,
-                                                          ".sidebar-item:nth-child(3) .align-middle:nth-child(2)")))
+        elemento = wait.until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, ".sidebar-item:nth-child(3) .align-middle:nth-child(2)")))
         elemento.click()
         dropdown = self.driver.find_element(By.ID, "sorting")
         dropdown.find_element(By.XPATH, "//option[. = 'Oldest first']").click()
