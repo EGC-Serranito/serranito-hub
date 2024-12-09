@@ -20,19 +20,18 @@ class CustomErrorListener(ErrorListener):
 
 
 class FeatureService:
-    def load_messages(
-        self, file_path="app/modules/botintegration/assets/messages.yaml"
-    ):
+    @staticmethod
+    def load_yaml_file(file_path):
         """
-        Carga el archivo YAML con la configuración de mensajes.
+        Carga un archivo YAML y devuelve su contenido.
 
-        :param file_path: Ruta del archivo YAML (opcional).
+        :param file_path: Ruta del archivo YAML.
         :return: Datos cargados del archivo YAML.
+        :raises: FileNotFoundError, yaml.YAMLError si hay problemas al cargar el archivo.
         """
         try:
             with open(file_path, "r") as file:
-                data = yaml.safe_load(file)
-            return data
+                return yaml.safe_load(file)
         except FileNotFoundError:
             print(f"Error: File not found at {file_path}")
             raise
@@ -40,61 +39,88 @@ class FeatureService:
             print(f"Error parsing YAML: {e}")
             raise
 
+    @staticmethod
+    def find_bot_token(bot_name, bottokens_data):
+        """
+        Busca y obtiene el token de un bot en los datos YAML.
+
+        :param bot_name: Nombre del bot.
+        :param bottokens_data: Datos cargados del archivo YAML.
+        :return: Nombre de la variable de entorno del token del bot.
+        :raises: ValueError si el bot no se encuentra o la configuración es inválida.
+        """
+        bot_entry = next(
+            (
+                entry
+                for entry in bottokens_data.get("bottokens", [])
+                if entry["name"] == bot_name
+            ),
+            None,
+        )
+
+        if not bot_entry:
+            raise ValueError(f"Bot name '{bot_name}' not found in bottokens data.")
+
+        return bot_entry.get("token")
+
+    @staticmethod
+    def get_environment_variable(var_name):
+        """
+        Obtiene el valor de una variable de entorno.
+
+        :param var_name: Nombre de la variable de entorno.
+        :return: Valor de la variable de entorno.
+        :raises: ValueError si la variable no existe o está vacía.
+        """
+        value = os.getenv(var_name)
+        if not value:
+            raise ValueError(f"Environment variable '{var_name}' not found or empty.")
+        return value
+
+    @staticmethod
+    def transform_to_full_url(url):
+        """
+        Asegura que una URL tenga el esquema correcto (http o https).
+
+        :param url: URL a formatear.
+        :return: URL con esquema completo.
+        """
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url
+        return url
+
+    def load_messages(self, file_path="app/modules/botintegration/assets/messages.yaml"):
+        """
+        Carga un archivo YAML con la configuración de mensajes.
+
+        :param file_path: Ruta del archivo YAML.
+        :return: Datos cargados del archivo YAML.
+        """
+        return self.load_yaml_file(file_path)
+
     def get_bot_token(
-        self,
-        bot_name,
-        bottokens_path="app/modules/botintegration/assets/bottokens.yaml",
+        self, bot_name, bottokens_path="app/modules/botintegration/assets/bottokens.yaml"
     ):
         """
-        Obtiene el token de un bot específico a partir del archivo .env y los datos en bottokens.yaml.
+        Obtiene el token de un bot específico a partir de los datos en bottokens.yaml y variables de entorno.
 
         :param bot_name: Nombre del bot (por ejemplo, "@uvlhub-telegram1").
         :param bottokens_path: Ruta al archivo YAML con las configuraciones de los bots.
-        :param env_path: Ruta al archivo .env.
         :return: Token del bot como cadena.
         :raises: FileNotFoundError, KeyError o ValueError si ocurre algún problema.
         """
         try:
-            with open(bottokens_path, "r") as file:
-                bottokens_data = yaml.safe_load(file)
+            # Cargar datos del archivo YAML
+            bottokens_data = self.load_yaml_file(bottokens_path)
 
-            bot_entry = next(
-                (
-                    entry
-                    for entry in bottokens_data.get("bottokens", [])
-                    if entry["name"] == bot_name
-                ),
-                None,
-            )
+            # Buscar el token del bot
+            token_var = self.find_bot_token(bot_name, bottokens_data)
 
-            if not bot_entry:
-                raise ValueError(
-                    f"Bot name '{bot_name}' not found in {bottokens_path}."
-                )
-
-            token_var = bot_entry["token"]
-
-            bot_token = os.getenv(token_var)
-
-            if not bot_token:
-                raise ValueError(f"Token variable '{token_var}' not found or empty.")
-
-            return bot_token
-
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-            raise
-        except yaml.YAMLError as e:
-            print(f"Error parsing YAML: {e}")
-            raise
+            # Obtener el valor de la variable de entorno
+            return self.get_environment_variable(token_var)
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            print(f"Unexpected error while fetching bot token: {e}")
             raise
-
-    def transform_to_full_url(self, url):
-        if not url.startswith(("http://", "https://")):
-            url = "http://" + url
-        return url
 
     def send_features_bot(self, bot_token, chat_id, features, BASE_URL):
         """
