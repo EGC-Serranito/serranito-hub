@@ -25,22 +25,23 @@ We are excited to announce several new features that we have integrated into the
 
 This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 
-| Members Serranito-hub1 |Work Items|  
+| Members Serranito-hub-1 | Work Item |  
 |------|-------------------|
-| Marina Calero López | View User Profile (Low) |
-| Elena de los Santos Barrera | Tag Cloud (Low) |
-| Daniel Galván Cancio | New testcases (Medium) |
-| Lucas Manuel Herencia Solís | UVL editor (Hard)|
-| Eduardo Robles Russo | Bot integration (Hard)|
-| Isaac Solís Padilla | Dashboard (Medium) |
+| [Calero López, Marina](https://github.com/marcallop7) | View User Profile (Low) |
+| [De los Santos Barrera, Elena](https://github.com/eledebar) | Tag Cloud (Low) |
+| [Galván Cancio, Daniel](https://github.com/Dangalcan) | New testcases (Medium) |
+| [Herencia Solís, Lucas Manuel](https://github.com/luchersol) | UVL editor (Hard) |
+| [Robles Russo, Eduardo](https://github.com/edurobrus) | Bot integration (Hard) |
+| [Solís Padilla, Isaac](https://github.com/IsaacSolisPadilla) | Dashboard (Medium) |
 
-|Members Serranito-hub2|Work Items|  
+|Members Serranito-hub-2| Work Item |  
 |------|-------------------|
-| Juan García Carballo        |  Fakenodo (Hard) |
-  | Ángel García Escudero       | Upload, analyse and repair UVL (Hard) |
-  | Andrés Francisco García Rivero | Improve UI (Medium)|
-  | Alejandro Pérez Santiago    | Download all datasets (Medium)|
-  | Jorge Muñoz Rodríguez       | Sign up validation  (Low) | 
+| [García Carballo, Juan](https://github.com/JuaniniGC)  | Rate Datasets (Medium) |
+  | [García Escudero, Ángel](https://github.com/Angelgares)      | Upload, analyse and repair UVL (Hard) |
+  | [García Rivero, Andrés Francisco](https://github.com/andgarriv) | Improve UI (Medium) |
+  | [Muñoz Rodríguez, Jorge](https://github.com/jormunrod)   | Download all dataset (Hard) and Fakenodo (Hard) |
+  | [Pérez Santiago, Alejandro](https://github.com/alepez12)   | Sign up validation (Easy) | 
+
 
 
   #
@@ -60,8 +61,8 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 
   - In the explore view, a cloud has been implemented to display the tags associated with the datasets. When clicking on a tag within the cloud, it filters the FMs that belong to the datasets associated with that tag.
 
-  <div aling=center>
-    <img src="app/static/img/readme/tag.png" alt="image" width="600">
+  <div align=center>
+    <img src="app/static/img/readme/tag.png" alt="image" width="600"/>
   </div>
 
 
