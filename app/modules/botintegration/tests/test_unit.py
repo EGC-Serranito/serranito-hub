@@ -64,6 +64,117 @@ def mock_treenode_bot():
         return tree_node_bot
 
 
+def test_create_node_route_add_chat_success(node_service, mock_user):
+    """Test creating a chat node successfully when there are fewer than 3 children."""
+    # Mock the repository methods
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "get_children_count", return_value=2), \
+            patch.object(node_service.repository, "create_node_route_add_chat",
+                         return_value={"status": "success"}) as mock_create_node:
+            result = node_service.create_node_route_add_chat(
+                user_id=mock_user.id,
+                name="Chat1",
+                parent_id=1,
+                path="path/to/chat",
+                single_child=False
+            )
+
+            # Check that the chat creation method was called
+            mock_create_node.assert_called_once_with(
+                user_id=mock_user.id,
+                name="Chat1",
+                parent_id=1,
+                path="path/to/chat",
+                single_child=False
+            )
+            assert result["status"] == "success"
+
+
+def test_create_node_route_add_chat_limit_exceeded(node_service, mock_user):
+    """Test the error response when the bot has 3 or more chats."""
+    # Mock the repository methods
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "get_children_count", return_value=3):
+            result = node_service.create_node_route_add_chat(
+                user_id=mock_user.id,
+                name="Chat4",
+                parent_id=1,
+                path="path/to/chat",
+                single_child=False
+            )
+
+            assert result[1] == 400
+
+
+def test_create_node_route_add_bot_success(node_service, mock_user):
+    """Test creating a bot node successfully when there are fewer than 5 children."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "get_children_count", return_value=4), \
+            patch.object(node_service.repository, "create_node_route_add_bot",
+                         return_value={"status": "success"}) as mock_create_node:
+
+            result = node_service.create_node_route_add_bot(
+                user_id=mock_user.id,
+                name="Bot1",
+                parent_id=1,
+                path="path/to/bot",
+                single_child=False
+            )
+
+            # Check that the bot creation method was called
+            mock_create_node.assert_called_once_with(
+                user_id=mock_user.id,
+                name="Bot1",
+                parent_id=1,
+                path="path/to/bot",
+                single_child=False
+            )
+            assert result["status"] == "success"
+
+
+def test_create_node_route_add_bot_limit_exceeded(node_service, mock_user):
+    """Test the error response when the bot has 5 or more bots."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "get_children_count", return_value=5):
+            result = node_service.create_node_route_add_bot(
+                user_id=mock_user.id,
+                name="Bot6",
+                parent_id=1,
+                path="path/to/bot",
+                single_child=False
+            )
+            assert result[1] == 400
+
+
+def test_create_node_route_add_types_notification(node_service, mock_user):
+    """Test creating a types notification node."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "create_node_route_add_types_notification",
+                          return_value={"status": "success"}) as mock_create_node:
+
+            result = node_service.create_node_route_add_types_notification(
+                user_id=mock_user.id,
+                name="NotificationType1",
+                parent_id=1,
+                path="path/to/notification",
+                single_child=False
+            )
+
+            mock_create_node.assert_called_once_with(
+                user_id=mock_user.id,
+                name="NotificationType1",
+                parent_id=1,
+                path="path/to/notification",
+                single_child=False
+            )
+            assert result["status"] == "success"
+
+
 def test_delete_node(node_service):
     """Prueba la eliminación de un nodo por su ID."""
     app = create_app()
