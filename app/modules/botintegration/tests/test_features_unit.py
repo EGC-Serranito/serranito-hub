@@ -63,10 +63,8 @@ def test_format_message(feature_service):
     feature = "test_feature"
     formatted_message = "This is a test message."
 
-    # Llamamos al método estático format_message
     result = feature_service.format_message(feature, formatted_message)
 
-    # Verificamos que el mensaje sea formateado correctamente
     expected_result = (
         f"Message for {feature}:\n{formatted_message}\n\n"
         + "*For more information about this bot, visit:* \n"
@@ -78,21 +76,17 @@ def test_format_message(feature_service):
 def test_split_message(feature_service):
     """Prueba la división de un mensaje en fragmentos de longitud máxima especificada."""
 
-    # Mensaje de prueba con varias líneas
     message = "This is a test message.\nIt will be split into chunks.\nEach chunk should not exceed the character limit"
-    limit = 50  # Límite de caracteres por fragmento
+    limit = 50
 
-    # Llamamos al método estático split_message
     result = feature_service.split_message(message, limit)
 
-    # Fragmentos esperados basados en el límite de caracteres
     expected_result = [
         "This is a test message.\n",
         "It will be split into chunks.\n",
         "Each chunk should not exceed the character limit\n",
     ]
 
-    # Verificamos que el resultado coincida con el esperado
     assert result == expected_result
 
 
@@ -122,17 +116,14 @@ def test_send_to_telegram_success(feature_service):
     bot_token = "dummy_bot_token"
     chat_id = "dummy_chat_id"
     chunks = ["Chunk 1", "Chunk 2", "Chunk 3"]
-    # Simulamos una respuesta exitosa de la API de Telegram (status code 200)
     with patch("requests.post") as mock_post:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "OK"
         mock_post.return_value = mock_response
 
-        # Llamamos al método estático send_to_telegram
         feature_service.send_to_telegram(bot_token, chat_id, chunks)
 
-        # Verificamos que requests.post fue llamado 3 veces (por los 3 fragmentos)
         assert mock_post.call_count == 3
 
 
@@ -141,20 +132,15 @@ def test_send_to_telegram_failure(feature_service):
     bot_token = "dummy_bot_token"
     chat_id = "dummy_chat_id"
     chunks = ["Chunk 1", "Chunk 2", "Chunk 3"]
-    # Simulamos una respuesta fallida de la API de Telegram (status code 500)
     with patch("requests.post") as mock_post:
         mock_response = Mock()
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
         mock_post.return_value = mock_response
 
-        # Llamamos al método estático send_to_telegram
         feature_service.send_to_telegram(bot_token, chat_id, chunks)
 
-        # Verificamos que requests.post fue llamado 3 veces
         assert mock_post.call_count == 3
-
-        # Verificamos que los datos enviados sean correctos
 
 
 def test_send_to_telegram_empty_chunks(feature_service):
@@ -162,17 +148,13 @@ def test_send_to_telegram_empty_chunks(feature_service):
 
     bot_token = "dummy_bot_token"
     chat_id = "dummy_chat_id"
-    chunks = []  # Lista vacía de fragmentos
+    chunks = []
 
-    # Simulamos una respuesta exitosa de la API de Telegram (status code 200)
     with patch("requests.post") as mock_post:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "OK"
         mock_post.return_value = mock_response
-
-        # Llamamos al método estático send_to_telegram
         feature_service.send_to_telegram(bot_token, chat_id, chunks)
 
-        # Verificamos que requests.post no fue llamado ya que no hay fragmentos
         mock_post.assert_not_called()
