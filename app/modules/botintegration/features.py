@@ -160,14 +160,16 @@ class FeatureService:
                     from app.modules.dataset.models import DSMetaData, DataSet
                     from app.modules.hubfile.services import HubfileService
                     from app.modules.hubfile.models import HubfileViewRecord
-                    from app import db
+                    from app.modules.botintegration.models import TreeNode
                     from flask import current_app, jsonify, make_response, request
                     from flask_login import current_user
                     import uuid
-                    message_template = messages.get("DATASET", {}).get("message", "")
-                    from app.modules.botintegration.models import TreeNode
+                    from app import db
+                    import os
 
+                    message_template = messages.get("DATASET", {}).get("message", "")
                     tree_node = TreeNode.query.filter(TreeNode.name == chat_id).first()
+
                     datasets = (
                         DataSet.query.join(DSMetaData)
                         .filter(
@@ -177,26 +179,23 @@ class FeatureService:
                         .order_by(DataSet.created_at.desc())
                         .all()
                     )
-
                     list_content = ""
 
                     for d in datasets:
                         title = d.ds_meta_data.title
                         description = d.ds_meta_data.description
-                        publication_type = d.ds_meta_data.publication_type.name.replace(
-                            "_", " "
-                        ).title()
+                        publication_type = d.ds_meta_data.publication_type.name.replace("_", " ").title()
                         doi = d.get_uvlhub_doi()
 
+                        # Dataset Header
                         list_content += f"🔹 *Title*: {title}\n"
                         list_content += f"📄 *Description*: {description}\n"
                         list_content += f"📚 *Publication Type*: {publication_type}\n"
-                        list_content += f"🌐 *DOI*: [{doi}]({doi})\n"
+                        list_content += f"🌐 *DOI*: [{doi}]({doi})\n\n"
 
                         for feature_model in d.feature_models:
                             for file in feature_model.files:
-                                list_content += f"\n🔸 *File*: {file.name}\n"
-
+                                list_content += f"🔸 *File*: {file.name}\n"
                                 file_service = HubfileService()
                                 file = file_service.get_or_404(file.id)
                                 filename = file.name
@@ -236,14 +235,15 @@ class FeatureService:
                                         response = jsonify({"success": True, "content": content})
                                         if not request.cookies.get("view_cookie"):
                                             response = make_response(response)
-                                            response.set_cookie("view_cookie",
-                                                                user_cookie, max_age=60 * 60 * 24 * 365 * 2)
+                                            response.set_cookie(
+                                                "view_cookie", user_cookie, max_age=60 * 60 * 24 * 365 * 2
+                                            )
 
                                         if response.status_code == 200:
                                             data = response.get_json()
                                             file_content = data.get("content", "")
                                             if file_content:
-                                                list_content += "\n*👨‍💻 File Content (UVL)*:\n"
+                                                list_content += "\n👨‍💻 *File Content (UVL)*:\n"
                                                 list_content += f"\n```uvl\n{file_content[:500]}\n```\n"
                                             else:
                                                 list_content += "\n*Content not available.*\n"
@@ -256,10 +256,9 @@ class FeatureService:
                                     list_content += f"\n⚠️ *Error occurred while processing the file:* {str(e)}\n"
 
                                 url_download = f"{BASE_URL}/file/download/{file.id}"
-                                list_content += f"📥 *Download File*: {url_download}\n"
-
-                        user_data = {"datasets": list_content}
-                        formatted_message = message_template.format(**user_data)
+                                list_content += f"📥 *Download File*: {url_download}\n\n"
+                    user_data = {"datasets": list_content}
+                    formatted_message = message_template.format(**user_data)
                 case "EXPLORE":
                     from app.modules.explore.services import ExploreService
                     criteria = {}
@@ -478,41 +477,77 @@ class FeatureService:
     @staticmethod
     def split_message(message, limit=2000):
         """
-        Divide un mensaje largo en fragmentos de menos de `limit` caracteres.
+        Divide un mensaje largo en fragmentos respetando bloques de código y líneas relacionadas.
+        Los bloques de código se mantienen íntegros, incluso si sobrepasan el límite de caracteres.
+
+        :param message: Mensaje completo a dividir.
+        :param limit: Límite de caracteres por fragmento.
+        :return: Lista de fragmentos de mensaje.
         """
         lines = message.splitlines()
         chunks = []
         current_chunk = ""
+        inside_code_block = False
+        current_code_block = ""
 
         for line in lines:
-            if len(current_chunk) + len(line) + 1 > limit:
-                chunks.append(current_chunk)
-                current_chunk = line + "\n"
+            if line.strip().startswith("```"):
+                if inside_code_block:
+                    inside_code_block = False
+                    current_code_block += line + "\n"
+                    if len(current_chunk) + len(current_code_block) > limit:
+                        if current_chunk.strip():
+                            chunks.append(current_chunk.strip())
+                        chunks.append(current_code_block.strip())
+                        current_chunk = ""
+                    else:
+                        current_chunk += current_code_block
+                    current_code_block = ""
+                else:
+                    inside_code_block = True
+                    if current_chunk.strip():
+                        chunks.append(current_chunk.strip())
+                    current_chunk = line + "\n"
+            elif inside_code_block:
+                current_code_block += line + "\n"
             else:
-                current_chunk += line + "\n"
+                if len(current_chunk) + len(line) + 1 > limit:
+                    chunks.append(current_chunk.strip())
+                    current_chunk = line + "\n"
+                else:
+                    current_chunk += line + "\n"
 
-        if current_chunk:
-            chunks.append(current_chunk)
+        if current_chunk.strip():
+            chunks.append(current_chunk.strip())
+        if current_code_block.strip():
+            chunks.append(current_code_block.strip())
 
         return chunks
 
     @staticmethod
-    def send_to_telegram(bot_token, chat_id, chunks):
+    def send_to_telegram(bot_token, chat_id, message):
         """
-        Envía mensajes a Telegram en fragmentos.
+        Envía mensajes a Telegram en fragmentos, asegurando que cada uno se procese correctamente.
+
+        :param bot_token: Token del bot de Telegram.
+        :param chat_id: ID del chat de Telegram.
+        :param chunks: Lista de fragmentos del mensaje a enviar.
         """
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        for chunk in chunks:
-            payload = {
-                "chat_id": chat_id,
-                "text": chunk,
-                "parse_mode": "Markdown",
-            }
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown",
+        }
+
+        try:
             response = requests.post(url, data=payload, timeout=10)
             if response.status_code == 200:
-                print(f"Mensaje enviado a {chat_id} exitosamente.")
+                print(f"Mensaje enviado exitosamente a {chat_id}.")
             else:
-                print(f"Error al enviar mensaje: {response.status_code}, {response.text}")
+                print(f"Error al enviar el mensaje: {response.status_code}, {response.text}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error al enviar el mensaje: {e}")
 
     @staticmethod
     def send_to_discord(bot_token, chat_id, chunks):
@@ -543,6 +578,6 @@ class FeatureService:
         chunks = self.split_message(message)
 
         if len(bot_token.split(":")) == 2 and not len(bot_token) == 64:
-            self.send_to_telegram(bot_token, chat_id, chunks)
+            self.send_to_telegram(bot_token, chat_id, message)
         else:
             self.send_to_discord(bot_token, chat_id, chunks)
