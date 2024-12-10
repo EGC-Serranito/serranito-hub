@@ -170,11 +170,11 @@ def test_send_message_bot_invalid_token(feature_service):
 
     with patch("os.getenv") as mock_getenv:
         mock_getenv.side_effect = lambda key: {
-            "BOT_TOKEN_TELEGRAM": "1234567890:abcdefghijklmnopqrstuvwxyz1234567890",
+            "BOT_TOKEN_TELEGRAM": "invalid_token",
             "CHAT_ID": "dummy_chat_id",
         }.get(key)
 
-        bot_token = "invalid_token"
+        bot_token = os.getenv("BOT_TOKEN_TELEGRAM")
         chat_id = os.getenv("CHAT_ID")
         formatted_message = "Este es un mensaje de prueba"
         feature = "test_feature"
