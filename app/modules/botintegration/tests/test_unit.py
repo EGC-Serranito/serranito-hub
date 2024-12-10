@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from app.modules.auth.models import User
-from app.modules.botintegration.features import FeatureService
 from app.modules.botintegration.services import NodeService
 from app import create_app
 
@@ -10,12 +9,6 @@ from app import create_app
 def node_service():
     """Fixture para el servicio NodeService."""
     return NodeService()
-
-
-@pytest.fixture
-def feature_service():
-    """Fixture para el servicio NodeService."""
-    return FeatureService()
 
 
 @pytest.fixture
@@ -69,6 +62,30 @@ def mock_treenode_bot():
         tree_node_bot.single_child = True
         tree_node_bot.children = []
         return tree_node_bot
+
+
+def test_create_node_route_add_types_notification(node_service):
+    """Prueba la creación de un nodo tipo 'types' de notificación."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "create_node_route_add_types_notification",
+                          return_value={"id": 1, "name": "test_types_notification"}) as mock_create_types_notification:
+            result = node_service.create_node_route_add_types_notification(
+                user_id=1,
+                name="test_types_notification",
+                parent_id=None,
+                path="/test/types_notification",
+                single_child=False,
+            )
+            assert result["id"] == 1
+            assert result["name"] == "test_types_notification"
+            mock_create_types_notification.assert_called_once_with(
+                user_id=1,
+                name="test_types_notification",
+                parent_id=None,
+                path="/test/types_notification",
+                single_child=False,
+            )
 
 
 def test_create_node_route_add_chat(node_service):
@@ -200,6 +217,20 @@ def test_create_node_route_add_feature_over_limit(node_service):
             )
 
             assert result["name"] != "test_feature4"
+
+
+def test_delete_node(node_service):
+    """Prueba la eliminación de un nodo por su ID."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "delete_node",
+                          return_value={"status": "success", "message": "Node deleted"}) as mock_delete_node:
+            result = node_service.delete_node(node_id=1)
+
+            assert result["status"] == "success"
+            assert result["message"] == "Node deleted"
+
+            mock_delete_node.assert_called_once_with(1)
 
 
 def test_find_child_with_name_found(node_service):
