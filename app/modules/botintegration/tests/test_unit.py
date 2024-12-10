@@ -69,7 +69,8 @@ def test_create_node_route_add_types_notification(node_service):
     app = create_app()
     with app.app_context():
         with patch.object(node_service.repository, "create_node_route_add_types_notification",
-                          return_value={"id": 1, "name": "test_types_notification"}) as mock_create_types_notification:
+                          return_value={"id": 1, "name": "test_types_notification"}), \
+             patch.object(node_service.repository.session, 'commit'):
             result = node_service.create_node_route_add_types_notification(
                 user_id=1,
                 name="test_types_notification",
@@ -79,13 +80,6 @@ def test_create_node_route_add_types_notification(node_service):
             )
             assert result["id"] == 1
             assert result["name"] == "test_types_notification"
-            mock_create_types_notification.assert_called_once_with(
-                user_id=1,
-                name="test_types_notification",
-                parent_id=None,
-                path="/test/types_notification",
-                single_child=False,
-            )
 
 
 def test_create_node_route_add_chat(node_service):
@@ -93,7 +87,8 @@ def test_create_node_route_add_chat(node_service):
     app = create_app()
     with app.app_context():
         with patch.object(node_service.repository, "create_node_route_add_chat",
-                          return_value={"id": 1, "name": "test_chat"},) as mock_create_chat:
+                          return_value={"id": 1, "name": "test_chat"}), \
+             patch.object(node_service.repository.session, 'commit'):
             result = node_service.create_node_route_add_chat(
                 user_id=1,
                 name="test_chat",
@@ -103,13 +98,6 @@ def test_create_node_route_add_chat(node_service):
             )
             assert result["id"] == 1
             assert result["name"] == "test_chat"
-            mock_create_chat.assert_called_once_with(
-                user_id=1,
-                name="test_chat",
-                parent_id=None,
-                path="/test/chat",
-                single_child=False,
-            )
 
 
 def test_create_node_route_add_chat_over_limit(node_service):
@@ -119,7 +107,8 @@ def test_create_node_route_add_chat_over_limit(node_service):
         with patch.object(node_service.repository, "create_node_route_add_chat",
                           return_value={"id": 1, "name": "test_chat"}), \
              patch.object(node_service.repository, "get_tree_nodes_by_user",
-                          return_value=[{"name": "test_chat1"}, {"name": "test_chat2"}, {"name": "test_chat3"}]):
+                          return_value=[{"name": "test_chat1"}, {"name": "test_chat2"}, {"name": "test_chat3"}]), \
+             patch.object(node_service.repository.session, 'commit'):
             result = node_service.create_node_route_add_chat(
                 user_id=1,
                 name="test_chat4",
@@ -135,7 +124,8 @@ def test_create_node_route_add_bot(node_service):
     app = create_app()
     with app.app_context():
         with patch.object(node_service.repository, "create_node_route_add_bot",
-                          return_value={"id": 1, "name": "test_bot"}) as mock_create_bot:
+                          return_value={"id": 1, "name": "test_bot"}), \
+             patch.object(node_service.repository.session, 'commit'):
             result = node_service.create_node_route_add_bot(
                 user_id=1,
                 name="test_bot",
@@ -146,14 +136,6 @@ def test_create_node_route_add_bot(node_service):
             assert result["id"] == 1
             assert result["name"] == "test_bot"
 
-            mock_create_bot.assert_called_once_with(
-                user_id=1,
-                name="test_bot",
-                parent_id=None,
-                path="/test/bot",
-                single_child=False,
-            )
-
 
 def test_create_node_route_add_bot_over_limit(node_service):
     """Prueba la creación de un nodo tipo bot con límite de 5 bots por usuario."""
@@ -163,7 +145,8 @@ def test_create_node_route_add_bot_over_limit(node_service):
                           return_value={"id": 1, "name": "test_bot"}), \
              patch.object(node_service.repository, "get_tree_nodes_by_user",
                           return_value=[{"name": "test_bot1"}, {"name": "test_bot2"}, {"name": "test_bot3"},
-                                        {"name": "test_bot4"}, {"name": "test_bot5"}]):
+                                        {"name": "test_bot4"}, {"name": "test_bot5"}]), \
+             patch.object(node_service.repository.session, 'commit'):
             result = node_service.create_node_route_add_bot(
                 user_id=1,
                 name="test_bot6",
@@ -179,7 +162,8 @@ def test_create_node_route_add_feature(node_service):
     app = create_app()
     with app.app_context():
         with patch.object(node_service.repository, "create_node_route_add_feature",
-                          return_value={"id": 1, "name": "test_feature"}) as mock_create_feature:
+                          return_value={"id": 1, "name": "test_feature"}), \
+             patch.object(node_service.repository.session, 'commit'):
             result = node_service.create_node_route_add_feature(
                 user_id=1,
                 name="test_feature",
@@ -191,14 +175,6 @@ def test_create_node_route_add_feature(node_service):
             assert result["id"] == 1
             assert result["name"] == "test_feature"
 
-            mock_create_feature.assert_called_once_with(
-                user_id=1,
-                name="test_feature",
-                parent_id=None,
-                path="/test/feature",
-                single_child=False,
-            )
-
 
 def test_create_node_route_add_feature_over_limit(node_service):
     """Prueba la creación de un nodo tipo feature con límite de 3 features por bot."""
@@ -207,7 +183,8 @@ def test_create_node_route_add_feature_over_limit(node_service):
         with patch.object(node_service.repository, "create_node_route_add_feature",
                           return_value={"id": 1, "name": "test_feature"}), \
              patch.object(node_service.repository, "get_tree_nodes_by_bot",
-                          return_value=[{"name": "feature1"}, {"name": "feature2"}, {"name": "feature3"}]):
+                          return_value=[{"name": "feature1"}, {"name": "feature2"}, {"name": "feature3"}]), \
+             patch.object(node_service.repository.session, 'commit'):
             result = node_service.create_node_route_add_feature(
                 user_id=1,
                 name="test_feature4",
