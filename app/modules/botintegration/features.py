@@ -2,7 +2,6 @@ import requests
 import yaml
 import json
 import os
-from datetime import datetime
 from flamapy.metamodels.fm_metamodel.transformations import UVLReader
 from antlr4.error.ErrorListener import ErrorListener
 import tempfile
@@ -159,12 +158,8 @@ class FeatureService:
                 case "DATASET":
                     from app.modules.dataset.models import DSMetaData, DataSet
                     from app.modules.hubfile.services import HubfileService
-                    from app.modules.hubfile.models import HubfileViewRecord
                     from app.modules.botintegration.models import TreeNode
-                    from flask import current_app, jsonify, make_response, request
-                    from flask_login import current_user
-                    import uuid
-                    from app import db
+                    from flask import current_app, jsonify, make_response
                     import os
 
                     message_template = messages.get("DATASET", {}).get("message", "")
@@ -212,32 +207,8 @@ class FeatureService:
                                         with open(file_path, "r") as f:
                                             content = f.read()
 
-                                        user_cookie = request.cookies.get("view_cookie")
-                                        if not user_cookie:
-                                            user_cookie = str(uuid.uuid4())
-
-                                        existing_record = HubfileViewRecord.query.filter_by(
-                                            user_id=current_user.id if current_user.is_authenticated else None,
-                                            file_id=file.id,
-                                            view_cookie=user_cookie,
-                                        ).first()
-
-                                        if not existing_record:
-                                            new_view_record = HubfileViewRecord(
-                                                user_id=current_user.id if current_user.is_authenticated else None,
-                                                file_id=file.id,
-                                                view_date=datetime.now(),
-                                                view_cookie=user_cookie,
-                                            )
-                                            db.session.add(new_view_record)
-                                            db.session.commit()
-
                                         response = jsonify({"success": True, "content": content})
-                                        if not request.cookies.get("view_cookie"):
-                                            response = make_response(response)
-                                            response.set_cookie(
-                                                "view_cookie", user_cookie, max_age=60 * 60 * 24 * 365 * 2
-                                            )
+                                        response = make_response(response)
 
                                         if response.status_code == 200:
                                             data = response.get_json()
