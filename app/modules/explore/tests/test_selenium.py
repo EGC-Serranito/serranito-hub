@@ -17,7 +17,7 @@ class TestExplore:
     def teardown_method(self, method):
         self.driver.quit()
 
-    def test_selenium(self):
+    def test_explore(self):
         self.driver.get("http://localhost:5000/")
         self.driver.set_window_size(1920, 1015)
         wait = WebDriverWait(self.driver, 10)
@@ -247,3 +247,27 @@ class TestExplore:
         actions = ActionChains(self.driver)
         actions.move_to_element(element).release().perform()
         self.driver.find_element(By.ID, "clear-filters").click()
+
+
+class TestDarkLightSwitch():
+    def setup_method(self, method):
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.vars = {}
+
+    def teardown_method(self, method):
+        self.driver.quit()
+
+    def test_dark_light_switch(self):
+        self.driver.get("http://localhost:5000/")
+        self.driver.set_window_size(1920, 1080)
+        wait = WebDriverWait(self.driver, 10)
+
+        cambiar_tema = wait.until(
+            EC.element_to_be_clickable((By.ID, "theme-toggle"))
+        )
+        cambiar_tema.click()
+        cambiar_tema.click()
+        cambiar_tema.click()
+        cambiar_tema.click()
