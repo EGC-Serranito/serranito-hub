@@ -4,6 +4,7 @@ from app.modules.auth.models import User
 from app.modules.botintegration.features import FeatureService
 from app.modules.botintegration.services import NodeService
 from app import create_app
+import os
 
 
 @pytest.fixture
@@ -101,9 +102,7 @@ def test_split_message_with_large_input(feature_service):
 def test_split_message_without_newlines(feature_service):
     """Prueba la división de un mensaje sin saltos de línea."""
 
-    message = (
-        "ThisIsASingleLineMessageThatExceedsTheLimit" * 10
-    )
+    message = "ThisIsASingleLineMessageThatExceedsTheLimit" * 10
     limit = 50
 
     result = feature_service.split_message(message, limit)
@@ -113,34 +112,50 @@ def test_split_message_without_newlines(feature_service):
 
 def test_send_to_telegram_success(feature_service):
     """Prueba el envío exitoso de mensajes a Telegram en fragmentos."""
-    bot_token = "dummy_bot_token"
-    chat_id = "dummy_chat_id"
     chunks = ["Chunk 1", "Chunk 2", "Chunk 3"]
-    with patch("requests.post") as mock_post:
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.text = "OK"
-        mock_post.return_value = mock_response
 
-        feature_service.send_to_telegram(bot_token, chat_id, chunks)
+    with patch("os.getenv") as mock_getenv:
 
-        assert mock_post.call_count == 3
+        mock_getenv.side_effect = lambda key: {
+            "BOT_TOKEN": "dummy_bot_token",
+            "CHAT_ID": "dummy_chat_id",
+        }.get(key)
+
+        with patch("requests.post") as mock_post:
+            mock_response = Mock()
+            mock_response.status_code = 200
+            mock_response.text = "OK"
+            mock_post.return_value = mock_response
+
+            bot_token = os.getenv("BOT_TOKEN")
+            chat_id = os.getenv("CHAT_ID")
+
+            feature_service.send_to_telegram(bot_token, chat_id, chunks)
+
+            assert mock_post.call_count == 3
 
 
 def test_send_to_telegram_failure(feature_service):
     """Prueba el fallo al enviar mensajes a Telegram debido a un error en la API."""
-    bot_token = "dummy_bot_token"
-    chat_id = "dummy_chat_id"
     chunks = ["Chunk 1", "Chunk 2", "Chunk 3"]
-    with patch("requests.post") as mock_post:
-        mock_response = Mock()
-        mock_response.status_code = 500
-        mock_response.text = "Internal Server Error"
-        mock_post.return_value = mock_response
 
-        feature_service.send_to_telegram(bot_token, chat_id, chunks)
+    with patch("os.getenv") as mock_getenv:
 
-        assert mock_post.call_count == 3
+        mock_getenv.side_effect = lambda key: {
+            "BOT_TOKEN": "dummy_bot_token",
+            "CHAT_ID": "dummy_chat_id",
+        }.get(key)
+        with patch("requests.post") as mock_post:
+            mock_response = Mock()
+            mock_response.status_code = 500
+            mock_response.text = "Internal Server Error"
+            mock_post.return_value = mock_response
+            bot_token = os.getenv("BOT_TOKEN")
+            chat_id = os.getenv("CHAT_ID")
+
+            feature_service.send_to_telegram(bot_token, chat_id, chunks)
+
+            assert mock_post.call_count == 3
 
 
 def test_send_to_telegram_empty_chunks(feature_service):
@@ -149,12 +164,19 @@ def test_send_to_telegram_empty_chunks(feature_service):
     bot_token = "dummy_bot_token"
     chat_id = "dummy_chat_id"
     chunks = []
+    with patch("os.getenv") as mock_getenv:
 
-    with patch("requests.post") as mock_post:
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.text = "OK"
-        mock_post.return_value = mock_response
-        feature_service.send_to_telegram(bot_token, chat_id, chunks)
+        mock_getenv.side_effect = lambda key: {
+            "BOT_TOKEN": "dummy_bot_token",
+            "CHAT_ID": "dummy_chat_id",
+        }.get(key)
+        with patch("requests.post") as mock_post:
+            mock_response = Mock()
+            mock_response.status_code = 200
+            mock_response.text = "OK"
+            mock_post.return_value = mock_response
+            bot_token = os.getenv("BOT_TOKEN")
+            chat_id = os.getenv("CHAT_ID")
+            feature_service.send_to_telegram(bot_token, chat_id, chunks)
 
-        mock_post.assert_not_called()
+            mock_post.assert_not_called()

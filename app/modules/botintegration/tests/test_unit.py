@@ -66,7 +66,6 @@ def mock_treenode_bot():
 
 def test_create_node_route_add_chat_success(node_service, mock_user):
     """Test creating a chat node successfully when there are fewer than 3 children."""
-    # Mock the repository methods
     app = create_app()
     with app.app_context():
         with patch.object(node_service.repository, "get_children_count", return_value=2), \
@@ -80,7 +79,6 @@ def test_create_node_route_add_chat_success(node_service, mock_user):
                 single_child=False
             )
 
-            # Check that the chat creation method was called
             mock_create_node.assert_called_once_with(
                 user_id=mock_user.id,
                 name="Chat1",
@@ -93,7 +91,6 @@ def test_create_node_route_add_chat_success(node_service, mock_user):
 
 def test_create_node_route_add_chat_limit_exceeded(node_service, mock_user):
     """Test the error response when the bot has 3 or more chats."""
-    # Mock the repository methods
     app = create_app()
     with app.app_context():
         with patch.object(node_service.repository, "get_children_count", return_value=3):
