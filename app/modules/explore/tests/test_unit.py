@@ -41,10 +41,16 @@ def test_explore_empty_results(client):
     params = {
         "query": "python",
         "sorting": "newest",
-        "publication_type": "notype",
+        "publication_type": "nontype",
         "tags": ["unknown_tag"]
     }
     response = client.get('/explore', query_string=params)
     assert response.status_code == 200, "La respuesta a /explore con una búsqueda sin resultados no fue exitosa."
     assert b'We have not found any datasets that meet your search criteria. ' in response.data, \
         "Se han encontrado resultados."
+
+
+def test_explore_with_missing_parameters(client):
+    response = client.get('/explore')
+    assert response.status_code == 200, "La ruta /explore sin parámetros no devolvió un código 200."
+    assert b'id="results"' in response.data, "El contenedor de resultados no está presente sin filtros."
