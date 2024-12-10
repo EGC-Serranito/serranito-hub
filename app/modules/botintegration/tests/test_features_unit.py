@@ -160,9 +160,6 @@ def test_send_to_telegram_failure(feature_service):
 
 def test_send_to_telegram_empty_chunks(feature_service):
     """Prueba el envío de mensajes cuando no hay fragmentos de mensaje."""
-
-    bot_token = "dummy_bot_token"
-    chat_id = "dummy_chat_id"
     chunks = []
     with patch("os.getenv") as mock_getenv:
 
