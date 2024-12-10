@@ -9,7 +9,7 @@ def initialize_driver():
     return driver
 
 
-class TestSelenium:
+class TestDashBoards:
     def setup_method(self, method):
         self.driver = initialize_driver()
         self.vars = {}
@@ -41,3 +41,4 @@ class TestSelenium:
         dropdown.find_element(By.XPATH, "//option[. = 'Año']").click()
         self.driver.find_element(By.CSS_SELECTOR, "option:nth-child(3)").click()
         self.driver.find_element(By.CSS_SELECTOR, ".btn:nth-child(4)").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".btn:nth-child(5)").click()
