@@ -16,8 +16,8 @@ class ConfigManager:
             self.app.config.from_object(TestingConfig)
         elif config_name == 'production':
             self.app.config.from_object(ProductionConfig)
-        elif config_name == 'filess':
-            self.app.config.from_object(FilessConfig)
+        elif config_name == 'externalDB':
+            self.app.config.from_object(ExternalDBConfig)
         else:
             self.app.config.from_object(DevelopmentConfig)
 
@@ -53,12 +53,12 @@ class TestingConfig(Config):
     WTF_CSRF_ENABLED = False
 
 
-class FilessConfig(Config):
+class ExternalDBConfig(Config):
     SQLALCHEMY_DATABASE_URI = (
-        f"mysql+pymysql://{os.getenv('FILESS_DB_USER')}:"
-        f"{os.getenv('FILESS_DB_PASSWORD')}@"
-        f"{os.getenv('FILESS_DB_HOST')}:{os.getenv('FILESS_DB_PORT')}/"
-        f"{os.getenv('FILESS_DB_NAME')}"
+        f"mysql+pymysql://{os.getenv('EXTERNAL_DB_USER')}:"
+        f"{os.getenv('EXTERNAL_DB_PASSWORD')}@"
+        f"{os.getenv('EXTERNAL_DB_HOST')}:{os.getenv('EXTERNAL_DB_PORT')}/"
+        f"{os.getenv('EXTERNAL_DB_NAME')}"
     )
     DEBUG = True
 
