@@ -13,7 +13,7 @@ class TestViewMyProfile:
     def teardown_method(self):
         self.driver.quit()
 
-    def test_viewMyProfile(self):
+    def test_view_MY_profile(self):
         self.driver.get("http://127.0.0.1:5000/")
         self.driver.set_window_size(1854, 1011)
 
@@ -40,7 +40,9 @@ class TestViewMyProfile:
         surname = surname.replace("Surname:", "").strip()  # Eliminar "Surname:" y espacios extra
         assert surname == "Doe", f"Expected 'Doe' but got {surname}"
 
-        affiliation = self.driver.find_element(By.XPATH, "//div[@class='card-body']//p[contains(., 'Affiliation:')]").text
+        xpath = "//div[@class='card-body']//p[contains(.,'Affiliation:')]"
+        affiliation = self.driver.find_element(By.XPATH, xpath).text
+
         affiliation = affiliation.replace("Affiliation:", "").strip()  # Eliminar "Affiliation:" y espacios extra
         assert affiliation == "Some University", f"Expected 'Some University' but got {affiliation}"
 
