@@ -11,7 +11,7 @@ def execute_bot_test(driver):
     Ejecución de la prueba del bot con WebDriverWait.
     """
     try:
-        wait = WebDriverWait(driver, 10)  # Timeout de 10 segundos
+        wait = WebDriverWait(driver, 10)
 
         driver.get(get_host_for_selenium_testing())
         driver.set_window_size(1854, 1048)
@@ -67,36 +67,8 @@ def test_bot_configuration():
         execute_bot_test(driver)
     except Exception as e:
         print(f"Error durante la prueba: {e}")
-        if driver:
-            capture_page_state(driver, "error_state.html")
-            capture_screenshot(driver, "error_screenshot.png")
     finally:
         close_driver(driver)
-
-
-def capture_page_state(driver, filename="page_state.html"):
-    """
-    Captura el estado actual de la página para depuración.
-    """
-    try:
-        print(f"Capturando el estado de la página en {filename}...")
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(driver.page_source)
-        print("Estado de la página capturado correctamente.")
-    except Exception as e:
-        print(f"Error al capturar el estado de la página: {e}")
-
-
-def capture_screenshot(driver, filename="screenshot.png"):
-    """
-    Captura una captura de pantalla del navegador.
-    """
-    try:
-        print(f"Capturando captura de pantalla en {filename}...")
-        driver.save_screenshot(filename)
-        print("Captura de pantalla guardada correctamente.")
-    except Exception as e:
-        print(f"Error al capturar la pantalla: {e}")
 
 
 test_bot_configuration()
