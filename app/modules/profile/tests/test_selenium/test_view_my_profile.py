@@ -1,13 +1,14 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from core.selenium.common import initialize_driver
 
 
 class TestViewMyProfile:
 
-    def setup_method(self):
-        self.driver = webdriver.Chrome()
+    def setup_method(self, method):
+        self.driver = initialize_driver()
+        self.vars = {}
 
     def teardown_method(self):
         self.driver.quit()
@@ -39,7 +40,7 @@ class TestViewMyProfile:
         surname = surname.replace("Surname:", "").strip()  # Eliminar "Surname:" y espacios extra
         assert surname == "Doe", f"Expected 'Doe' but got {surname}"
 
-        affiliation = self.driver.find_element(By.XPATH,"//div[@class='card-body']//p[contains(., 'Affiliation:')]").text
+        affiliation = self.driver.find_element(By.XPATH, "//div[@class='card-body']//p[contains(., 'Affiliation:')]").text
         affiliation = affiliation.replace("Affiliation:", "").strip()  # Eliminar "Affiliation:" y espacios extra
         assert affiliation == "Some University", f"Expected 'Some University' but got {affiliation}"
 

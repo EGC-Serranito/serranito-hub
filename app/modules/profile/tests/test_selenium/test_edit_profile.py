@@ -1,12 +1,12 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from core.selenium.common import initialize_driver
 
 
 class TestEditprofile():
     def setup_method(self, method):
-        self.driver = webdriver.Chrome()
+        self.driver = initialize_driver()
         self.vars = {}
 
     def teardown_method(self, method):
