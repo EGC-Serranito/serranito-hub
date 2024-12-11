@@ -19,7 +19,6 @@ WORKDIR /app
 
 # Copy files
 COPY app/ ./app
-COPY uploads/ ./uploads
 COPY core/ ./core
 COPY migrations/ ./migrations
 
