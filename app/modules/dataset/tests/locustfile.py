@@ -28,7 +28,7 @@ class UploadEditFileBehavior(TaskSet):
     def upload_edit_file(self):
         self.client.post("/dataset/1/upload/files", data={
             "file_id": 1,
-            "content": "contenido "
+            "content": "contenido"
         })
 
 
