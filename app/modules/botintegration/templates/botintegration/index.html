@@ -156,19 +156,19 @@
         background-color: #2980b9;
     }
 </style>
-<div class="flash-messages">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div>
-                {% for category, message in messages %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages and messages|length > 0 %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                {% if message.strip() != "Please log in to access this page." %}
                     <div style="color: #1b82d6;" class="alert alert-{{ category }}">
                         {{ message }}
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
 
 <h1 class="h3 mb-3">Bot Configuration</h1>
 
