@@ -24,12 +24,14 @@ class DashBoardService(BaseService):
 
     def get_datasets_and_total_sizes(self):
         datasets = self.repository.get_all_datasets()
-        dataset_names = []
-        total_sizes = []
+        dataset_info = []
         for dataset in datasets:
             total_size = sum(file.size for fm in dataset.feature_models for file in fm.files)
-            dataset_names.append(dataset.name())
-            total_sizes.append(total_size)
+            dataset_info.append((dataset.name(), total_size))
+        dataset_info.sort(key=lambda x: x[1], reverse=True)
+        dataset_names = [name for name, _ in dataset_info]
+        total_sizes = [size for _, size in dataset_info]
+
         return dataset_names, total_sizes
 
     def get_views_over_time_with_filter(self, filter_type="day"):
