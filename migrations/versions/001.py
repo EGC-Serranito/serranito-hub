@@ -195,7 +195,7 @@ def upgrade():
         ),
         sa.ForeignKeyConstraint(
             ["last_version_id"],
-            ["id"],
+            ["data_set.id"],
             ondelete='SET NULL',
         ),
         sa.PrimaryKeyConstraint("id"),
