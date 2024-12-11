@@ -230,31 +230,6 @@ class FeatureService:
                                 list_content += f"📥 *Download File*: {url_download}\n\n"
                     user_data = {"datasets": list_content}
                     formatted_message = message_template.format(**user_data)
-                case "EXPLORE":
-                    response = requests.post(f"{BASE_URL}/explore", json={}, timeout=10)
-                    if response.status_code == 200:
-                        # Convertir la respuesta JSON a un diccionario
-                        data = response.json()
-
-                        # Crear una lista con la información de los datasets formateada para Telegram
-                        datasets_info = []
-                        for dataset in data:
-                            dataset_info = (
-                                f"📂 *{dataset['title']}*\n"
-                                f"📝 _{dataset['description']}_\n"
-                                f"👨‍💻 *Authors*: {', '.join([author['name'] for author in dataset['authors']])}\n"
-                                f"🏷 *Tags*: {', '.join(dataset['tags'])}\n"
-                                f"📦 *Size*: {dataset['total_size_in_human_format']}\n"
-                                f"🌐 [DOI]({dataset['url']}) | [Download]({dataset['download']})\n"
-                                "-------------------------"
-                            )
-                            datasets_info.append(dataset_info)
-
-                        # Unir toda la información en un solo string
-                        formatted_datasets = "\n\n".join(datasets_info)
-
-                        # Crear el mensaje para Telegram
-                        formatted_message = f"✨ *Explore the datasets below* ✨\n\n{formatted_datasets}"
                 case "FLAMAPY":
                     message_template = messages.get("FLAMAPY", {}).get("message", "")
                     self.send_messages_flamapy(bot_token, chat_id)
