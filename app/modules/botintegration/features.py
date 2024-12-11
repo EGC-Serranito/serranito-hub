@@ -231,25 +231,29 @@ class FeatureService:
                     user_data = {"datasets": list_content}
                     formatted_message = message_template.format(**user_data)
                 case "EXPLORE":
-                    from app.modules.explore.services import ExploreService
-                    criteria = {}
-                    datasets = ExploreService().filter(**criteria)
-                    datasets_info = []
-                    for data in datasets:
-                        dataset = data.to_dict()
-                        dataset_info = (
-                            f"📂 *{dataset['title']}*\n"
-                            f"📝 _{dataset['description']}_\n"
-                            f"👨‍💻 *Authors*: {', '.join([author['name'] for author in dataset['authors']])}\n"
-                            f"🏷 *Tags*: {', '.join(dataset['tags'])}\n"
-                            f"📦 *Size*: {dataset['total_size_in_human_format']}\n"
-                            f"🌐 [DOI]({dataset['url']}) | [Download]({dataset['download']})\n"
-                            "-------------------------"
-                        )
-                        datasets_info.append(dataset_info)
+                    response = requests.post(f"{BASE_URL}/explore", json={}, timeout=10)
+                    if response.status_code == 200:
+                        # Convertir la respuesta JSON a un diccionario
+                        data = response.json()
 
+                        # Crear una lista con la información de los datasets formateada para Telegram
+                        datasets_info = []
+                        for dataset in data:
+                            dataset_info = (
+                                f"📂 *{dataset['title']}*\n"
+                                f"📝 _{dataset['description']}_\n"
+                                f"👨‍💻 *Authors*: {', '.join([author['name'] for author in dataset['authors']])}\n"
+                                f"🏷 *Tags*: {', '.join(dataset['tags'])}\n"
+                                f"📦 *Size*: {dataset['total_size_in_human_format']}\n"
+                                f"🌐 [DOI]({dataset['url']}) | [Download]({dataset['download']})\n"
+                                "-------------------------"
+                            )
+                            datasets_info.append(dataset_info)
+
+                        # Unir toda la información en un solo string
                         formatted_datasets = "\n\n".join(datasets_info)
 
+                        # Crear el mensaje para Telegram
                         formatted_message = f"✨ *Explore the datasets below* ✨\n\n{formatted_datasets}"
                 case "FLAMAPY":
                     message_template = messages.get("FLAMAPY", {}).get("message", "")
@@ -261,13 +265,8 @@ class FeatureService:
                     message_template = messages.get("FAKENODO", {}).get("message", "")
                     formatted_message = message_template.format(**user_data)
                 case "HUBSTATS":
-
                     from app.modules.dataset.services import DataSetService
                     from app.modules.featuremodel.services import FeatureModelService
-                    import logging
-
-                    logger = logging.getLogger(__name__)
-                    logger.info("Access index")
                     dataset_service = DataSetService()
                     feature_model_service = FeatureModelService()
 
