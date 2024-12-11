@@ -70,7 +70,7 @@ def create_node_route_add_bot():
             path = f"{parent.path}/{name}"
 
     try:
-        result = tree_node_service.create_node_route_add_bot(
+        result, status_code = tree_node_service.create_node_route_add_bot(
             user_id=user_id,
             name=name,
             parent_id=parent_id,
@@ -78,14 +78,12 @@ def create_node_route_add_bot():
             single_child=single_child,
         )
 
-        return tree_node_service.handle_service_response(
-            result=result,
-            errors=form.errors,
-            success_url_redirect="botintegration.index",
-            success_msg="Bot created successfully!",
-            error_template="botintegration/index.html",
-            form=form,
-        )
+        if status_code != 200:
+            flash(f"Error: {result.get('error', 'Unknown error')}", "error")
+        else:
+            flash(result.get('message', 'Node run successfully!'), "success")
+
+        return redirect(url_for("botintegration.index"))
     except Exception as e:
         db.session.rollback()
         flash(f"Error al crear el bot: {str(e)}", "danger")
@@ -109,7 +107,7 @@ def create_node_route_add_chat():
             path = f"{parent.path}/{name}"
 
     try:
-        result = tree_node_service.create_node_route_add_chat(
+        result, status_code = tree_node_service.create_node_route_add_chat(
             user_id=user_id,
             name=name,
             parent_id=parent_id,
@@ -117,14 +115,12 @@ def create_node_route_add_chat():
             single_child=single_child,
         )
 
-        return tree_node_service.handle_service_response(
-            result=result,
-            errors=form.errors,
-            success_url_redirect="botintegration.index",
-            success_msg="Chat created successfully!",
-            error_template="botintegration/index.html",
-            form=form,
-        )
+        if status_code != 200:
+            flash(f"Error: {result.get('error', 'Unknown error')}", "error")
+        else:
+            flash(result.get('message', 'Node run successfully!'), "success")
+
+        return redirect(url_for("botintegration.index"))
     except Exception as e:
         db.session.rollback()
         flash(f"Error al crear el chat: {str(e)}", "danger")
@@ -189,7 +185,7 @@ def create_node_route_add_feature():
             path = f"{parent.path}/{name}"
 
     try:
-        result = tree_node_service.create_node_route_add_feature(
+        result, status_code = tree_node_service.create_node_route_add_feature(
             user_id=user_id,
             name=name,
             parent_id=parent_id,
@@ -197,14 +193,12 @@ def create_node_route_add_feature():
             single_child=single_child,
         )
 
-        return tree_node_service.handle_service_response(
-            result=result,
-            errors=form.errors,
-            success_url_redirect="botintegration.index",
-            success_msg="Feature added successfully!",
-            error_template="botintegration/index.html",
-            form=form,
-        )
+        if status_code != 200:
+            flash(f"Error: {result.get('error', 'Unknown error')}", "error")
+        else:
+            flash(result.get('message', 'Node run successfully!'), "success")
+
+        return redirect(url_for("botintegration.index"))
     except Exception as e:
         db.session.rollback()
         flash(f"Error al agregar la característica: {str(e)}", "danger")
@@ -243,14 +237,17 @@ def merge_node(node_id):
             flash("You are not authorized to delete this node", "error")
             return redirect(url_for("botintegration.index"))
 
-        result = tree_node_service.merge_node(node_id, current_user.id)
-        flash(
-            "Node deleted successfully!" if result else "Error deleting node",
-            "success" if result else "error",
-        )
+        result, status_code = tree_node_service.merge_node(node_id, current_user.id)
+
+        if status_code != 200:
+            flash(f"Error: {result.get('error', 'Unknown error')}", "error")
+        else:
+            flash(result.get('message', 'Node run successfully!'), "success")
+
         return redirect(url_for("botintegration.index"))
     except Exception as e:
         db.session.rollback()
+        print(str(e))
         flash(f"Error: {str(e)}", "danger")
         return redirect(url_for("botintegration.index"))
 
@@ -260,9 +257,6 @@ def save_node_states():
     data = request.get_json()
     open_nodes = data.get("open_nodes")
 
-    # Aquí puedes guardar el estado de los nodos en la sesión
     session["open_nodes"] = open_nodes
-
-    # O hacer cualquier otro procesamiento que desees
 
     return jsonify({"status": "success", "message": "Estado guardado correctamente"})

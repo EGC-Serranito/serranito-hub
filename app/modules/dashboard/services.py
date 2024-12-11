@@ -12,14 +12,14 @@ class DashBoardService(BaseService):
 
     def get_all_author_names_and_dataset_counts(self):
         author_data = self.dashboard_repository.get_author_names_and_dataset_counts()
-        author_names = [data.name for data in author_data]
-        dataset_counts = [data.dataset_count for data in author_data]
+        author_names = [data[0] for data in author_data]
+        dataset_counts = [data[1] for data in author_data]
         return author_names, dataset_counts
 
     def get_all_author_names_and_view_counts(self):
         author_data = self.dashboard_repository.get_author_names_and_view_counts()
-        author_names = [data.name for data in author_data]
-        view_counts = [data.view_count for data in author_data]
+        author_names = [data[0] for data in author_data]
+        view_counts = [data[1] for data in author_data]
         return author_names, view_counts
 
     def get_datasets_and_total_sizes(self):
@@ -34,8 +34,6 @@ class DashBoardService(BaseService):
 
     def get_views_over_time_with_filter(self, filter_type="day"):
         result = self.dashboard_repository.get_views_over_time(filter_type)
-        if not result:
-            return [], []
         dates = [record.view_dates for record in result]
         view_counts = [record.view_counts_over_time for record in result]
         return dates, view_counts

@@ -16,6 +16,8 @@ class ConfigManager:
             self.app.config.from_object(TestingConfig)
         elif config_name == 'production':
             self.app.config.from_object(ProductionConfig)
+        elif config_name == 'externalDB':
+            self.app.config.from_object(ExternalDBConfig)
         else:
             self.app.config.from_object(DevelopmentConfig)
 
@@ -49,6 +51,16 @@ class TestingConfig(Config):
         f"{os.getenv('MARIADB_TEST_DATABASE', 'default_db')}"
     )
     WTF_CSRF_ENABLED = False
+
+
+class ExternalDBConfig(Config):
+    SQLALCHEMY_DATABASE_URI = (
+        f"mysql+pymysql://{os.getenv('EXTERNAL_DB_USER')}:"
+        f"{os.getenv('EXTERNAL_DB_PASSWORD')}@"
+        f"{os.getenv('EXTERNAL_DB_HOST')}:{os.getenv('EXTERNAL_DB_PORT')}/"
+        f"{os.getenv('EXTERNAL_DB_NAME')}"
+    )
+    DEBUG = True
 
 
 class ProductionConfig(Config):
