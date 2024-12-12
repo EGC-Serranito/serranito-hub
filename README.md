@@ -44,7 +44,7 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 
 
 
-  #
+  ## Ubuntu Partition Manual
 
   ## Project Objectives
 
