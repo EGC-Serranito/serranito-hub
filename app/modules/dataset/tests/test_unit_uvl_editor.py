@@ -65,7 +65,6 @@ def mock_user():
         user.profile.name = "John"
         user.profile.affiliation = "Test Affiliation"
         user.profile.orcid = "ORCID1234"
-        user.temp_folder.return_value = "/tmp/test_user"
         return user
 
 
