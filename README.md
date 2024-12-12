@@ -44,7 +44,7 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 
 
 
-  ## Ubuntu Partition Manual
+  #
 
   ## Project Objectives
 
@@ -65,6 +65,74 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
     <img src="app/static/img/readme/tag.png" alt="image" width="600"/>
   </div>
 
+
+### WI Rate Datasets
+
+  - 
+
+  <div align=center>
+    <img src="app/static/img/readme/Rate.png" alt="image" width="600"/>
+  </div>
+
+
+### Upload, analyse and repair UVL
+
+  -
+
+  <div align=center>
+    <img src="app/static/img/readme/Upload, analyse and repair UVL.png" alt="image" width="600"/>
+  </div>
+
+### Improve UI
+  
+  -
+
+  <div align=center>
+    <img src="app/static/img/readme/Improve UI.png" alt="image" width="600"/>
+  </div>
+
+  ### New testcase
+  
+  -
+
+ ### UVL editor
+  
+  -
+
+  <div align=center>
+    <img src="app/static/img/readme/UVL Editor.png" alt="image" width="600"/>
+  </div>
+
+ ### Download all dataset
+  
+  -
+
+  <div align=center>
+    <img src="app/static/img/readme/Download all dataset.png" alt="image" width="600"/>
+  </div>
+
+### Fakenodo
+
+  - 
+
+### Sign up validation
+
+  -
+
+### Bot integration
+
+  -
+  <div align=center>
+    <img src="app/static/img/readme/Bot integration.png" alt="image" width="600"/>
+  </div>
+
+
+### Dashboard
+
+  -
+  <div align=center>
+    <img src="app/static/img/readme/dashboard.png" alt="image" width="600"/>
+  </div>
 
 
 
