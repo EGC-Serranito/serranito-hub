@@ -14,7 +14,11 @@ class BotIntegrationBehavior(TaskSet):
         csrf_token = get_csrf_token(response)
         self.client.post(
             "/login",
-            data={"username": "test_user", "password": "test_pass", "csrf_token": csrf_token}
+            data={
+                "username": "test_user",
+                "password": "test_pass",
+                "csrf_token": csrf_token,
+            },
         )
 
     @task
@@ -30,7 +34,7 @@ class BotIntegrationBehavior(TaskSet):
         csrf_token = get_csrf_token(response)
         self.client.post(
             "/botintegration/add-bot",
-            data={"name": "TestBot", "parent_id": "", "csrf_token": csrf_token}
+            data={"name": "TestBot", "parent_id": "", "csrf_token": csrf_token},
         )
 
     @task
@@ -40,7 +44,7 @@ class BotIntegrationBehavior(TaskSet):
         csrf_token = get_csrf_token(response)
         self.client.post(
             "/botintegration/add-chat",
-            data={"name": "TestChat", "parent_id": "", "csrf_token": csrf_token}
+            data={"name": "TestChat", "parent_id": "", "csrf_token": csrf_token},
         )
 
     @task
@@ -50,7 +54,7 @@ class BotIntegrationBehavior(TaskSet):
         csrf_token = get_csrf_token(response)
         self.client.post(
             "/botintegration/add-feature",
-            data={"name": "TestFeature", "parent_id": "", "csrf_token": csrf_token}
+            data={"name": "TestFeature", "parent_id": "", "csrf_token": csrf_token},
         )
 
     @task
@@ -72,7 +76,21 @@ class BotIntegrationBehavior(TaskSet):
         """Prueba la funcionalidad de guardar el estado de los nodos."""
         self.client.post(
             "/save_node_states",
-            json={"open_nodes": [1, 2, 3]}  # Ejemplo de nodos abiertos
+            json={"open_nodes": [1, 2, 3]},  # Ejemplo de nodos abiertos
+        )
+
+    @task
+    def add_types_notification(self):
+        """Prueba la funcionalidad de agregar un tipo de notificación."""
+        response = self.client.get("/botintegration/add-types-notification")
+        csrf_token = get_csrf_token(response)
+        self.client.post(
+            "/botintegration/add-types-notification",
+            data={
+                "name": "TestNotification",
+                "parent_id": "",
+                "csrf_token": csrf_token,
+            },
         )
 
 
