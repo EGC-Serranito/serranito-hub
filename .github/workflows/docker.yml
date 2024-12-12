@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   build-and-push:
@@ -25,7 +25,7 @@ jobs:
 
       - name: Build and tag Docker image
         run: |
-          docker build -t megamagolas/serranito-hub:latest -f docker-compose.dev.yml .
+          docker build -t megamagolas/serranito-hub:latest -f ./docker/images/Dockerfile.dev .
 
       - name: Push Docker image to DockerHub
         run: |
