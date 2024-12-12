@@ -135,5 +135,6 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
   </div>
 
 
+---
 
 You can consult the official documentation of the project at [docs.uvlhub.io](https://docs.uvlhub.io/)
