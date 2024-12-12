@@ -45,6 +45,10 @@ RUN pip install --no-cache-dir --upgrade pip
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
+RUN pip install -e ./
+RUN rosemary db:reset --yes
+RUN rosemary db:migrate
+RUN rosemary db:seed
 
 # Expose port 80
 EXPOSE 80
