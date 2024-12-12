@@ -1,0 +1,40 @@
+name: Auto Merge Ship PRs
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  auto-merge:
+    if: contains(github.event.pull_request.title, 'ship') # Solo ejecuta si el título contiene "ship"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update && sudo apt-get install -y gh jq
+
+      - name: Authenticate GitHub CLI
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          echo "${ADMIN_TOKEN}" | gh auth login --with-token
+
+      - name: Auto-merge PR
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          # Extract PR details
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_MERGEABLE=$(gh pr view "$PR_NUMBER" --json mergeable -q '.mergeable')
+          # Merge PR if it's mergeable
+          if [ "$PR_MERGEABLE" = "MERGEABLE" ]; then
+            echo "PR #$PR_NUMBER is mergeable. Proceeding to merge..."
+            gh pr merge "$PR_NUMBER" --merge --auto
+            echo "PR #$PR_NUMBER merged successfully."
+          else
+            echo "PR #$PR_NUMBER is not mergeable. Skipping merge."
+          fi
