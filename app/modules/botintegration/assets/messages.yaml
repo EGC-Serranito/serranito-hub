@@ -6,11 +6,7 @@ messages:
   DATASET:
     message: "📊 *Dataset Management Enabled*\n\n📂 *Here are your synchronized datasets:*\n\n{datasets}*Thank you for using our service!*"
     feature: "DATASET"
-
-  EXPLORE:
-    message: "🔍 Exploration mode is ready. Explore areas such as {explore_areas}, analyze {analysis_types}, and uncover insights from your data. Top features and models include {top_features}."
-    feature: "EXPLORE"
-
+  
   FLAMAPY:
     message: "🚀 Flamapy integration activated!\nSend your UVL code and we will validate it instantly."
     feature: "FLAMAPY"

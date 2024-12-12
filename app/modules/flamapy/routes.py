@@ -1,6 +1,6 @@
 import logging
 from app.modules.hubfile.services import HubfileService
-from flask import send_file, jsonify, request
+from flask import send_file, jsonify
 from app.modules.flamapy import flamapy_bp
 from flamapy.metamodels.fm_metamodel.transformations import (
     UVLReader,
@@ -17,40 +17,6 @@ from uvl.UVLPythonParser import UVLPythonParser
 from antlr4.error.ErrorListener import ErrorListener
 
 logger = logging.getLogger(__name__)
-
-
-@flamapy_bp.route("/flamapy/check_uvl", methods=["POST"])
-def check_uvl_text():
-    class CustomErrorListener(ErrorListener):
-        def __init__(self):
-            self.errors = []
-
-        def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-            self.errors.append(f"Line {line}:{column} - {msg}")
-
-    try:
-        # Obtener el texto UVL desde el cuerpo de la solicitud
-        data = request.get_json()
-        if not data or "text" not in data:
-            return jsonify({"error": "Missing 'text' in request body"}), 400
-
-        uvl_text = data["text"]
-
-        # Validación usando UVLReader
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".uvl") as temp_file:
-            temp_file.write(uvl_text.encode("utf-8"))
-            temp_path = temp_file.name
-
-        try:
-            UVLReader(temp_path).transform()  # Lee y valida el modelo UVL
-        except Exception as e:
-            return jsonify({"error": f"UVLReader validation failed: {str(e)}"}), 400
-
-        # Si todo es válido
-        return jsonify({"message": "Valid Model"}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 
 @flamapy_bp.route("/flamapy/check_uvl/<int:file_id>", methods=["GET"])
