@@ -131,7 +131,7 @@ var currentId = 0;
 
         window.onload = function () {
 
-            test_zenodo_connection();
+            // test_zenodo_connection();
 
             document.getElementById('upload_button').addEventListener('click', function () {
 
@@ -198,7 +198,11 @@ var currentId = 0;
 
 
                     if (checked_orcid && checked_name) {
-                        fetch('/dataset/upload', {
+                        const dataset_id = window.location.href.split("/").pop()
+                        const url = document.getElementById("upload_button").getAttribute("update-type") != null ?
+                            "/dataset/update/"+dataset_id :
+                            '/dataset/upload'
+                        fetch(url, {
                             method: 'POST',
                             body: formUploadData
                         })
@@ -211,6 +215,7 @@ var currentId = 0;
                                     });
                                 } else {
                                     response.json().then(data => {
+                                        console.log(data)
                                         console.error('Error: ' + data.message);
                                         hide_loading();
 

@@ -45,10 +45,10 @@ class BotIntegrationRepository(BaseRepository):
         :return: None
         """
         try:
-            db.session.query(TreeNodeBot).delete()  # Eliminar todos los registros de la tabla TreeNodeBot
-            db.session.commit()  # Confirmar los cambios
+            db.session.query(TreeNodeBot).delete()
+            db.session.commit()
         except SQLAlchemyError as e:
-            db.session.rollback()  # Revertir los cambios en caso de error
+            db.session.rollback()
             raise e
 
     def save_bot_tree_to_db(self, root_node):
@@ -66,36 +66,45 @@ class BotIntegrationRepository(BaseRepository):
                 :param parent_id: ID del nodo padre en la base de datos.
                 :param parent_path: Ruta del nodo padre.
                 """
-                # Generar el path para el nodo actual
+
                 node["path"] = f"{parent_path}/{node['name']}".strip("/")
 
-                # Crear un nuevo nodo en la base de datos
                 new_node = TreeNodeBot(
                     name=node["name"],
                     parent_id=parent_id,
-                    path=node["path"],  # Ahora el path está asegurado
-                    single_child=node.get("single_child", False)  # Valor por defecto es False si no se proporciona.
+                    path=node["path"],
+                    single_child=node.get("single_child", False)
                 )
 
                 # Añadir el nodo a la sesión
                 db.session.add(new_node)
-                db.session.commit()  # Commit para obtener el ID generado para este nodo
+                db.session.commit()
 
-                # Recursivamente guardar los hijos del nodo actual
                 for child in node.get("children", []):
                     save_node(child, new_node.id, node["path"])
 
-            # Comienza guardando el árbol desde el nodo raíz
             save_node(root_node)
-            db.session.commit()  # Confirmar todos los cambios realizados
+            db.session.commit()
         except SQLAlchemyError:
-            db.session.rollback()  # Revertir los cambios en caso de error
-            # Devolver un mensaje controlado de error sin imprimirlo
+            db.session.rollback()
             return {"error": "Error al guardar el árbol en la base de datos. Intente nuevamente."}, 500
+
+    def get_children_count(self, node_id):
+        """
+        Obtiene el número de hijos de un nodo específico basado en su ID.
+
+        :param node_id: ID del nodo para el cual contar los hijos.
+        :return: El número de hijos del nodo.
+        """
+        try:
+            children_count = db.session.query(TreeNode).filter(TreeNode.parent_id == node_id).count()
+            return children_count
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            raise e
 
     def create_node_route_add_chat(self, user_id, name, parent_id, path, single_child):
         try:
-            # Crear el nodo principal
             new_node = TreeNode(
                 user_id=user_id,
                 name=name,
@@ -106,7 +115,6 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(new_node)
             db.session.commit()
 
-            # Crear nodos hijos
             path_child_one_node = f"{path}/0"
             child_one_node = TreeNode(
                 user_id=user_id,
@@ -118,7 +126,6 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(child_one_node)
             db.session.commit()
 
-            # Continuar agregando más nodos hijos en la jerarquía
             path_child_types_node = f"{path_child_one_node}/5"
             types_node = TreeNode(
                 user_id=user_id,
@@ -163,7 +170,7 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(features_node)
             db.session.commit()
 
-            return new_node
+            return {"message": "Node created successfully!", "node": new_node}, 200
 
         except Exception as e:
             db.session.rollback()
@@ -225,7 +232,7 @@ class BotIntegrationRepository(BaseRepository):
                 db.session.add(child_one_node)
                 db.session.commit()
 
-            return new_node
+            return {"message": "Node created successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
@@ -241,7 +248,7 @@ class BotIntegrationRepository(BaseRepository):
             )
             db.session.add(new_node)
             db.session.commit()
-            return new_node
+            return {"message": "Node created successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
@@ -262,7 +269,7 @@ class BotIntegrationRepository(BaseRepository):
             )
             db.session.add(new_node)
             db.session.commit()
-            return new_node
+            return {"message": "Node created successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
@@ -275,12 +282,10 @@ class BotIntegrationRepository(BaseRepository):
         :return: Lista de nodos TreeNodeBot que coinciden con el path dado.
         """
         try:
-            # Realizar la consulta en la base de datos para obtener los nodos de tipo TreeNodeBot
             nodes = db.session.query(TreeNodeBot).filter(TreeNodeBot.path == node_path).all()
 
             return nodes
         except SQLAlchemyError as e:
-            # Manejo de errores en caso de que la consulta falle
             print(f"Error fetching nodes by path: {e}")
             return []
 
@@ -292,36 +297,27 @@ class BotIntegrationRepository(BaseRepository):
         :return: True si se eliminó correctamente, False en caso de error.
         """
         try:
-            # Recuperar el nodo con el node_id
 
             node_to_delete = db.session.query(TreeNode).filter(TreeNode.id == node_id).first()
 
             if node_to_delete:
-                # Obtener el path del nodo
                 node_path = node_to_delete.path.replace("/1/", "/0/")
                 print(node_path)
-
-                # Eliminar los registros en TreeNodeBot con el mismo path
                 db.session.query(TreeNodeBot).filter(TreeNodeBot.path == node_path).delete()
 
                 node_path = node_to_delete.path.replace("/0/", "/1/")
                 print(node_path)
-                # Eliminar los registros en TreeNodeBot con el mismo path
                 db.session.query(TreeNodeBot).filter(TreeNodeBot.path == node_path).delete()
 
-                # Eliminar el nodo de la tabla TreeNode
                 db.session.query(TreeNode).filter(TreeNode.id == node_id).delete()
 
-                # Confirmar cambios
                 db.session.commit()
                 return True
             else:
-                # Si no se encuentra el nodo
                 print(f"Node with ID {node_id} not found.")
                 return False
 
         except SQLAlchemyError as e:
-            # Si hay algún error, revertimos la transacción
             db.session.rollback()
             print(f"Error deleting node: {e}")
             return False
