@@ -170,7 +170,7 @@ class BotIntegrationRepository(BaseRepository):
             db.session.add(features_node)
             db.session.commit()
 
-            return {"message": "Node created successfully!", "node": new_node}, 200
+            return {"message": "Chat created successfully!", "node": new_node}, 200
 
         except Exception as e:
             db.session.rollback()
@@ -232,7 +232,7 @@ class BotIntegrationRepository(BaseRepository):
                 db.session.add(child_one_node)
                 db.session.commit()
 
-            return {"message": "Node created successfully!", "node": new_node}, 200
+            return {"message": "Bot created successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
@@ -248,7 +248,7 @@ class BotIntegrationRepository(BaseRepository):
             )
             db.session.add(new_node)
             db.session.commit()
-            return {"message": "Node created successfully!", "node": new_node}, 200
+            return {"message": "Feature created successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
@@ -269,7 +269,7 @@ class BotIntegrationRepository(BaseRepository):
             )
             db.session.add(new_node)
             db.session.commit()
-            return {"message": "Node created successfully!", "node": new_node}, 200
+            return {"message": "Frequency add successfully!", "node": new_node}, 200
         except Exception as e:
             db.session.rollback()
             raise e
