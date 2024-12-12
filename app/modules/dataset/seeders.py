@@ -45,28 +45,6 @@ class DataSetSeeder(BaseSeeder):
             )
             for i in range(4)
         ]
-        ds_meta_data_1 = DSMetaData(
-                deposition_id=10,
-                title=f"Sample dataset {10}",
-                description=f"Description for dataset {10}",
-                publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
-                publication_doi=f"10.1234/dataset{10}",
-                dataset_doi=f"10.1234/dataset{10}",
-                tags="tag1, tag2",
-                ds_metrics_id=seeded_ds_metrics.id,
-            )
-        ds_meta_data_2 = DSMetaData(
-                deposition_id=11,
-                title=f"Sample dataset {11}",
-                description=f"Description for dataset {11}",
-                publication_type=PublicationType.DATA_MANAGEMENT_PLAN,
-                publication_doi=f"10.1234/dataset{11}",
-                dataset_doi=f"10.1234/dataset{11}",
-                tags="tag1, tag2",
-                ds_metrics_id=seeded_ds_metrics.id,
-            )
-        ds_meta_data_list.append(ds_meta_data_1)
-        ds_meta_data_list.append(ds_meta_data_2)
         seeded_ds_meta_data = self.seed(ds_meta_data_list)
 
         # Create Author instances and associate with DSMetaData
@@ -90,22 +68,6 @@ class DataSetSeeder(BaseSeeder):
             )
             for i in range(4)
         ]
-        dataset1 = DataSet(
-                    id=100,
-                    user_id=user1.id,
-                    ds_meta_data_id=seeded_ds_meta_data[-2].id,
-                    created_at=datetime.now(timezone.utc),
-                )
-        dataset2 = DataSet(
-                    id=101,
-                    user_id=user1.id,
-                    ds_meta_data_id=seeded_ds_meta_data[-1].id,
-                    version=2,
-                    last_version=dataset1,
-                    created_at=datetime.now(timezone.utc),
-                )
-        datasets.append(dataset1)
-        datasets.append(dataset2)
         seeded_datasets = self.seed(datasets)
 
         # Assume there are 12 UVL files, create corresponding FMMetaData and FeatureModel

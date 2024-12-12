@@ -313,7 +313,7 @@
                     </div>
                     <div class="col-12 text-end">
 
-                        <button onclick="openEditFile('{{ file.id }}')" class="btn btn-outline-secondary btn-sm"
+                        <button id="open-edit-file" onclick="openEditFile('{{ file.id }}')" class="btn btn-outline-secondary btn-sm"
                             style="border-radius: 5px; background-color: #28a745;; color: white;">
                             <i data-feather="edit"></i> Edit
                         </button>
@@ -471,7 +471,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
-            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
+            <div id="file-content-modal" class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
                 <pre id="fileContent"
                     style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
             </div>
@@ -479,20 +479,20 @@
     </div>
 </div>
 
-<div class="modal fade" id="fileEditModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
+<div class="modal fade" id="file-edit-modal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" style="height: 80vh; display: flex; align-items: center;">
         <div class="modal-content" style="height: 80vh;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h5 class="modal-title" id="fileViewerModalLabel">Feature model view</h5>
                 <div>
-                    <button onclick="editFile()" class="btn btn-outline-success btn-sm"
+                    <button id="file-edit-buttom" onclick="editFile()" class="btn btn-outline-success btn-sm"
                         style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
                         <i data-feather="save"></i> Save edit
                     </button>
-                    <a href="#" class="btn btn-outline-primary btn-sm" id="downloadButton"
+                    <button class="btn btn-outline-primary btn-sm" id="downloadEditButton" onclick="downloadEditFile()"
                         style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
-                        <i data-feather="download"></i>
-                    </a>
+                        <i data-feather="download"></i> Download edit
+                    </button>
                     <button onclick="copyToClipboard()" class="btn btn-outline-secondary btn-sm"
                         style="margin-right: 5px; margin-bottom: 5px; border-radius: 5px;">
                         <i data-feather="copy"></i>
@@ -500,9 +500,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
-            <div class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
+            <div id="file-edit-content-modal" class="modal-body" style="overflow-y: auto; height: calc(100vh - 50px);">
                 <pre id="fileEditContent" contenteditable="true"
-                    style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; background-color: #21262d; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
+                     style="height: 100%; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; padding: 20px; border-radius: 5px; border: 1px solid #ccc;"></pre>
             </div>
         </div>
     </div>
@@ -517,7 +517,21 @@
     });
 
     let currentFileId;
+    let editFilename;
     // UVL-EDITOR
+
+    function downloadEditFile(){
+        const text = document.getElementById('fileEditContent').textContent
+        const filename = editFilename
+        const blod = new Blob([text], {type: "text/plain"});
+        
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blod)
+        link.download = filename;
+
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
 
     function editFile(){
         const text = document.getElementById('fileEditContent').textContent
@@ -531,7 +545,8 @@
             .then(data => {
                 document.getElementById('fileEditContent').textContent = data.content;
                 currentFileId = fileId;
-                var modal = new bootstrap.Modal(document.getElementById('fileEditModal'));
+                editFilename = data.filename;
+                var modal = new bootstrap.Modal(document.getElementById('file-edit-modal'));
                 modal.show();
             })
             .catch(error => console.error('Error loading file:', error));
