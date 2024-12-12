@@ -6,7 +6,7 @@ on:
 
 jobs:
   auto-merge:
-    if: contains(github.event.pull_request.title, 'ship') # Solo ejecuta si el título contiene "ship"
+    if: contains(github.event.pull_request.title, 'ship-') || contains(github.event.pull_request.title, 'ship -')
     runs-on: ubuntu-latest
 
     steps:
