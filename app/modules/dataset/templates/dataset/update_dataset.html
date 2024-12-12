@@ -262,6 +262,7 @@
 
                                 // actions when UVL model is uploaded
                                 let listItem = document.createElement('li');
+                                listItem.className = 'upload-custom';
                                 let h4Element = document.createElement('h4');
                                 h4Element.textContent = response.filename || response.name;
                                 listItem.appendChild(h4Element);
