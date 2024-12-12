@@ -21,7 +21,7 @@ class TestSeleniumupdateuvl:
         self.driver.find_element(By.ID, "email").send_keys("user1@example.com")
         self.driver.find_element(By.ID, "password").send_keys("1234")
         self.driver.find_element(By.ID, "submit").click()
-        self.driver.find_element(By.ID, "dataset-133").click()
+        self.driver.find_element(By.ID, "dataset-4").click()
         self.driver.find_element(By.ID, "open-edit-file").click()
         WebDriverWait(self.driver, 10).until(
             EC.visibility_of_element_located((By.ID, "file-edit-modal"))
