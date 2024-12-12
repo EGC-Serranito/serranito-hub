@@ -131,7 +131,10 @@ class TestUpdateFromForm(unittest.TestCase):
                 )
 
             # Verificar el mensaje de la excepción
-            self.assertEqual(str(context.exception), "If last_dataset_id is None, you must to do create")
+            self.assertEqual(
+                str(context.exception),
+                "If last_dataset_id is None, you must to do create",
+            )
             self.service.repository.session.rollback.assert_called_once()
             self.service.repository.session.commit.assert_not_called()
 

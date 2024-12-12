@@ -35,7 +35,7 @@ class TestSeleniumupdateuvl:
         self.driver.find_element(By.ID, "file-edit-buttom").click()
         self.driver.find_element(By.CSS_SELECTOR, ".col-12 > .row:nth-child(2)").click()
         self.driver.find_element(By.ID, "publication_doi").clear()
- 
+
         checkbox = self.driver.find_element(By.ID, "agree-checkbox")
         self.driver.execute_script("arguments[0].scrollIntoView(true);", checkbox)
 

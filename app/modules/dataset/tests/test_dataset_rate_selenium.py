@@ -28,9 +28,7 @@ class TestTestdatasetrateselenium:
 
         self.driver.find_element(By.CSS_SELECTOR, ".btn-primary:nth-child(3)").click()
 
-        WebDriverWait(self.driver, 10).until(
-            EC.alert_is_present()
-        )
+        WebDriverWait(self.driver, 10).until(EC.alert_is_present())
 
         alert = self.driver.switch_to.alert
         assert alert.text == "Rating sent successfully"
