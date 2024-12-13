@@ -12,11 +12,14 @@ class SignupBehavior(TaskSet):
         response = self.client.get("/signup")
         csrf_token = get_csrf_token(response)
 
-        response = self.client.post("/signup", data={
-            "email": fake.email(),
-            "password": fake.password(),
-            "csrf_token": csrf_token
-        })
+        response = self.client.post(
+            "/signup",
+            data={
+                "email": fake.email(),
+                "password": fake.password(),
+                "csrf_token": csrf_token,
+            },
+        )
         if response.status_code != 200:
             print(f"Signup failed: {response.status_code}")
 
@@ -42,17 +45,28 @@ class LoginBehavior(TaskSet):
 
         csrf_token = get_csrf_token(response)
 
-        response = self.client.post("/login", data={
-            "email": 'user1@example.com',
-            "password": '1234',
-            "csrf_token": csrf_token
-        })
+        response = self.client.post(
+            "/login",
+            data={
+                "email": "user1@example.com",
+                "password": "1234",
+                "csrf_token": csrf_token,
+            },
+        )
         if response.status_code != 200:
             print(f"Login failed: {response.status_code}")
 
 
+class LogoutBehavior(TaskSet):
+    @task
+    def logout(self):
+        response = self.client.get("/logout")
+        if response.status_code != 200:
+            print(f"Logout failed: {response.status_code}")
+
+
 class AuthUser(HttpUser):
-    tasks = [SignupBehavior, LoginBehavior]
+    tasks = [SignupBehavior, LoginBehavior, LogoutBehavior]
     min_wait = 5000
     max_wait = 9000
     host = get_host_for_locust_testing()
