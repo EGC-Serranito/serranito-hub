@@ -36,8 +36,8 @@ class DashBoardService(BaseService):
 
     def get_views_over_time_with_filter(self, filter_type="day"):
         result = self.dashboard_repository.get_views_over_time(filter_type)
-        dates = [record.view_dates for record in result]
-        view_counts = [record.view_counts_over_time for record in result]
+        dates = [record[0] for record in result]
+        view_counts = [record[1]for record in result]
         return dates, view_counts
 
     def get_publication_types_data(self):
