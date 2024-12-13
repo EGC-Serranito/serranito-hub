@@ -6,9 +6,7 @@ on:
 
 jobs:
   auto-merge:
-    if: startsWith(github.event.pull_request.title, 'ship')
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,40 +24,56 @@ jobs:
       - name: Check PR status and merge
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GITHUB_EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_EVENT_PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          # Extract the PR number from the GitHub event
-          PR_NUMBER=${{ github.event.pull_request.number }}
+          # Extract PR number and title
+          PR_NUMBER=$GITHUB_EVENT_PR_NUMBER
+          PR_TITLE=$GITHUB_EVENT_PR_TITLE
 
-          # Initialize the FAILURE_COUNT condition
-          FAILED_COUNT=0
+          if [[ "$PR_TITLE" == ship* ]]; then
+            echo "Processing PR #$PR_NUMBER with title: $PR_TITLE"
 
-          # Loop to check the status until there is exactly one failed workflow
-          while [ "$FAILED_COUNT" -ne 1 ]; do
-            # Get PR details using GitHub CLI's statusCheckRollup query
-            pr=$(gh pr view "$PR_NUMBER" --json statusCheckRollup)
-
-            # Count how many workflows have failed (conclusion != "SUCCESS")
-            FAILED_COUNT=$(echo "$pr" | jq -r '[.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | length')
-
-            # Check if all checks passed or if exactly one check failed
-            if [ "$FAILED_COUNT" -eq 0 ] || [ "$FAILED_COUNT" -eq 1 ]; then
-              echo "All checks have passed or exactly one check has failed for PR #$PR_NUMBER. Verifying mergeable status..."
-
-              # Check if the PR is mergeable
-              PR_MERGEABLE=$(gh pr view "$PR_NUMBER" --json mergeable -q '.mergeable')
-
-              # Merge the PR if it is mergeable
-              if [ "$PR_MERGEABLE" = "MERGEABLE" ]; then
-                echo "PR #$PR_NUMBER is mergeable. Proceeding to merge..."
-                gh pr merge "$PR_NUMBER" --merge --auto
-                echo "PR #$PR_NUMBER merged successfully."
-                break  # Exit the loop after merging the PR
-              else
-                echo "PR #$PR_NUMBER is not mergeable. Skipping merge."
-                break  # Exit the loop if the PR is not mergeable
+            # Loop to check the status until there is exactly one failed workflow
+            while true; do
+              # Get PR details using GitHub CLI
+              pr_status=$(gh pr view "$PR_NUMBER" --json statusCheckRollup)
+              if [ $? -ne 0 ]; then
+                echo "Error fetching PR details. Retrying..."
+                sleep 10
+                continue
               fi
-            else
-              echo "Not all checks have passed for PR #$PR_NUMBER. Waiting for checks to pass. Current failed count: $FAILED_COUNT."
-              sleep 10  # Wait for 30 seconds before checking again
-            fi
-          done
+
+              # Count how many workflows have failed
+              FAILED_COUNT=$(echo "$pr_status" | jq -r '[.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | length')
+
+              echo "Failed checks count for PR #$PR_NUMBER: $FAILED_COUNT"
+
+              if [ "$FAILED_COUNT" -eq 0 ] || [ "$FAILED_COUNT" -eq 1 ]; then
+                echo "All checks passed or exactly one failed. Verifying mergeable status for PR #$PR_NUMBER..."
+
+                # Check if the PR is mergeable
+                PR_MERGEABLE=$(gh pr view "$PR_NUMBER" --json mergeable -q '.mergeable')
+
+                if [ "$PR_MERGEABLE" = "MERGEABLE" ]; then
+                  echo "PR #$PR_NUMBER is mergeable. Proceeding to merge..."
+                  gh pr merge "$PR_NUMBER" --merge --auto
+                  if [ $? -eq 0 ]; then
+                    echo "PR #$PR_NUMBER merged successfully."
+                    break
+                  else
+                    echo "Failed to merge PR #$PR_NUMBER. Exiting."
+                    exit 1
+                  fi
+                else
+                  echo "PR #$PR_NUMBER is not mergeable. Exiting loop."
+                  break
+                fi
+              else
+                echo "Not all checks have passed for PR #$PR_NUMBER. Retrying in 10 seconds..."
+                sleep 10
+              fi
+            done
+          else
+            echo "PR title does not start with 'ship'. Skipping."
+          fi
