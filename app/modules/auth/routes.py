@@ -57,7 +57,8 @@ def login():
     if request.method == 'POST' and form.validate_on_submit():
         if authentication_service.login(form.email.data, form.password.data):
             return redirect(url_for('public.index'))
-        if not authentication_service.is_email_verified(form.email.data):
+        if (not authentication_service.is_email_available(form.email.data) and
+                not authentication_service.is_email_verified(form.email.data)):
             authentication_service.send_confirmation_email(form.email.data)
             return render_template("auth/login_form.html", form=form,
                                    error='Email not verified. Please check your email')
