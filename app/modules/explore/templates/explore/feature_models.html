@@ -18,26 +18,27 @@ Feature Models
         </div>
     </div>
 
-    <!-- Barra de Búsqueda con Icono Lupa Interactivo -->
-    <div class="mb-4">
-        <div class="search-container">
-            <div class="input-group input-group-lg">
-                <!-- Icono Lupa Estilizado -->
-                <span class="input-group-text bg-gradient-info text-white search-icon-container">
-                    <i class="bi bi-search search-icon"></i>
-                </span>
-                <input 
-                    type="text"
-                    class="form-control"
-                    id="searchInput"
-                    placeholder="Search Feature Models..."
-                    oninput="filterFeatureModels()" 
-                    onfocus="addFocusStyle()" 
-                    onblur="removeFocusStyle()"
-                >
-            </div>
+  <!-- Barra de Búsqueda con Icono Lupa Interactivo -->
+<div class="mb-4">
+    <div class="search-container">
+        <div class="input-group input-group-lg">
+            <!-- Icono Lupa Estilizado -->
+            <span class="input-group-text">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input 
+                type="text"
+                class="custom-search"
+                id="searchInput"
+                placeholder="Search Feature Models..."
+                oninput="filterFeatureModels()" 
+                onfocus="addFocusStyle()" 
+                onblur="removeFocusStyle()"
+            >
         </div>
     </div>
+</div>
+
 
    <!-- Contenedor con Barra de Scroll -->
    <div class="row">
@@ -73,11 +74,11 @@ Feature Models
                                     <button class="btn btn-outline-success btn-sm w-100 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i data-feather="download"></i> Export
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end" style="background-color: white; z-index: 1051; position: absolute; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); border-radius: 8px;">
-                                        <li><a class="dropdown-item" href="{{ url_for('hubfile.download_file', file_id=fm.id) }}">Download UVL</a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_glencoe', file_id=fm.id) }}">Glencoe Format</a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_cnf', file_id=fm.id) }}">DIMACS Format</a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('flamapy.to_splot', file_id=fm.id) }}">SPLOT Format</a></li>
+                                    <ul class="dropdown-menu dropdown-menu-end" 
+                                        <li><a class="custom-navar" href="{{ url_for('hubfile.download_file', file_id=fm.id) }}">Download UVL</a></li>
+                                        <li><a class="custom-navar" href="{{ url_for('flamapy.to_glencoe', file_id=fm.id) }}">Glencoe Format</a></li>
+                                        <li><a class="custom-navar" href="{{ url_for('flamapy.to_cnf', file_id=fm.id) }}">DIMACS Format</a></li>
+                                        <li><a class="custom-navar" href="{{ url_for('flamapy.to_splot', file_id=fm.id) }}">SPLOT Format</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -172,11 +173,6 @@ Feature Models
 
 <!-- Estilización con CSS Adicional -->
 <style>
-    .search-container {
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
 
 
     .welcome-card {
@@ -207,18 +203,7 @@ Feature Models
         color: white;
     }
 
-    .dropdown-menu {
-        background-color: white !important;
-        z-index: 1051;
-        position: absolute;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-        border-radius: 8px;
-        min-width: 200px;
-    }
 
-    .dropdown-item {
-        color: #28a745;
-    }
 
     .dropdown-item:hover {
         background-color: #28a745;
@@ -266,6 +251,7 @@ Feature Models
         border-radius: 8px;
         background-color: #f9f9f9;
     }
+    
 
 </style>
 {% endblock %}
