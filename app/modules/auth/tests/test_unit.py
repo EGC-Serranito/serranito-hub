@@ -6,6 +6,7 @@ from app.modules.profile.repositories import UserProfileRepository
 from unittest.mock import patch, MagicMock
 from itsdangerous import SignatureExpired, BadTimeSignature
 
+
 def test_service_create_with_profie_success(test_app, clean_database):
     data = {
         "name": "Test",
@@ -36,6 +37,7 @@ def test_service_create_with_profile_fail_no_email(test_app, clean_database):
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
 
+
 def test_service_create_with_profile_fail_no_name(test_app, clean_database):
     data = {
         "name": "",
@@ -50,6 +52,7 @@ def test_service_create_with_profile_fail_no_name(test_app, clean_database):
 
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
+
 
 def test_service_create_with_profile_fail_no_surname(test_app, clean_database):
     data = {
@@ -66,6 +69,7 @@ def test_service_create_with_profile_fail_no_surname(test_app, clean_database):
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
 
+
 def test_service_create_with_profile_fail_no_password(test_app, clean_database):
     data = {
         "name": "Test",
@@ -81,6 +85,7 @@ def test_service_create_with_profile_fail_no_password(test_app, clean_database):
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
 
+
 def test_update_profile_success():
     mock_form = MagicMock()
     mock_form.validate.return_value = True
@@ -94,6 +99,7 @@ def test_update_profile_success():
         assert errors is None
         mock_update.assert_called_once_with(1, name="NewName", surname="NewSurname")
 
+
 def test_update_profile_fail_validation():
     mock_form = MagicMock()
     mock_form.validate.return_value = False
@@ -105,7 +111,6 @@ def test_update_profile_fail_validation():
     assert result is None
     assert errors == {"name": ["This field is required."]}
 
-from unittest.mock import patch
 
 def test_temp_folder_by_user():
     with patch("app.modules.auth.services.uploads_folder_name", return_value="/uploads"):
@@ -115,11 +120,13 @@ def test_temp_folder_by_user():
         folder = service.temp_folder_by_user(mock_user)
         assert folder == "/uploads/temp/1"
 
+
 def test_confirm_user_with_expired_token():
     with patch("app.modules.auth.services.URLSafeTimedSerializer.loads", side_effect=SignatureExpired("Token expired")):
         service = AuthenticationService()
         with pytest.raises(Exception, match="The confirmation link has expired."):
             service.confirm_user_with_token("expired_token")
+
 
 def test_confirm_user_with_tampered_token():
     with patch("app.modules.auth.services.URLSafeTimedSerializer.loads", side_effect=BadTimeSignature("Invalid token")):
