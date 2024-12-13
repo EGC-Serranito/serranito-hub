@@ -57,15 +57,6 @@ class LoginBehavior(TaskSet):
             print(f"Login failed: {response.status_code}")
 
 
-class ConfirmUserBehavior(TaskSet):
-    @task
-    def confirm_user(self):
-        token = "csrf_token"
-        response = self.client.get(f"/confirm_user/{token}")
-        if response.status_code != 200:
-            print(f"User confirmation failed: {response.status_code}")
-
-
 class LogoutBehavior(TaskSet):
     @task
     def logout(self):
@@ -75,7 +66,7 @@ class LogoutBehavior(TaskSet):
 
 
 class AuthUser(HttpUser):
-    tasks = [SignupBehavior, LoginBehavior, ConfirmUserBehavior, LogoutBehavior]
+    tasks = [SignupBehavior, LoginBehavior, LogoutBehavior]
     min_wait = 5000
     max_wait = 9000
     host = get_host_for_locust_testing()
