@@ -60,7 +60,7 @@ class LoginBehavior(TaskSet):
 class ConfirmUserBehavior(TaskSet):
     @task
     def confirm_user(self):
-        token = "test_token"  # Replace with a valid token for testing
+        token = "csrf_token"
         response = self.client.get(f"/confirm_user/{token}")
         if response.status_code != 200:
             print(f"User confirmation failed: {response.status_code}")
