@@ -6,7 +6,7 @@ on:
 
 jobs:
   auto-merge:
-    if: contains(github.event.pull_request.title, 'ship-') || contains(github.event.pull_request.title, 'ship -')
+    if: startsWith(github.event.pull_request.title, 'ship')
     runs-on: ubuntu-latest
 
     steps:
