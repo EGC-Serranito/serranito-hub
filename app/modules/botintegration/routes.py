@@ -63,6 +63,10 @@ def create_node_route_add_bot():
     user_id = current_user.id
     single_child = False
 
+    if not name:
+        flash("Add the bot that is mandatory and cannot be empty.", "error")
+        return redirect(url_for("botintegration.index"))
+
     path = "3"
     if parent_id:
         parent = TreeNode.query.get(parent_id)
@@ -139,6 +143,10 @@ def create_node_route_add_types_notification():
     user_id = current_user.id
     single_child = True
 
+    if not name:
+        flash("Add the frequency of the notification that is mandatory and cannot be empty.", "error")
+        return redirect(url_for("botintegration.index"))
+
     path = f"{user_id}/{name}"
     if parent_id:
         parent = TreeNode.query.get(parent_id)
@@ -177,6 +185,10 @@ def create_node_route_add_feature():
     name = form.name.data
     user_id = current_user.id
     single_child = False
+
+    if not name:
+        flash("Add the feature that is mandatory and cannot be empty.", "error")
+        return redirect(url_for("botintegration.index"))
 
     path = f"{user_id}/{name}"
     if parent_id:
@@ -217,7 +229,7 @@ def delete_node(node_id):
 
         result = tree_node_service.delete_node(node_id)
         flash(
-            "Node deleted successfully!" if result else "Error deleting node",
+            "Configuration deleted successfully!" if result else "Error deleting node",
             "success" if result else "error",
         )
         return redirect(url_for("botintegration.index"))

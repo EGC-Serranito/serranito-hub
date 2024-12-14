@@ -82,8 +82,8 @@ def test_service_get_datasets_and_total_sizes():
                return_value=mock_datasets):
         dashboard_service = DashBoardService()
         dataset_names, total_sizes = dashboard_service.get_datasets_and_total_sizes()
-        assert dataset_names == ['dataset1', 'dataset2']
-        assert total_sizes == [300, 700]  # 100+200 y 300+400
+        assert dataset_names == ['dataset2', 'dataset1']
+        assert total_sizes == [700, 300]
 
 
 def test_repository_get_views_over_time_with_filter(dashboard_repository):

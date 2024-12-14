@@ -162,6 +162,10 @@ class DataSetService(BaseService):
             "orcid": current_user.profile.orcid,
         }
         try:
+            if form.get_dsmetadata() is None:
+                raise TypeError("DsMetadata can't be None")
+            if last_dataset_id is None:
+                raise ValueError("If last_dataset_id is None, you must to do create")
             logger.info(f"Creating dsmetadata...: {form.get_dsmetadata()}")
             dsmetadata = self.dsmetadata_repository.create(**form.get_dsmetadata())
             for author_data in [main_author] + form.get_authors():
@@ -190,7 +194,6 @@ class DataSetService(BaseService):
                 ds_meta_data_id=dsmetadata.id,
                 last_version_id=last_dataset_id,
             )
-
             for feature_model in form.feature_models:
                 uvl_filename = feature_model.uvl_filename.data
                 fmmetadata = self.fmmetadata_repository.create(

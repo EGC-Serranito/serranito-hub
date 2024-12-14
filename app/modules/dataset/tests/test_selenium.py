@@ -108,7 +108,7 @@ def test_upload_dataset():
         affiliation_field.send_keys("Club3")
 
         # Check I agree and send form
-        check = driver.find_element(By.ID, "agreeCheckbox")
+        check = driver.find_element(By.ID, "agree-checkbox")
         check.send_keys(Keys.SPACE)
         wait_for_page_to_load(driver)
 

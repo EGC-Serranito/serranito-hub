@@ -1,12 +1,7 @@
-from selenium import webdriver
+from core.selenium.common import initialize_driver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-
-def initialize_driver():
-    driver = webdriver.Chrome()
-    return driver
 
 
 class TestDashBoards:
