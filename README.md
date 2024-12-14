@@ -30,7 +30,7 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 |------|-------------------|
 | [Calero López, Marina](https://github.com/marcallop7) | View User Profile (Low) |
 | [De los Santos Barrera, Elena](https://github.com/eledebar) | Tag Cloud (Low) |
-| [Galván Cancio, Daniel](https://github.com/Dangalcan) | New testcases (Medium) |
+| [Galván Cancio, Daniel](https://github.com/Dangalcan) (coordinator)| New testcases (Medium) |
 | [Herencia Solís, Lucas Manuel](https://github.com/luchersol) | UVL editor (Hard) |
 | [Robles Russo, Eduardo](https://github.com/edurobrus) | Bot integration (Hard) |
 | [Solís Padilla, Isaac](https://github.com/IsaacSolisPadilla) | Dashboard (Medium) |
@@ -38,10 +38,10 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 |Members Serranito-hub-2| Work Item |  
 |------|-------------------|
 | [García Carballo, Juan](https://github.com/JuaniniGC)  | Rate Datasets (Medium) |
-  | [García Escudero, Ángel](https://github.com/Angelgares)      | Upload, analyse and repair UVL (Hard) |
+  | [García Escudero, Ángel](https://github.com/Angelgares)  (coordinator)    | Upload, analyse and repair UVL (Hard) |
   | [García Rivero, Andrés Francisco](https://github.com/andgarriv) | Improve UI (Medium) |
   | [Muñoz Rodríguez, Jorge](https://github.com/jormunrod)   | Download all dataset (Hard) and Fakenodo (Hard) |
-  | [Pérez Santiago, Alejandro](https://github.com/alepez12)   | Sign up validation (Easy) | 
+  | [Pérez Santiago, Alejandro](https://github.com/alepez12)   | Sign up validation (Low) | 
 
 
 
