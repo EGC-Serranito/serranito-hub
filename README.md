@@ -122,7 +122,11 @@ This comprehensive approach ensures that datasets are properly validated and tha
 These improvements ensure more intuitive and efficient navigation, along with a more attractive and user-focused design.
 
   <div align=center>
-    <img src="app/static/img/readme/Improve UI.png" alt="image" width="600"/>
+    <img src="app/static/img/readme/ImproveUI-1.png" alt="image" width="600"/>
+  </div>
+
+   <div align=center>
+    <img src="app/static/img/readme/ImproveUI-2.png" alt="image" width="600"/>
   </div>
 
   ### New testcase
