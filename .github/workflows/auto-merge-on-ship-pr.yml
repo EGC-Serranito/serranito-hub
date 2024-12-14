@@ -31,7 +31,7 @@ jobs:
           PR_NUMBER=$GITHUB_EVENT_PR_NUMBER
           PR_TITLE=$GITHUB_EVENT_PR_TITLE
 
-          if [[ "$PR_TITLE" == ship* ]]; then
+          if [[ "$PR_TITLE" =~ ^ship ]]; then
             echo "Processing PR #$PR_NUMBER with title: $PR_TITLE"
 
             # Loop to check the status until there is exactly one failed workflow
