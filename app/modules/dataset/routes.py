@@ -48,14 +48,6 @@ dataset_rating_service = DatasetRatingService()
 hubfile_service = HubfileService()
 
 
-def printRojo(text):
-    print("\033[31m" + str(text) + "\033[0m")
-
-
-def printRojo100(text="-"):
-    printRojo(str(text) * 100)
-
-
 @dataset_bp.route("/dataset/upload", methods=["GET", "POST"])
 @login_required
 def create_dataset():
@@ -182,12 +174,10 @@ def upload():
 
 
 @dataset_bp.route("/dataset/<int:dataset_id>/upload/files", methods=["POST"])
-# @login_required
+@login_required
 def upload_update_files(dataset_id):
-    printRojo100()
     temp_folder = current_user.temp_folder()
     files = dataset_service.get_or_404(dataset_id).files()
-    printRojo100()
     # En caso de que exista la carpeta temporal, se borra y se crea de nuevo
     if os.path.exists(temp_folder):
         shutil.rmtree(temp_folder)
@@ -248,27 +238,19 @@ def upload_update_files(dataset_id):
 def update_dataset(dataset_id):
     dataset = dataset_service.get_or_404(dataset_id)
     form = DataSetForm()
-    printRojo("1")
-    printRojo(request.method)
     if request.method == "POST":
         dataset = None
         if not form.validate_on_submit():
             return jsonify({"message": form.errors}), 400
-        printRojo("2")
 
         try:
             logger.info("Creating dataset...")
-            printRojo("3.1.1---")
             dataset = dataset_service.update_from_form(
                 form=form, current_user=current_user, last_dataset_id=dataset_id
             )
-            printRojo("3.1.2---")
             logger.info(f"Created dataset: {dataset}")
-            printRojo("3.1.3---")
             dataset_service.move_feature_models(dataset)
-            printRojo("3.1.4---")
         except Exception as exc:
-            printRojo("3.2---")
             logger.exception(f"Exception while create dataset data in local {exc}")
             return (
                 jsonify({"Exception while create dataset data in local: ": str(exc)}),
@@ -278,21 +260,15 @@ def update_dataset(dataset_id):
         # send dataset as deposition to Zenodo
         data = {}
         try:
-            printRojo("4.1.1---")
             zenodo_response_json = zenodo_service.create_new_deposition(dataset)
-            printRojo("4.1.2---")
             response_data = json.dumps(zenodo_response_json)
-            printRojo("4.1.3---")
             data = json.loads(response_data)
-            printRojo("4.1.4---")
         except Exception as exc:
-            printRojo("4.2---")
             data = {}
             zenodo_response_json = {}
             logger.exception(f"Exception while create dataset data in Zenodo {exc}")
 
         if data.get("conceptrecid"):
-            printRojo("5")
             deposition_id = data.get("id")
 
             # update dataset with deposition id in Zenodo
@@ -301,7 +277,6 @@ def update_dataset(dataset_id):
             )
 
             try:
-                printRojo("6.1---")
                 # iterate for each feature model (one feature model = one request to Zenodo)
                 for feature_model in dataset.feature_models:
                     zenodo_service.upload_file(dataset, deposition_id, feature_model)
@@ -315,11 +290,9 @@ def update_dataset(dataset_id):
                     dataset.ds_meta_data_id, dataset_doi=deposition_doi
                 )
             except Exception as e:
-                printRojo("6.2---")
                 msg = f"it has not been possible upload feature models in Zenodo and update the DOI: {e}"
                 return jsonify({"message": msg}), 200
 
-        printRojo("7")
         # Delete temp folder
         file_path = current_user.temp_folder()
         if os.path.exists(file_path) and os.path.isdir(file_path):
@@ -443,7 +416,9 @@ def subdomain_index(doi):
     versions = dataset.get_versions()
     # Save the cookie to the user's browser
     user_cookie = ds_view_record_service.create_cookie(dataset=dataset)
-    resp = make_response(render_template("dataset/view_dataset.html", dataset=dataset, versions=versions))
+    resp = make_response(
+        render_template("dataset/view_dataset.html", dataset=dataset, versions=versions)
+    )
     resp.set_cookie("view_cookie", user_cookie)
 
     return resp
@@ -460,7 +435,9 @@ def get_unsynchronized_dataset(dataset_id):
         abort(404)
 
     versions = dataset.get_versions()
-    return render_template("dataset/view_dataset.html", dataset=dataset, versions=versions)
+    return render_template(
+        "dataset/view_dataset.html", dataset=dataset, versions=versions
+    )
 
 
 @dataset_bp.route("/rate_dataset/<int:dataset_id>", methods=["POST"])

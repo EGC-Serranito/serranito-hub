@@ -86,7 +86,7 @@ def view_file(file_id):
                 db.session.commit()
 
             # Prepare response
-            response = jsonify({'success': True, 'content': content})
+            response = jsonify({'success': True, 'content': content, "filename": filename})
             if not request.cookies.get('view_cookie'):
                 response = make_response(response)
                 response.set_cookie('view_cookie', user_cookie, max_age=60*60*24*365*2)

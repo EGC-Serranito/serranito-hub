@@ -13,12 +13,11 @@ class TreeNode(db.Model):
     name = db.Column(db.String(256), nullable=False)
     parent_id = db.Column(
         db.Integer,
-        db.ForeignKey("tree_nodes.id", ondelete="CASCADE")  # Cascade delete
+        db.ForeignKey("tree_nodes.id", ondelete="CASCADE")
     )
     path = db.Column(db.String(512), nullable=False)
     single_child = db.Column(db.Boolean, default=False)
 
-    # Relación con el modelo TreeNode, configurando single_parent=True para que solo tenga un padre
     parent = db.relationship(
         "TreeNode",
         backref="children",
@@ -47,12 +46,11 @@ class TreeNodeBot(db.Model):
     name = db.Column(db.String(256), nullable=False)
     parent_id = db.Column(
         db.Integer,
-        db.ForeignKey("treenode_bot.id", ondelete="CASCADE")  # Cascade delete
+        db.ForeignKey("treenode_bot.id", ondelete="CASCADE")
     )
     path = db.Column(db.String(512), nullable=False)
     single_child = db.Column(db.Boolean, default=False)
 
-    # Relación con el modelo TreeNodeBot, configurando single_parent=True para que solo tenga un padre
     parent = db.relationship(
         "TreeNodeBot",
         backref="children",

@@ -12,30 +12,30 @@ class DashBoardService(BaseService):
 
     def get_all_author_names_and_dataset_counts(self):
         author_data = self.dashboard_repository.get_author_names_and_dataset_counts()
-        author_names = [data.name for data in author_data]
-        dataset_counts = [data.dataset_count for data in author_data]
+        author_names = [data[0] for data in author_data]
+        dataset_counts = [data[1] for data in author_data]
         return author_names, dataset_counts
 
     def get_all_author_names_and_view_counts(self):
         author_data = self.dashboard_repository.get_author_names_and_view_counts()
-        author_names = [data.name for data in author_data]
-        view_counts = [data.view_count for data in author_data]
+        author_names = [data[0] for data in author_data]
+        view_counts = [data[1] for data in author_data]
         return author_names, view_counts
 
     def get_datasets_and_total_sizes(self):
         datasets = self.repository.get_all_datasets()
-        dataset_names = []
-        total_sizes = []
+        dataset_info = []
         for dataset in datasets:
             total_size = sum(file.size for fm in dataset.feature_models for file in fm.files)
-            dataset_names.append(dataset.name())
-            total_sizes.append(total_size)
+            dataset_info.append((dataset.name(), total_size))
+        dataset_info.sort(key=lambda x: x[1], reverse=True)
+        dataset_names = [name for name, _ in dataset_info]
+        total_sizes = [size for _, size in dataset_info]
+
         return dataset_names, total_sizes
 
     def get_views_over_time_with_filter(self, filter_type="day"):
         result = self.dashboard_repository.get_views_over_time(filter_type)
-        if not result:
-            return [], []
         dates = [record.view_dates for record in result]
         view_counts = [record.view_counts_over_time for record in result]
         return dates, view_counts

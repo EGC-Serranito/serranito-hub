@@ -184,7 +184,6 @@
         })
             .then(response => response.json())
             .then(result => {
-                console.log(`Filter: ${selectedFilter}, Data:`, result);
                 const labels = result.view_dates;
                 const data = result.view_counts_over_time;
 
