@@ -68,6 +68,10 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
     <img src="app/static/img/readme/tag.png" alt="image" width="600"/>
   </div>
 
+   <div align=center>
+    <img src="app/static/img/readme/tag2.png" alt="image" width="600"/>
+  </div>
+
 
 ### WI Rate Datasets
 
@@ -75,6 +79,10 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 
   <div align=center>
     <img src="app/static/img/readme/Rate.png" alt="image" width="600"/>
+  </div>
+
+  <div align=center>
+    <img src="app/static/img/readme/Rate2.png" alt="image" width="600"/>
   </div>
 
 
@@ -188,12 +196,31 @@ The bot can interact with several features:
     <img src="app/static/img/readme/Bot integration.png" alt="image" width="600"/>
   </div>
 
+  <div align=center>
+    <img src="app/static/img/readme/Bot integration2.png" alt="image" width="600"/>
+  </div>
+
 
 ### Dashboard
 
   - This feature allows users to explore various dashboards in UVLHub by selecting different options. Users can view graphs by author, which includes analyzing datasets and visualizations by author. Additionally, they can explore file size distribution by dataset and track the evolution of visualizations, with the option to filter the data by day, month, or year. The dashboard also provides graphs showing the distribution of datasets based on their publication type and insights into the number of downloads for each dataset. These features offer an interactive and comprehensive way to analyze the data and understand the usage patterns within UVLHub.
   <div align=center>
     <img src="app/static/img/readme/dashboard.png" alt="image" width="600"/>
+  </div>
+
+  <div align=center>
+    <img src="app/static/img/readme/Dashboard2.png" alt="image" width="600"/>
+  </div>
+
+  <div align=center>
+    <img src="app/static/img/readme/Dashboard3.png" alt="image" width="600"/>
+  </div>
+
+  <div align=center>
+    <img src="app/static/img/readme/Dashboard4.png" alt="image" width="600"/>
+  </div>
+ <div align=center>
+    <img src="app/static/img/readme/Dashboard5.png" alt="image" width="600"/>
   </div>
 
 
