@@ -81,5 +81,5 @@ jobs:
               fi
             done
           else
-            echo "PR title does not start with 'ship'. Skipping."
+            echo "PR title does not start with 'ship' $PR_NUMBER. Skipping."
           fi
