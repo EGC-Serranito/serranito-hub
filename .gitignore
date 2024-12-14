@@ -18,3 +18,4 @@ deployments.log
 test_file.txt
 app.log.*
 migrations/versions/*
+node_modules/
