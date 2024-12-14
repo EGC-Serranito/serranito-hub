@@ -25,11 +25,10 @@ jobs:
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GITHUB_EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
-          GITHUB_EVENT_PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           # Extract PR number and title
           PR_NUMBER=$GITHUB_EVENT_PR_NUMBER
-          PR_TITLE=$GITHUB_EVENT_PR_TITLE
+          PR_TITLE=$(gh pr view "$PR_NUMBER" --json title -q '.title')
 
           if [[ "$PR_TITLE" =~ ^ship ]]; then
             echo "Processing PR #$PR_NUMBER with title: $PR_TITLE"
