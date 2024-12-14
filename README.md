@@ -192,7 +192,7 @@ The bot can interact with several features:
 -   **Auth**: The bot retrieves information about the person who has configured it, ensuring clarity on which user is managing and interacting with the bot.
 
   <div align=center>
-    <img src="app/static/img/readme/Bot integration2.png" alt="image" width="600"/>
+    <img src="app/static/img/readme/Bot integration.png" alt="image" width="600"/>
   </div>
 
 
