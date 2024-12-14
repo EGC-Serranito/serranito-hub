@@ -103,8 +103,8 @@ def test_repository_get_views_over_time_with_filter(dashboard_repository):
 
 def test_service_get_views_over_time_with_filter():
     mock_result = [
-        MagicMock(view_dates='2021-01-01', view_counts_over_time=5),
-        MagicMock(view_dates='2021-01-02', view_counts_over_time=0),
+        ('2021-01-01', 5),
+        ('2021-01-02', 0),
     ]
     with patch('app.modules.dashboard.repositories.DashboardRepository.get_views_over_time',
                return_value=mock_result):
@@ -150,8 +150,8 @@ def test_repository_get_downloads_by_day_data(dashboard_repository):
 
 def test_service_get_downloads_by_day():
     mock_result = [
-        MagicMock(download_date=datetime(2021, 1, 1), download_count=5),  # Usamos datetime en lugar de cadena
-        MagicMock(download_date=datetime(2021, 1, 2), download_count=0),  # Usamos datetime en lugar de cadena
+        MagicMock(download_date=datetime(2021, 1, 1), download_count=5),
+        MagicMock(download_date=datetime(2021, 1, 2), download_count=0),
     ]
     with patch('app.modules.dashboard.repositories.DashboardRepository.get_downloads_by_day_data',
                return_value=mock_result):

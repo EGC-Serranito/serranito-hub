@@ -77,4 +77,5 @@ class DashboardRepository(BaseRepository):
             .order_by(func.date(DSDownloadRecord.download_date))
             .all()
         )
+        print(result)
         return result
