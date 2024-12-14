@@ -85,7 +85,7 @@ let dropzone = Dropzone.options.myDropzone = {
             if(valid){
                 let dropzone = this;
 
-                //showUploadDataset();
+                show_upload_dataset();
 
                 console.log("File uploaded: ", response);
                 // actions when UVL model is uploaded
