@@ -1,6 +1,9 @@
 import pytest
 from flask import url_for
+from flask_login import login_user, logout_user
 from app.modules.auth.services import AuthenticationService
+from app.modules.auth.models import User
+from app.modules.profile.models import UserProfile
 
 
 @pytest.fixture(scope="module")
@@ -87,3 +90,55 @@ def test_signup_user_successful(test_client):
         follow_redirects=True,
     )
     assert response.request.path != url_for("public.index"), "Signup was unsuccessful"
+
+
+def test_get_authenticated_user_authenticated(test_app, test_client, clean_database):
+    with test_app.app_context():
+        user = User(id=1, email="test@example.com", password="password123", email_verified=True)
+        login_user(user)
+
+        service = AuthenticationService()
+        authenticated_user = service.get_authenticated_user()
+
+        assert authenticated_user == user
+
+        logout_user()
+
+
+def test_get_authenticated_user_not_authenticated(test_app, test_client):
+    with test_app.app_context():
+
+        logout_user()
+
+        service = AuthenticationService()
+        result = service.get_authenticated_user()
+
+        assert result is None
+
+
+def test_get_authenticated_user_profile_authenticated(test_app, test_client):
+    with test_app.app_context():
+        from flask_login import login_user
+
+        profile = UserProfile(id=1, name="Test", surname="User")
+        user = User(id=1, email="test@example.com", password="password123", email_verified=True, profile=profile)
+
+        login_user(user)
+
+        service = AuthenticationService()
+        result = service.get_authenticated_user_profile()
+
+        assert result == profile
+        assert result.name == "Test"
+        assert result.surname == "User"
+
+
+def test_get_authenticated_user_profile_not_authenticated(test_app, test_client):
+    with test_app.app_context():
+
+        logout_user()
+
+        service = AuthenticationService()
+        result = service.get_authenticated_user_profile()
+
+        assert result is None

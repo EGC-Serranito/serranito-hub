@@ -3,6 +3,8 @@ import pytest
 from app.modules.auth.services import AuthenticationService
 from app.modules.auth.repositories import UserRepository
 from app.modules.profile.repositories import UserProfileRepository
+from unittest.mock import patch, MagicMock
+from itsdangerous import SignatureExpired, BadTimeSignature
 
 
 def test_service_create_with_profie_success(test_app, clean_database):
@@ -36,11 +38,43 @@ def test_service_create_with_profile_fail_no_email(test_app, clean_database):
     assert UserProfileRepository().count() == 0
 
 
+def test_service_create_with_profile_fail_no_name(test_app, clean_database):
+    data = {
+        "name": "",
+        "surname": "Foo",
+        "email": "service_test@example.com",
+        "password": "1234",
+        "email_verified": True
+    }
+
+    with pytest.raises(ValueError, match="Name is required."):
+        AuthenticationService().create_with_profile(**data)
+
+    assert UserRepository().count() == 0
+    assert UserProfileRepository().count() == 0
+
+
+def test_service_create_with_profile_fail_no_surname(test_app, clean_database):
+    data = {
+        "name": "Test",
+        "surname": "",
+        "email": "service_test@example.com",
+        "password": "1234",
+        "email_verified": True
+    }
+
+    with pytest.raises(ValueError, match="Surname is required."):
+        AuthenticationService().create_with_profile(**data)
+
+    assert UserRepository().count() == 0
+    assert UserProfileRepository().count() == 0
+
+
 def test_service_create_with_profile_fail_no_password(test_app, clean_database):
     data = {
         "name": "Test",
         "surname": "Foo",
-        "email": "test@example.com",
+        "email": "service_test@example.com",
         "password": "",
         "email_verified": True
     }
@@ -52,38 +86,50 @@ def test_service_create_with_profile_fail_no_password(test_app, clean_database):
     assert UserProfileRepository().count() == 0
 
 
-def test_is_email_available(test_app, clean_database):
-    data = {
-        "name": "Test",
-        "surname": "User",
-        "email": "testuser@example.com",
-        "password": "test1234",
-        "email_verified": True
-    }
-    auth_service = AuthenticationService()
-    auth_service.create_with_profile(**data)
+def test_update_profile_success():
+    mock_form = MagicMock()
+    mock_form.validate.return_value = True
+    mock_form.data = {"name": "NewName", "surname": "NewSurname"}
 
-    available = auth_service.is_email_available("testuser@example.com")
-    assert available is False
+    with patch("app.modules.auth.services.AuthenticationService.update", return_value="UpdatedInstance") as mock_update:
+        service = AuthenticationService()
+        result, errors = service.update_profile(1, mock_form)
 
-    available = auth_service.is_email_available("newuser@example.com")
-    assert available is True
+        assert result == "UpdatedInstance"
+        assert errors is None
+        mock_update.assert_called_once_with(1, name="NewName", surname="NewSurname")
 
 
-def test_confirm_user_with_token(test_app, clean_database):
-    # Crear un usuario
-    data = {
-        "name": "Test",
-        "surname": "User",
-        "email": "testuser@example.com",
-        "password": "test1234",
-        "email_verified": False
-    }
-    auth_service = AuthenticationService()
-    auth_service.create_with_profile(**data)
+def test_update_profile_fail_validation():
+    mock_form = MagicMock()
+    mock_form.validate.return_value = False
+    mock_form.errors = {"name": ["This field is required."]}
 
-    token = auth_service.get_token_from_email("testuser@example.com")
+    service = AuthenticationService()
+    result, errors = service.update_profile(1, mock_form)
 
-    confirmed_user = auth_service.confirm_user_with_token(token)
+    assert result is None
+    assert errors == {"name": ["This field is required."]}
 
-    assert confirmed_user.email_verified is True
+
+def test_temp_folder_by_user():
+    with patch("app.modules.auth.services.uploads_folder_name", return_value="/uploads"):
+        service = AuthenticationService()
+        mock_user = MagicMock(id=1)
+
+        folder = service.temp_folder_by_user(mock_user)
+        assert folder == "/uploads/temp/1"
+
+
+def test_confirm_user_with_expired_token():
+    with patch("app.modules.auth.services.URLSafeTimedSerializer.loads", side_effect=SignatureExpired("Token expired")):
+        service = AuthenticationService()
+        with pytest.raises(Exception, match="The confirmation link has expired."):
+            service.confirm_user_with_token("expired_token")
+
+
+def test_confirm_user_with_tampered_token():
+    with patch("app.modules.auth.services.URLSafeTimedSerializer.loads", side_effect=BadTimeSignature("Invalid token")):
+        service = AuthenticationService()
+        with pytest.raises(Exception, match="The confirmation link has been tampered with."):
+            service.confirm_user_with_token("tampered_token")
