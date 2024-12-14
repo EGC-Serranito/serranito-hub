@@ -398,6 +398,9 @@ class FeatureService:
                     self.respond_to_telegram_message(
                         bot_token, chat_id, message_id, response_text
                     )
+                    last_update_id = updates[-1]["update_id"]
+                    url = f"https://api.telegram.org/bot{bot_token}/getUpdates?offset={last_update_id + 1}"
+                    requests.get(url, timeout=10)
         else:
             messages = self.get_discord_messages(bot_token, chat_id)
 
