@@ -153,6 +153,14 @@ These improvements ensure more intuitive and efficient navigation, along with a 
 
   - This feature allows users to register securely by verifying their identity through email validation. The registration interface includes required fields for entering the name, surname, email, and password. The system validates the provided email address to ensure it is valid and correctly associated with the user. Once the registration is complete, a verification email will be sent to the user to confirm their identity before they can fully access the platform. This ensures that the registration process is secure and only verified users can access the application.
 
+  <div align=center>
+    <img src="app/static/img/readme/Sign-up-1.png" alt="image" width="600"/>
+  </div>
+
+   <div align=center>
+    <img src="app/static/img/readme/Sign-up-2.png" alt="image" width="600"/>
+  </div>
+
 ### Bot integration
 
   - This feature allows users to integrate their bot with different platforms like Discord and Telegram for notifications and updates based on selected frequencies. Users can choose to receive notifications either in real-time or on a daily basis at 9 AM. In Discord, the bot requires the channel ID, while in Telegram, the bot needs the chat ID, which can be obtained using a bot that provides this information. Users can configure up to 5 different bots with distinct settings, with a limit of 3 features per bot and a maximum of 3 chat channels per bot.
