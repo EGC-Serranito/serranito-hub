@@ -1,4 +1,3 @@
-console.log("Hi, I am a script loaded from hubfile module");
 import { FeatureModel } from "uvl-parser";
 
 // 
@@ -16,18 +15,6 @@ let dropzone = Dropzone.options.myDropzone = {
         let fileList = document.getElementById('file-list');
         let dropzoneText = document.getElementById('dropzone-text');
         let alerts = document.getElementById('alerts');
-
-        if (hubfiles) {
-            for (let i = 0; i < hubfiles.length; i++) {
-                let hubfile = hubfiles[i];
-                fetch(hubfile.url)
-                .then(response => response.blob())
-                .then(blob => {
-                    let file = new File([blob], hubfile.name, {type: 'uvl'});
-                    this.addFile(file);
-                })
-            }
-        }
             
         this.on('addedfile', function (file) {
 
@@ -52,8 +39,7 @@ let dropzone = Dropzone.options.myDropzone = {
         
                         console.log("Parsed UVL Feature Model:", tree);
                         valid = true;
-        
-                        
+    
                         // You can now manipulate `tree` or display it in the UI as needed
                     } catch (error) {
                         // Verificar si el error es debido a `Error.captureStackTrace`
@@ -64,6 +50,7 @@ let dropzone = Dropzone.options.myDropzone = {
                             alert.innerHTML = 'Syntax error in <b>' + file.name + '</b>';
                             alerts.appendChild(alert);
                             alerts.style.display = 'block';
+                            alert.className = 'alert-error';
                         } else {
                             // Si es un error de sintaxis en el UVL, mostrar mensaje personalizado
                             valid = false;
@@ -75,6 +62,7 @@ let dropzone = Dropzone.options.myDropzone = {
                             alert.innerHTML = 'Syntax error in <b>' + file.name + '</b><br>&nbsp;>&nbsp;>&nbsp;>&nbsp;' + error.message;
                             alerts.appendChild(alert);
                             alerts.style.display = 'block';
+                            alert.className = 'alert-error';
                         }
                     }
                 };
@@ -89,6 +77,7 @@ let dropzone = Dropzone.options.myDropzone = {
             alert.textContent = 'Error uploading file: ' + file.name;
             alerts.appendChild(alert);
             alerts.style.display = 'block';
+            alert.className = 'alert-error';
         });
 
         this.on('success', function (file, response) {
@@ -96,12 +85,13 @@ let dropzone = Dropzone.options.myDropzone = {
             if(valid){
                 let dropzone = this;
 
-                showUploadDataset();
+                //showUploadDataset();
 
                 console.log("File uploaded: ", response);
                 // actions when UVL model is uploaded
                 let listItem = document.createElement('li');
                 let h4Element = document.createElement('h4');
+                listItem.className = 'upload-custom';
                 h4Element.textContent = response.filename;
                 listItem.appendChild(h4Element);
 
@@ -199,19 +189,19 @@ let dropzone = Dropzone.options.myDropzone = {
                                 <div class="col-12">
                                     <div class="mb-3">
                                         <label class="form-label">Title</label>
-                                        <input type="text" class="form-control" name="feature_models-${formUniqueId}-title">
+                                        <input type="text" class="form-control custom-search" name="feature_models-${formUniqueId}-title">
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="mb-3">
                                         <label class="form-label">Description</label>
-                                        <textarea rows="4" class="form-control" name="feature_models-${formUniqueId}-desc"></textarea>
+                                        <textarea rows="4" class="form-control custom-search" name="feature_models-${formUniqueId}-desc"></textarea>
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-12">
                                     <div class="mb-3">
                                         <label class="form-label" for="publication_type">Publication type</label>
-                                        <select class="form-control" name="feature_models-${formUniqueId}-publication_type">
+                                        <select class="form-control custom-search" name="feature_models-${formUniqueId}-publication_type">
                                             <option value="none">None</option>
                                             <option value="annotationcollection">Annotation Collection</option>
                                             <option value="book">Book</option>
@@ -237,19 +227,19 @@ let dropzone = Dropzone.options.myDropzone = {
                                 <div class="col-lg-6 col-6">
                                     <div class="mb-3">
                                         <label class="form-label" for="publication_doi">Publication DOI</label>
-                                        <input class="form-control" name="feature_models-${formUniqueId}-publication_doi" type="text" value="">
+                                        <input class="form-control custom-search" name="feature_models-${formUniqueId}-publication_doi" type="text" value="">
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="mb-3">
                                         <label class="form-label">Tags (separated by commas)</label>
-                                        <input type="text" class="form-control" name="feature_models-${formUniqueId}-tags">
+                                        <input type="text" class="form-control custom-search" name="feature_models-${formUniqueId}-tags">
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="mb-3">
                                         <label class="form-label">UVL version</label>
-                                        <input type="text" class="form-control" name="feature_models-${formUniqueId}-uvl_version">
+                                        <input type="text" class="form-control custom-search" name="feature_models-${formUniqueId}-uvl_version">
                                     </div>
                                 </div>
                                 <div class="col-12">
