@@ -10,7 +10,7 @@
 
 <!-- Botón para mostrar/ocultar los gráficos -->
 <div class="custom-buttons">
-    <button type="button" class="btn btn-primary" onclick="showDashboard('chartCanvas')">Ver gráfica por autor</button>
+    <button type="button" class="btn btn-primary" onclick="showDashboard('datasetCountChart')">Ver gráfica por autor</button>
     <button type="button" class="btn btn-primary" onclick="showDashboard('datasetSizeChart')">Ver tamaño de archivos por dataset</button>
     <button type="button" class="btn btn-primary" onclick="showDashboard('viewsOverTimeChart')">Ver evolución de visualizaciones</button>
     <button type="button" class="btn btn-primary" onclick="showDashboard('publicationTypeChart')">Ver gráfico de tipos de publicación</button>
@@ -38,7 +38,7 @@
 </div>
 
 <!-- Contenedor para la gráfica de autores -->
-<canvas id="chartCanvas" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
+<canvas id="datasetCountChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
 
 <!-- Contenedor para la gráfica de tamaños de dataset -->
 <canvas id="datasetSizeChart" width="400" height="200" style="margin-top: 20px; display: none;"></canvas>
@@ -86,7 +86,7 @@
     let downloadBubbleInstance;
 
     function showDashboard(dashboardId) {
-        const dashboards = ['chartCanvas', 'datasetSizeChart', 'viewsOverTimeChart', 'publicationTypeChart', 'downloadHeatmap'];
+        const dashboards = ['datasetCountChart', 'datasetSizeChart', 'viewsOverTimeChart', 'publicationTypeChart', 'downloadHeatmap'];
         const selectedDashboard = document.getElementById(dashboardId);
         const dropdownContainer = document.getElementById('data-type-container');
         const viewsFilterContainer = document.getElementById('views-filter-container');
@@ -105,13 +105,13 @@
         }
         selectedDashboard.style.display = 'block';
 
-        if (dashboardId === 'chartCanvas') {
+        if (dashboardId === 'datasetCountChart') {
             dropdownContainer.style.display = 'block';
         }
         else if (dashboardId === 'viewsOverTimeChart') {
             viewsFilterContainer.style.display = 'block';
         }
-        if (dashboardId === 'chartCanvas' && !chartInstance) {
+        if (dashboardId === 'datasetCountChart' && !chartInstance) {
             initializeDatasetCountsChart();
         } else if (dashboardId === 'datasetSizeChart' && !datasetSizeChartInstance) {
             initializeDatasetSizeChart();
@@ -126,18 +126,18 @@
 
     function toggleDropdownAndChart() {
         const dropdownContainer = document.getElementById('data-type-container');
-        const chartCanvas = document.getElementById('chartCanvas');
+        const datasetCountChart = document.getElementById('datasetCountChart');
 
         if (dropdownContainer.style.display === "none") {
             dropdownContainer.style.display = "block";
-            chartCanvas.style.display = "block";
+            datasetCountChart.style.display = "block";
 
             if (!chartInstance) {
                 initializeDatasetCountsChart();
             }
         } else {
             dropdownContainer.style.display = "none";
-            chartCanvas.style.display = "none";
+            datasetCountChart.style.display = "none";
         }
     }
 
@@ -156,18 +156,18 @@
     }
 
     function toggleViewsOverTimeChart() {
-        const viewsOverTimeChartCanvas = document.getElementById('viewsOverTimeChart');
+        const viewsOverTimedatasetCountChart = document.getElementById('viewsOverTimeChart');
         const viewsFilterContainer = document.getElementById('views-filter-container');
 
-        if (viewsOverTimeChartCanvas.style.display === "none") {
-            viewsOverTimeChartCanvas.style.display = "block";
+        if (viewsOverTimedatasetCountChart.style.display === "none") {
+            viewsOverTimedatasetCountChart.style.display = "block";
             viewsFilterContainer.style.display = "block";
 
             if (!viewsOverTimeChartInstance) {
                 initializeViewsOverTimeChart();
             }
         } else {
-            viewsOverTimeChartCanvas.style.display = "none";
+            viewsOverTimedatasetCountChart.style.display = "none";
             viewsFilterContainer.style.display = "none";
         }
     }
@@ -207,13 +207,13 @@
     }
 
     function togglePublicationTypeChart() {
-        const publicationTypeChartCanvas = document.getElementById('publicationTypeChart');
+        const publicationTypedatasetCountChart = document.getElementById('publicationTypeChart');
 
-        if (publicationTypeChartCanvas.style.display === "none") {
-            publicationTypeChartCanvas.style.display = "block";
+        if (publicationTypedatasetCountChart.style.display === "none") {
+            publicationTypedatasetCountChart.style.display = "block";
             initializePublicationTypeChart();
         } else {
-            publicationTypeChartCanvas.style.display = "none";
+            publicationTypedatasetCountChart.style.display = "none";
         }
     }
 
@@ -250,7 +250,7 @@
     function initializeDatasetCountsChart() {
         const labels = JSON.parse(dataContainer.getAttribute('data-author-names-datasets'));
         const data = JSON.parse(dataContainer.getAttribute('data-datasets-count'));
-        const ctx = document.getElementById('chartCanvas').getContext('2d');
+        const ctx = document.getElementById('datasetCountChart').getContext('2d');
 
         chartInstance = new Chart(ctx, {
             type: 'bar',
