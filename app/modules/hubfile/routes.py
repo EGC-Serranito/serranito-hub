@@ -8,6 +8,7 @@ from app.modules.hubfile import hubfile_bp
 from app.modules.hubfile.models import HubfileDownloadRecord, HubfileViewRecord
 from app.modules.hubfile.services import HubfileDownloadRecordService, HubfileService
 from flask_login import login_required
+from werkzeug.utils import secure_filename
 
 from app import db
 
@@ -52,6 +53,7 @@ def download_file(file_id):
 
     return resp
 
+
 @hubfile_bp.route("/hubfile/upload", methods=["POST"])
 @login_required
 def upload_file():
@@ -66,7 +68,8 @@ def upload_file():
         os.makedirs(temp_folder)
 
     # Ruta temporal para el archivo
-    temp_file_path = os.path.join(temp_folder, file.filename)
+    sanitized_filename = secure_filename(file.filename)
+    temp_file_path = os.path.join(temp_folder, sanitized_filename)
 
     # Guardar temporalmente el archivo
     try:
