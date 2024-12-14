@@ -25,12 +25,13 @@ jobs:
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GITHUB_EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_EVENT_PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           # Extract PR number and title
           PR_NUMBER=$GITHUB_EVENT_PR_NUMBER
-          PR_TITLE=$(gh pr view "$PR_NUMBER" --json title -q '.title')
+          PR_TITLE=$GITHUB_EVENT_PR_TITLE
 
-          if [[ "$PR_TITLE" =~ ^ship ]]; then
+          if [[ "$PR_TITLE" == ship* ]] || [[ "$PR_TITLE" == ship-* ]]; then
             echo "Processing PR #$PR_NUMBER with title: $PR_TITLE"
 
             # Loop to check the status until there is exactly one failed workflow
@@ -81,5 +82,5 @@ jobs:
               fi
             done
           else
-            echo "PR title does not start with 'ship' $PR_NUMBER. Skipping."
+            echo "PR title does not start with 'ship'. Skipping."
           fi
