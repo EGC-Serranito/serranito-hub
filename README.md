@@ -64,13 +64,14 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 
   -  This feature allows users to explore UVL models through a tag cloud, where the tags represent labels associated with datasets. In a tag cloud, the most frequently used tags appear larger, making it easier to identify the most relevant labels. Users can filter and search in real-time, view descriptions of the feature models associated with each dataset, and download them in various formats such as UVL, Glencoe, Slot, and Dimacs. This provides an interactive way to explore and analyze the feature models linked to different datasets.
 
+   <div align=center>
+    <img src="app/static/img/readme/tag2.png" alt="image" width="600"/>
+  </div>
+
   <div align=center>
     <img src="app/static/img/readme/tag.png" alt="image" width="600"/>
   </div>
 
-   <div align=center>
-    <img src="app/static/img/readme/tag2.png" alt="image" width="600"/>
-  </div>
 
 
 ### WI Rate Datasets
@@ -150,12 +151,9 @@ These improvements ensure more intuitive and efficient navigation, along with a 
   </div>
 
  <div align=center>
-    <img src="app/static/img/readme/UVL-Editor2.png" alt="image" width="600"/>
+    <img src="app/static/img/readme/UVL-Editor 2.png" alt="image" width="600"/>
   </div>
 
-  <div align=center>
-    <img src="app/static/img/readme/UVL-Editor3.png" alt="image" width="600"/>
-  </div>
   
  ### Download all dataset
   
@@ -192,9 +190,6 @@ The bot can interact with several features:
 -   **Fakenodo**: The bot checks if the connection to Fakenodo is active or not.
 -   **Dataset**: The bot fetches and provides detailed information about the user's datasets. The message includes dataset titles, descriptions, publication types, DOIs, and downloadable files in UVL format. Each dataset will be accompanied by a detailed list of features and constraints, with download links for each file.
 -   **Auth**: The bot retrieves information about the person who has configured it, ensuring clarity on which user is managing and interacting with the bot.
-  <div align=center>
-    <img src="app/static/img/readme/Bot integration.png" alt="image" width="600"/>
-  </div>
 
   <div align=center>
     <img src="app/static/img/readme/Bot integration2.png" alt="image" width="600"/>
