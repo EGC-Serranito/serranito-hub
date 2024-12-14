@@ -527,9 +527,9 @@
                     </span>
 
                 <script>
-                    const checkbox = document.getElementById('agreeCheckbox');
+                    const checkbox = document.getElementById('agree-checkbox');
                     const upload_button = document.getElementById('upload_button');
-
+                    console.log(checkbox)
                     checkbox.addEventListener('change', function () {
                         upload_button.disabled = !checkbox.checked;
                     });
