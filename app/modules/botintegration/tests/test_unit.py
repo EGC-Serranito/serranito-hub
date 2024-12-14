@@ -295,3 +295,106 @@ def test_remove_stopped_chats_with_mock_data(node_service, mock_treenode):
     assert len(tree["children"][0]["children"]) == 2
     assert tree["children"][0]["children"][0]["name"] == "1"
     assert not tree["children"][0]["children"][0]["children"]
+
+
+def test_create_node_route_add_chat_no_children(node_service, mock_user):
+    """Test creating a chat node when there are no children."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "get_children_count", return_value=0), \
+            patch.object(node_service.repository, "create_node_route_add_chat",
+                         return_value={"status": "success"}) as mock_create_node:
+            result = node_service.create_node_route_add_chat(
+                user_id=mock_user.id,
+                name="Chat1",
+                parent_id=1,
+                path="path/to/chat",
+                single_child=False
+            )
+
+            mock_create_node.assert_called_once_with(
+                user_id=mock_user.id,
+                name="Chat1",
+                parent_id=1,
+                path="path/to/chat",
+                single_child=False
+            )
+            assert result["status"] == "success"
+
+
+def test_create_node_route_add_bot_limit_exact(node_service, mock_user):
+    """Test the bot creation limit when there are exactly 5 bots."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "get_children_count", return_value=4), \
+            patch.object(node_service.repository, "create_node_route_add_bot",
+                         return_value={"status": "success"}) as mock_create_node:
+
+            result = node_service.create_node_route_add_bot(
+                user_id=mock_user.id,
+                name="Bot6",
+                parent_id=1,
+                path="path/to/bot",
+                single_child=False
+            )
+
+            mock_create_node.assert_called_once_with(
+                user_id=mock_user.id,
+                name="Bot6",
+                parent_id=1,
+                path="path/to/bot",
+                single_child=False
+            )
+            assert result["status"] == "success"
+
+
+def test_create_node_route_add_chat_limit_exact(node_service, mock_user):
+    """Test the chat creation limit when there are exactly 3 chats."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "get_children_count", return_value=2), \
+            patch.object(node_service.repository, "create_node_route_add_chat",
+                         return_value={"status": "success"}) as mock_create_node:
+
+            result = node_service.create_node_route_add_chat(
+                user_id=mock_user.id,
+                name="Chat3",
+                parent_id=1,
+                path="path/to/chat",
+                single_child=False
+            )
+
+            mock_create_node.assert_called_once_with(
+                user_id=mock_user.id,
+                name="Chat3",
+                parent_id=1,
+                path="path/to/chat",
+                single_child=False
+            )
+            assert result["status"] == "success"
+
+
+def test_create_node_route_add_feature_limit_exact(node_service, mock_user):
+    """Test the feature creation limit when there are exactly 3 features."""
+    app = create_app()
+    with app.app_context():
+        with patch.object(node_service.repository, "get_children_count", return_value=2), \
+            patch.object(node_service.repository, "create_node_route_add_feature",
+                         return_value={"status": "success"}) as mock_create_node:
+
+            result = node_service.create_node_route_add_feature(
+                user_id=mock_user.id,
+                name="Feature3",
+                parent_id=1,
+                path="path/to/feature",
+                single_child=False
+            )
+
+            mock_create_node.assert_called_once_with(
+                user_id=mock_user.id,
+                name="Feature3",
+                parent_id=1,
+                path="path/to/feature",
+                single_child=False
+            )
+            assert result["status"] == "success"
