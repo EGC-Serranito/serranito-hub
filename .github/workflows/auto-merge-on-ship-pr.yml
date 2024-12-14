@@ -46,8 +46,15 @@ jobs:
 
               # Count how many workflows have failed
               FAILED_COUNT=$(echo "$pr_status" | jq -r '[.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | length')
-
               echo "Failed checks count for PR #$PR_NUMBER: $FAILED_COUNT"
+
+              # Count how many workflows have failures
+              FAILURE_COUNT=$(echo "$pr_status" | jq -r '[.statusCheckRollup[] | select(.conclusion == "FAILURE")] | length')
+              echo "Failed checks count for PR #$PR_NUMBER: $FAILURE_COUNT"
+
+              if [ "$FAILURE_COUNT" -ge 1 ]; then
+                break
+              fi
 
               if [ "$FAILED_COUNT" -eq 0 ] || [ "$FAILED_COUNT" -eq 1 ]; then
                 echo "All checks passed or exactly one failed. Verifying mergeable status for PR #$PR_NUMBER..."
