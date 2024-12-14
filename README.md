@@ -220,6 +220,10 @@ This comprehensive approach ensures that datasets are properly validated and tha
     <img src="app/static/img/readme/Upload, analyse and repair UVL.png" alt="image" width="600"/>
   </div>
 
+  <div align=center>
+    <img src="app/static/img/readme/Upload, analyse and repair UVL2.png" alt="image" width="600"/>
+  </div>
+
 ### Improve UI
   
   - This feature aims to optimize the user experience when interacting with the platform, focusing on the design and usability of the dataset listing. The implemented improvements include:
