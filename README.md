@@ -46,6 +46,114 @@ This team has been colaboration into 2 teams, serranito-hub1 and serranito-hub2.
 
 
   ## Ubuntu Partition Manual
+  
+This tutorial will guide you step by step to create a partition on your laptop and install Ubuntu 22.04 while keeping your primary operating system if desired.
+
+----------
+
+## **1. Preliminary Preparations**
+
+Before starting, make sure of the following:
+
+1.  **Backup your data:** Make a backup of your important files in case something goes wrong.
+    
+2.  **Download Ubuntu 22.04:** Go to the [official Ubuntu site](https://ubuntu.com/download/desktop) and download the Ubuntu 22.04 ISO image.
+    
+3.  **Create a bootable USB:** Use a tool like [Rufus](https://rufus.ie/) (Windows)  to burn the ISO image to a USB drive (at least 8 GB).
+    
+
+----------
+
+## **2. Partition Setup**
+
+### **2.1. Access Disk Management**
+
+1.  On Windows, press `Windows + S` and type **"Disk Management"**.
+    
+2.  Select **"Create and format hard disk partitions"**.
+    
+
+### **2.2. Shrink the Current Partition**
+
+1.  Locate the main partition (usually `C:`).
+    
+2.  Right-click on it and select **"Shrink Volume"**.
+    
+3.  Enter the size you want to allocate for Ubuntu (recommended: at least 50 GB).
+    
+4.  Apply the changes. This will leave unallocated space on your disk.
+    
+
+----------
+
+## **3. BIOS/UEFI Setup**
+
+1.  Restart your laptop and access the BIOS/UEFI by pressing the appropriate key (usually `F2`, `F12`, `Delete`, or `Esc` depending on the manufacturer).
+    
+2.  Ensure **Secure Boot** is disabled.
+    
+3.  Change the boot order so that the USB drive is the first option.
+    
+
+Save the changes and restart with the USB drive connected.
+
+----------
+
+## **4. Installing Ubuntu 22.04**
+
+### **4.1. Boot from USB**
+
+1.  Upon restart, you should see the Ubuntu boot menu.
+    
+2.  Select **"Try Ubuntu without installing"** to test Ubuntu before installing it.
+    
+
+### **4.2. Start the Installer**
+
+1.  Double-click on the **"Install Ubuntu"** icon on the desktop.
+    
+2.  Select your language and follow the prompts.
+    
+
+### **4.3. Installation Options**
+
+1.  When asked for the "Installation type," choose **"Install Ubuntu alongside Windows"**.
+    
+2.  Select the previously unallocated space.
+    
+3.  Ubuntu will automatically adjust the necessary partitions (swap, ext4, etc.).
+    
+
+### **4.4. Final Configuration**
+
+1.  Follow the instructions to set up your time zone, keyboard, and user account.
+    
+2.  Wait for the installation to complete. Once done, restart the system.
+    
+
+----------
+
+## **5. Verify Dual Boot**
+
+1.  On restart, you should see the GRUB menu where you can select between Ubuntu and Windows.
+    
+2.  If it does not appear, access the BIOS/UEFI and ensure the primary boot option is Ubuntu.
+    
+
+----------
+
+## **6. Post-Installation**
+
+1.  **Update Ubuntu:** Open a terminal (`Ctrl + Alt + T`) and run:
+    
+    ```
+    sudo apt update && sudo apt upgrade
+    ```
+    
+2.  **Install additional software:** Use `sudo apt install` to install necessary tools.
+    
+
+----------
 
   ## Project Objectives
 
