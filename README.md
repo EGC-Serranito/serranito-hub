@@ -138,9 +138,17 @@ These improvements ensure more intuitive and efficient navigation, along with a 
   -    This feature provides a graphical and interactive way to edit UVL models. By clicking the "Edit" button, users can modify the content of UVL models directly through a visual interface. Once the edits are complete, users can choose to download the updated file or, if they wish to maintain a version history, they can click the "Save" button to create a new version of the file. This action generates a new dataset, and the user will be redirected to a graphical interface specifically designed to facilitate the creation and editing of UVL models. This tool not only enhances the editing experience but also ensures efficient version control of the models.
 
   <div align=center>
-    <img src="app/static/img/readme/UVL Editor.png" alt="image" width="600"/>
+    <img src="app/static/img/readme/UVL-Editor1.png" alt="image" width="600"/>
   </div>
 
+ <div align=center>
+    <img src="app/static/img/readme/UVL-Editor2.png" alt="image" width="600"/>
+  </div>
+
+  <div align=center>
+    <img src="app/static/img/readme/UVL-Editor3.png" alt="image" width="600"/>
+  </div>
+  
  ### Download all dataset
   
   - This feature allows users to download all the datasets stored in UVLHub in a compressed zip file. To do so, users can click the button provided to download the datasets in one go. Additionally, there are options to download datasets based on specific criteria. Users can filter datasets by a date range by selecting a start and end date, allowing them to download datasets created within that time period. Alternatively, users can download datasets created by a specific user by entering the user's email address. This functionality makes it easy for users to download datasets according to their needs.
