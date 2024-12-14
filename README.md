@@ -297,10 +297,10 @@ These improvements ensure more intuitive and efficient navigation, along with a 
 
 The bot can interact with several features:
 
--   **Flatmapping**: The bot sends a message based on the flatmapping model, validating and checking the request.
+-   **Flatmapping**: The bot analyzes the latest messages and responds by checking if the model is correctly implemented. Specifically, if you send the bot a message containing the contents of a .uvl file, it can use Flamapy to validate whether the model is correct or not.
 -   **Hub Stats**: Users can access statistics related to UVLHub.
 -   **Fakenodo**: The bot checks if the connection to Fakenodo is active or not.
--   **Dataset**: The bot fetches and provides detailed information about the user's datasets. The message includes dataset titles, descriptions, publication types, DOIs, and downloadable files in UVL format. Each dataset will be accompanied by a detailed list of features and constraints, with download links for each file.
+-   **Dataset**: The bot fetches and provides detailed information about the user's datasets. The message includes dataset titles, descriptions, publication types, DOIs, and downloadable files in UVL format. Each dataset will be accompanied by a detailed list of features and constraints, with download links for each file. Additionally, the bot allows users to view the content of the .uvl files associated with their datasets.
 -   **Auth**: The bot retrieves information about the person who has configured it, ensuring clarity on which user is managing and interacting with the bot.
 
   <div align=center>
