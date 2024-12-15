@@ -226,10 +226,10 @@
                     </span>
 
                 <ul class="mt-2" id="file-list"></ul>
-
-                <script>
-                    let dropzone = Dropzone.options.myDropzone = {
-                        url: "/dataset/file/upload",
+                <script src="{{ url_for('static', filename='js/hubfile.bundle.js') }}">
+                        import { FeatureModel } from 'uvl-parser';
+                        let dropzone = Dropzone.options.myDropzone = {
+                        url: "/hubfile/upload",
                         paramName: 'file',
                         maxFilesize: 10,
                         acceptedFiles: '.uvl',
@@ -438,6 +438,7 @@
                                 alert.textContent = 'UVL not valid: ' + file.name;
                                 alerts.appendChild(alert);
                                 alerts.style.display = 'block';
+                                alert.className = 'alert-error';
                             });
 
                         }
