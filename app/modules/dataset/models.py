@@ -2,32 +2,32 @@ from datetime import datetime
 from enum import Enum
 
 from flask import request
-from sqlalchemy import Enum as SQLAlchemyEnum
+from sqlalchemy import Enum as SQLAlchemyEnum, or_
 from sqlalchemy import func
 
 from app import db
 
 
 class PublicationType(Enum):
-    NONE = 'none'
-    ANNOTATION_COLLECTION = 'annotationcollection'
-    BOOK = 'book'
-    BOOK_SECTION = 'section'
-    CONFERENCE_PAPER = 'conferencepaper'
-    DATA_MANAGEMENT_PLAN = 'datamanagementplan'
-    JOURNAL_ARTICLE = 'article'
-    PATENT = 'patent'
-    PREPRINT = 'preprint'
-    PROJECT_DELIVERABLE = 'deliverable'
-    PROJECT_MILESTONE = 'milestone'
-    PROPOSAL = 'proposal'
-    REPORT = 'report'
-    SOFTWARE_DOCUMENTATION = 'softwaredocumentation'
-    TAXONOMIC_TREATMENT = 'taxonomictreatment'
-    TECHNICAL_NOTE = 'technicalnote'
-    THESIS = 'thesis'
-    WORKING_PAPER = 'workingpaper'
-    OTHER = 'other'
+    NONE = "none"
+    ANNOTATION_COLLECTION = "annotationcollection"
+    BOOK = "book"
+    BOOK_SECTION = "section"
+    CONFERENCE_PAPER = "conferencepaper"
+    DATA_MANAGEMENT_PLAN = "datamanagementplan"
+    JOURNAL_ARTICLE = "article"
+    PATENT = "patent"
+    PREPRINT = "preprint"
+    PROJECT_DELIVERABLE = "deliverable"
+    PROJECT_MILESTONE = "milestone"
+    PROPOSAL = "proposal"
+    REPORT = "report"
+    SOFTWARE_DOCUMENTATION = "softwaredocumentation"
+    TAXONOMIC_TREATMENT = "taxonomictreatment"
+    TECHNICAL_NOTE = "technicalnote"
+    THESIS = "thesis"
+    WORKING_PAPER = "workingpaper"
+    OTHER = "other"
 
 
 class Author(db.Model):
@@ -35,15 +35,11 @@ class Author(db.Model):
     name = db.Column(db.String(120), nullable=False)
     affiliation = db.Column(db.String(120))
     orcid = db.Column(db.String(120))
-    ds_meta_data_id = db.Column(db.Integer, db.ForeignKey('ds_meta_data.id'))
-    fm_meta_data_id = db.Column(db.Integer, db.ForeignKey('fm_meta_data.id'))
+    ds_meta_data_id = db.Column(db.Integer, db.ForeignKey("ds_meta_data.id"))
+    fm_meta_data_id = db.Column(db.Integer, db.ForeignKey("fm_meta_data.id"))
 
     def to_dict(self):
-        return {
-            'name': self.name,
-            'affiliation': self.affiliation,
-            'orcid': self.orcid
-        }
+        return {"name": self.name, "affiliation": self.affiliation, "orcid": self.orcid}
 
 
 class DSMetrics(db.Model):
@@ -52,7 +48,7 @@ class DSMetrics(db.Model):
     number_of_features = db.Column(db.String(120))
 
     def __repr__(self):
-        return f'DSMetrics<models={self.number_of_models}, features={self.number_of_features}>'
+        return f"DSMetrics<models={self.number_of_models}, features={self.number_of_features}>"
 
 
 class DSMetaData(db.Model):
@@ -64,20 +60,57 @@ class DSMetaData(db.Model):
     publication_doi = db.Column(db.String(120))
     dataset_doi = db.Column(db.String(120))
     tags = db.Column(db.String(120))
-    ds_metrics_id = db.Column(db.Integer, db.ForeignKey('ds_metrics.id'))
-    ds_metrics = db.relationship('DSMetrics', uselist=False, backref='ds_meta_data', cascade="all, delete")
-    authors = db.relationship('Author', backref='ds_meta_data', lazy=True, cascade="all, delete")
+    ds_metrics_id = db.Column(db.Integer, db.ForeignKey("ds_metrics.id"))
+    ds_metrics = db.relationship(
+        "DSMetrics", uselist=False, backref="ds_meta_data", cascade="all, delete"
+    )
+    authors = db.relationship(
+        "Author", backref="ds_meta_data", lazy=True, cascade="all, delete"
+    )
 
 
 class DataSet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
-    ds_meta_data_id = db.Column(db.Integer, db.ForeignKey('ds_meta_data.id'), nullable=False)
+    ds_meta_data_id = db.Column(
+        db.Integer, db.ForeignKey("ds_meta_data.id"), nullable=False
+    )
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    ds_meta_data = db.relationship('DSMetaData', backref=db.backref('data_set', uselist=False))
-    feature_models = db.relationship('FeatureModel', backref='data_set', lazy=True, cascade="all, delete")
+    ds_meta_data = db.relationship(
+        "DSMetaData", backref=db.backref("data_set", uselist=False)
+    )
+    feature_models = db.relationship(
+        "FeatureModel", backref="data_set", lazy=True, cascade="all, delete"
+    )
+    # Cambios del modelo dataset relacionados a UVL Editor
+    version = db.Column(db.Integer, default=1)
+    # Clave foránea para la relación autoreferencial (referencia a la misma tabla)
+    last_version_id = db.Column(db.Integer, db.ForeignKey("data_set.id", ondelete='SET NULL'), nullable=True)
+    # Relación autoreferencial para "última versión"
+    last_version = db.relationship(
+        "DataSet",
+        backref=db.backref("previous_versions", uselist=True),
+        remote_side="DataSet.id",
+        uselist=False
+    )
+
+    def get_versions(self):
+        print(self.last_version_id)
+        if self.last_version_id is None:
+            return DataSet.query.filter(
+                or_(
+                    DataSet.id == self.id,
+                    DataSet.last_version_id == self.id
+                )
+            ).order_by(DataSet.version).all()
+        return DataSet.query.filter(
+                    or_(
+                        DataSet.id == self.last_version_id,
+                        DataSet.last_version_id == self.last_version_id,
+                    )
+                ).order_by(DataSet.version).all()
 
     def get_average_rating(self):
         average_rating = db.session.query(func.avg(DatasetUserRate.rate)).filter_by(dataset_id=self.id).scalar()
@@ -94,10 +127,14 @@ class DataSet(db.Model):
         db.session.commit()
 
     def get_cleaned_publication_type(self):
-        return self.ds_meta_data.publication_type.name.replace('_', ' ').title()
+        return self.ds_meta_data.publication_type.name.replace("_", " ").title()
 
     def get_zenodo_url(self):
-        return f'https://zenodo.org/record/{self.ds_meta_data.deposition_id}' if self.ds_meta_data.dataset_doi else None
+        return (
+            f"https://zenodo.org/record/{self.ds_meta_data.deposition_id}"
+            if self.ds_meta_data.dataset_doi
+            else None
+        )
 
     def get_files_count(self):
         return sum(len(fm.files) for fm in self.feature_models)
@@ -107,10 +144,12 @@ class DataSet(db.Model):
 
     def get_file_total_size_for_human(self):
         from app.modules.dataset.services import SizeService
+
         return SizeService().get_human_readable_size(self.get_file_total_size())
 
     def get_uvlhub_doi(self):
         from app.modules.dataset.services import DataSetService
+
         return DataSetService().get_uvlhub_doi(self)
 
     def to_dict(self):
@@ -132,37 +171,38 @@ class DataSet(db.Model):
             'files_count': self.get_files_count(),
             'total_size_in_bytes': self.get_file_total_size(),
             'total_size_in_human_format': self.get_file_total_size_for_human(),
+            'rating': self.get_average_rating(),
         }
 
     def __repr__(self):
-        return f'DataSet<{self.id}>'
+        return f"DataSet<{self.id}>"
 
 
 class DSDownloadRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey('data_set.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"))
     download_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     download_cookie = db.Column(db.String(36), nullable=False)  # Assuming UUID4 strings
 
     def __repr__(self):
         return (
-            f'<Download id={self.id} '
-            f'dataset_id={self.dataset_id} '
-            f'date={self.download_date} '
-            f'cookie={self.download_cookie}>'
+            f"<Download id={self.id} "
+            f"dataset_id={self.dataset_id} "
+            f"date={self.download_date} "
+            f"cookie={self.download_cookie}>"
         )
 
 
 class DSViewRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey('data_set.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"))
     view_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     view_cookie = db.Column(db.String(36), nullable=False)  # Assuming UUID4 strings
 
     def __repr__(self):
-        return f'<View id={self.id} dataset_id={self.dataset_id} date={self.view_date} cookie={self.view_cookie}>'
+        return f"<View id={self.id} dataset_id={self.dataset_id} date={self.view_date} cookie={self.view_cookie}>"
 
 
 class DOIMapping(db.Model):
@@ -173,8 +213,8 @@ class DOIMapping(db.Model):
 
 class DatasetUserRate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    dataset_id = db.Column(db.Integer, db.ForeignKey('data_set.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    dataset_id = db.Column(db.Integer, db.ForeignKey("data_set.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     rate = db.Column(db.Integer, nullable=False)
 
     @staticmethod

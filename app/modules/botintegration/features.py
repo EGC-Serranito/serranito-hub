@@ -2,22 +2,35 @@ import requests
 import yaml
 import json
 import os
+from flamapy.metamodels.fm_metamodel.transformations import UVLReader
+from antlr4.error.ErrorListener import ErrorListener
+import tempfile
+
+
+class CustomErrorListener(ErrorListener):
+    """
+    Listener personalizado para capturar errores de sintaxis.
+    """
+    def __init__(self):
+        self.errors = []
+
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        self.errors.append(f"Line {line}:{column} - {msg}")
 
 
 class FeatureService:
-    def load_messages(
-        self, file_path="app/modules/botintegration/assets/messages.yaml"
-    ):
+    @staticmethod
+    def load_yaml_file(file_path):
         """
-        Carga el archivo YAML con la configuración de mensajes.
+        Carga un archivo YAML y devuelve su contenido.
 
-        :param file_path: Ruta del archivo YAML (opcional).
+        :param file_path: Ruta del archivo YAML.
         :return: Datos cargados del archivo YAML.
+        :raises: FileNotFoundError, yaml.YAMLError si hay problemas al cargar el archivo.
         """
         try:
             with open(file_path, "r") as file:
-                data = yaml.safe_load(file)
-            return data
+                return yaml.safe_load(file)
         except FileNotFoundError:
             print(f"Error: File not found at {file_path}")
             raise
@@ -25,56 +38,88 @@ class FeatureService:
             print(f"Error parsing YAML: {e}")
             raise
 
-    def get_bot_token(self, bot_name, bottokens_path="app/modules/botintegration/assets/bottokens.yaml"):
+    @staticmethod
+    def find_bot_token(bot_name, bottokens_data):
         """
-        Obtiene el token de un bot específico a partir del archivo .env y los datos en bottokens.yaml.
+        Busca y obtiene el token de un bot en los datos YAML.
+
+        :param bot_name: Nombre del bot.
+        :param bottokens_data: Datos cargados del archivo YAML.
+        :return: Nombre de la variable de entorno del token del bot.
+        :raises: ValueError si el bot no se encuentra o la configuración es inválida.
+        """
+        bot_entry = next(
+            (
+                entry
+                for entry in bottokens_data.get("bottokens", [])
+                if entry["name"] == bot_name
+            ),
+            None,
+        )
+
+        if not bot_entry:
+            raise ValueError(f"Bot name '{bot_name}' not found in bottokens data.")
+
+        return bot_entry.get("token")
+
+    @staticmethod
+    def get_environment_variable(var_name):
+        """
+        Obtiene el valor de una variable de entorno.
+
+        :param var_name: Nombre de la variable de entorno.
+        :return: Valor de la variable de entorno.
+        :raises: ValueError si la variable no existe o está vacía.
+        """
+        value = os.getenv(var_name)
+        if not value:
+            raise ValueError(f"Environment variable '{var_name}' not found or empty.")
+        return value
+
+    @staticmethod
+    def transform_to_full_url(url):
+        """
+        Asegura que una URL tenga el esquema correcto (http o https).
+
+        :param url: URL a formatear.
+        :return: URL con esquema completo.
+        """
+        if not url.startswith(("http://", "https://")):
+            url = "http://" + url
+        return url
+
+    def load_messages(self, file_path="app/modules/botintegration/assets/messages.yaml"):
+        """
+        Carga un archivo YAML con la configuración de mensajes.
+
+        :param file_path: Ruta del archivo YAML.
+        :return: Datos cargados del archivo YAML.
+        """
+        return self.load_yaml_file(file_path)
+
+    def get_bot_token(
+        self, bot_name, bottokens_path="app/modules/botintegration/assets/bottokens.yaml"
+    ):
+        """
+        Obtiene el token de un bot específico a partir de los datos en bottokens.yaml y variables de entorno.
 
         :param bot_name: Nombre del bot (por ejemplo, "@uvlhub-telegram1").
         :param bottokens_path: Ruta al archivo YAML con las configuraciones de los bots.
-        :param env_path: Ruta al archivo .env.
         :return: Token del bot como cadena.
         :raises: FileNotFoundError, KeyError o ValueError si ocurre algún problema.
         """
         try:
-            # Cargar el archivo bottokens.yaml
-            with open(bottokens_path, "r") as file:
-                bottokens_data = yaml.safe_load(file)
+            # Cargar datos del archivo YAML
+            bottokens_data = self.load_yaml_file(bottokens_path)
 
-            # Buscar el bot en la lista de tokens
-            bot_entry = next(
-                (entry for entry in bottokens_data.get("bottokens", []) if entry["name"] == bot_name),
-                None
-            )
+            # Buscar el token del bot
+            token_var = self.find_bot_token(bot_name, bottokens_data)
 
-            if not bot_entry:
-                raise ValueError(f"Bot name '{bot_name}' not found in {bottokens_path}.")
-
-            # Extraer la variable del token (por ejemplo, {BOT_TELEGRAM1})
-            token_var = bot_entry["token"]
-
-            # Obtener el valor de la variable del token
-            bot_token = os.getenv(token_var)
-
-            if not bot_token:
-                raise ValueError(f"Token variable '{token_var}' not found or empty.")
-
-            return bot_token
-
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-            raise
-        except yaml.YAMLError as e:
-            print(f"Error parsing YAML: {e}")
-            raise
+            # Obtener el valor de la variable de entorno
+            return self.get_environment_variable(token_var)
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            print(f"Unexpected error while fetching bot token: {e}")
             raise
-
-    def transform_to_full_url(self, url):
-        # Check if the URL already starts with http:// or https://
-        if not url.startswith(("http://", "https://")):
-            url = "http://" + url  # Add http:// if no scheme present
-        return url
 
     def send_features_bot(self, bot_token, chat_id, features, BASE_URL):
         """
@@ -85,20 +130,18 @@ class FeatureService:
         """
         bot_token = self.get_bot_token(bot_token)
         BASE_URL = self.transform_to_full_url(BASE_URL)
-        # Cargar los mensajes desde el archivo YAML
         messages_config = self.load_messages()
         messages = messages_config.get("messages", {})
 
-        # Iterar sobre las características proporcionadas
         for feature in features:
-            # Extraer el mensaje desde la configuración usando match-case
             match feature:
                 case "AUTH":
                     from app.modules.profile.models import UserProfile
                     from app.modules.auth.models import User
+
                     message_template = messages.get("AUTH", {}).get("message", "")
                     from app.modules.botintegration.models import TreeNode
-                    # Fetch nodes from the tree in the database
+
                     tree_node = TreeNode.query.filter(TreeNode.name == chat_id).first()
 
                     user = User.query.get(tree_node.user_id)
@@ -114,371 +157,375 @@ class FeatureService:
                     formatted_message = message_template.format(**user_data)
                 case "DATASET":
                     from app.modules.dataset.models import DSMetaData, DataSet
-                    message_template = messages.get("DATASET", {}).get("message", "")
+                    from app.modules.hubfile.services import HubfileService
                     from app.modules.botintegration.models import TreeNode
-                    # Fetch nodes from the tree in the database
-                    tree_node = TreeNode.query.filter(TreeNode.name == chat_id).first()
-                    datasets = DataSet.query.join(DSMetaData).filter(
-                        DataSet.user_id == tree_node.user_id, DSMetaData.dataset_doi.isnot(None)
-                    ).order_by(DataSet.created_at.desc()).all()
+                    from flask import current_app, jsonify, make_response
+                    import os
 
+                    message_template = messages.get("DATASET", {}).get("message", "")
+                    tree_node = TreeNode.query.filter(TreeNode.name == chat_id).first()
+
+                    datasets = (
+                        DataSet.query.join(DSMetaData)
+                        .filter(
+                            DataSet.user_id == tree_node.user_id,
+                            DSMetaData.dataset_doi.isnot(None),
+                        )
+                        .order_by(DataSet.created_at.desc())
+                        .all()
+                    )
                     list_content = ""
 
                     for d in datasets:
                         title = d.ds_meta_data.title
                         description = d.ds_meta_data.description
-                        publication_type = d.ds_meta_data.publication_type.name.replace(
-                            "_", " "
-                        ).title()
+                        publication_type = d.ds_meta_data.publication_type.name.replace("_", " ").title()
                         doi = d.get_uvlhub_doi()
 
-                        # Add the title and description prominently
+                        # Dataset Header
                         list_content += f"🔹 *Title*: {title}\n"
                         list_content += f"📄 *Description*: {description}\n"
                         list_content += f"📚 *Publication Type*: {publication_type}\n"
-                        list_content += f"🌐 *DOI*: [{doi}]({doi})\n"
+                        list_content += f"🌐 *DOI*: [{doi}]({doi})\n\n"
 
-                        # Iterate over feature models and associated files
                         for feature_model in d.feature_models:
                             for file in feature_model.files:
-                                # Detail the file associated with each feature model
-                                list_content += f"\n🔸 *File*: {file.name}\n"
-                                url_view = f"{BASE_URL}/file/view/{file.id}"
-                                print(url_view)
-                                url_download = (
-                                    f"{BASE_URL}/file/download/{file.id}"
+                                list_content += f"🔸 *File*: {file.name}\n"
+                                file_service = HubfileService()
+                                file = file_service.get_or_404(file.id)
+                                filename = file.name
+
+                                directory_path = (
+                                    f"uploads/user_{file.feature_model.data_set.user_id}/"
+                                    f"dataset_{file.feature_model.data_set_id}/"
                                 )
+                                parent_directory_path = os.path.dirname(current_app.root_path)
+                                file_path = os.path.join(parent_directory_path, directory_path, filename)
 
-                                # View and download links
-                                list_content += f"📥 *Download File*: [{file.name}]({url_download})\n"
-
-                                # Make request to get file content
                                 try:
-                                    response = requests.get(url_view, timeout=10)
-                                    if response.status_code == 200:
-                                        # Convert the JSON response to a dictionary
-                                        data = response.json()
-                                        file_content = data.get("content", "")
-                                        if file_content:
-                                            # Show the content with a title for the code block
-                                            list_content += (
-                                                "\n*👨‍💻 File Content (UVL)*:\n"
-                                            )
-                                            list_content += f"\n```uvl\n{file_content[:500]}\n```\n"
+                                    if os.path.exists(file_path):
+                                        with open(file_path, "r") as f:
+                                            content = f.read()
+
+                                        response = jsonify({"success": True, "content": content})
+                                        response = make_response(response)
+
+                                        if response.status_code == 200:
+                                            data = response.get_json()
+                                            file_content = data.get("content", "")
+                                            if file_content:
+                                                list_content += "\n👨‍💻 *File Content (UVL)*:\n"
+                                                list_content += f"\n```uvl\n{file_content[:500]}\n```\n"
+                                            else:
+                                                list_content += "\n*Content not available.*\n"
                                         else:
-                                            list_content += (
-                                                "\n*Content not available.*\n"
-                                            )
+                                            list_content += f"\n(Response code: {response.status_code})\n"
                                     else:
-                                        list_content += f"\n(Response code: {response.status_code})\n"
+                                        list_content += "\n*⚠️ File not found.*\n"
+
                                 except Exception as e:
-                                    list_content += f"\n⚠️ *Error occurred while fetching the file content:* {str(e)}\n"
+                                    list_content += f"\n⚠️ *Error occurred while processing the file:* {str(e)}\n"
 
-                        list_content += "\n"  # Space between datasets
-
-                    # Crear el cuerpo del mensaje con las listas en formato Markdown
-                    user_data = {
-                        "datasets": list_content  # El contenido generado se pasa como parte de los datos del usuario
-                    }
-
-                    # Crear el mensaje formateado
+                                url_download = f"{BASE_URL}/file/download/{file.id}"
+                                list_content += f"📥 *Download File*: {url_download}\n\n"
+                    user_data = {"datasets": list_content}
                     formatted_message = message_template.format(**user_data)
-                case "EXPLORE":
-                    response = requests.post(f"{BASE_URL}/explore", json={}, timeout=10)
-                    if response.status_code == 200:
-                        # Convertir la respuesta JSON a un diccionario
-                        data = response.json()
-                        print(data)  # Verificar los datos obtenidos
-
-                        # Crear una lista con la información de los datasets formateada para Telegram
-                        datasets_info = []
-                        for dataset in data:
-                            dataset_info = (
-                                f"📂 *{dataset['title']}*\n"
-                                f"📝 _{dataset['description']}_\n"
-                                f"👨‍💻 *Authors*: {', '.join([author['name'] for author in dataset['authors']])}\n"
-                                f"🏷 *Tags*: {', '.join(dataset['tags'])}\n"
-                                f"📦 *Size*: {dataset['total_size_in_human_format']}\n"
-                                f"🌐 [DOI]({dataset['url']}) | [Download]({dataset['download']})\n"
-                                "-------------------------"
-                            )
-                            datasets_info.append(dataset_info)
-
-                        # Unir toda la información en un solo string
-                        formatted_datasets = "\n\n".join(datasets_info)
-
-                        # Crear el mensaje para Telegram
-                        formatted_message = f"✨ *Explore the datasets below* ✨\n\n{formatted_datasets}"
-
-                        # Imprimir el mensaje formateado
-                        print(formatted_message)
-                    else:
-                        print(
-                            f"Failed to fetch data. Status code: {response.status_code}"
-                        )
                 case "FLAMAPY":
                     message_template = messages.get("FLAMAPY", {}).get("message", "")
-                    self.send_messages_flamapy(bot_token, chat_id, BASE_URL)
+                    self.send_messages_flamapy(bot_token, chat_id)
                     formatted_message = message_template
                 case "FAKENODO":
-                    response = requests.get(f"{BASE_URL}/fakenodo/api", timeout=10)
-                    if response.status_code == 200:
-                        # Convertir la respuesta JSON a un diccionario
-                        data = response.json()
-                        print(data.get("message", "No conection"))
-                    user_data = {
-                        "connection": data.get("message", "No conection")
-                    }
+                    data = {"status": "success", "message": "Connected to Fakenodo API"}
+                    user_data = {"connection": data.get("message", "No conection")}
                     message_template = messages.get("FAKENODO", {}).get("message", "")
                     formatted_message = message_template.format(**user_data)
                 case "HUBSTATS":
-                    response = requests.get(f"{BASE_URL}/hub-stats", timeout=10)
-                    if response.status_code == 200:
-                        # Convertir la respuesta JSON a un diccionario
-                        data = response.json()
-                        message_template = messages.get("HUBSTATS", {}).get("message", "")
-                        formatted_message = message_template.format(**response.json())
+                    from app.modules.dataset.services import DataSetService
+                    from app.modules.featuremodel.services import FeatureModelService
+                    dataset_service = DataSetService()
+                    feature_model_service = FeatureModelService()
+
+                    datasets_counter = dataset_service.count_synchronized_datasets()
+                    feature_models_counter = feature_model_service.count_feature_models()
+
+                    total_dataset_downloads = dataset_service.total_dataset_downloads()
+                    total_feature_model_downloads = feature_model_service.total_feature_model_downloads()
+
+                    total_dataset_views = dataset_service.total_dataset_views()
+                    total_feature_model_views = feature_model_service.total_feature_model_views()
+
+                    data = {
+                        "datasets_counter": datasets_counter,
+                        "feature_models_counter": feature_models_counter,
+                        "total_dataset_downloads": total_dataset_downloads,
+                        "total_feature_model_downloads": total_feature_model_downloads,
+                        "total_dataset_views": total_dataset_views,
+                        "total_feature_model_views": total_feature_model_views,
+                    }
+
+                    # Get the message template
+                    message_template = messages.get("HUBSTATS", {}).get("message", "")
+
+                    # Format the message using the data
+                    formatted_message = message_template.format(**data)
                 case _:
                     print(
                         f"Feature {feature} no encontrada en la configuración de mensajes."
                     )
-                    continue  # Salta al siguiente feature si no es válido
-
+                    continue
             try:
-                # Enviar el mensaje al bot de Telegram
                 self.send_message_bot(bot_token, chat_id, feature, formatted_message)
             except KeyError as e:
                 print(
                     f"Error formateando el mensaje para la característica {feature}: Faltan datos {e}"
                 )
 
-    def send_messages_flamapy(self, bot_token, chat_id, BASE_URL):
+    @staticmethod
+    def validate_uvl_model(uvl_text):
         """
-        Obtiene los mensajes enviados al bot y responde a cada uno de ellos con "Hola, soy el bot".
+        Valida un modelo UVL y devuelve el resultado como texto.
         """
-        if (len(bot_token.split(":")) == 2 and not len(bot_token) == 64):
-            url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
-            response = requests.get(url, timeout=10)
-            webhook_info = response.json()
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".uvl") as temp_file:
+                temp_file.write(uvl_text.encode("utf-8"))
+                temp_path = temp_file.name
 
-            if webhook_info["result"]["url"]:
-                # Si hay un webhook activo, eliminarlo
-                delete_webhook_url = f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
-                delete_response = requests.get(delete_webhook_url, timeout=10)
-                if delete_response.status_code == 200:
-                    print("Webhook eliminado con éxito.")
-                else:
-                    print(f"Error al eliminar el webhook: {delete_response.text}")
-            last_update_id = None
-            # Obtener las actualizaciones (mensajes enviados al bot)
-            url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
-            if last_update_id is not None:
-                url += f"?offset={last_update_id + 1}"
+            try:
+                UVLReader(temp_path).transform()
+                return "Valid Model"
+            except Exception as e:
+                return f"Error in the validation of the model: {str(e)}"
+        except Exception as e:
+            return f"General error: {str(e)}"
 
-            response = requests.get(url, timeout=10)
-            if response.status_code != 200:
-                print(f"Error al obtener actualizaciones: {response.text}")
-                return
+    @staticmethod
+    def handle_telegram_webhook(bot_token):
+        """
+        Verifica y elimina un webhook activo en Telegram.
+        """
+        url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
+        response = requests.get(url, timeout=10)
+        webhook_info = response.json()
 
-            updates = response.json()
-
-            # Verificar si hay mensajes en las actualizaciones
-            for update in updates.get("result", []):
-                # Actualizar el último update_id procesado
-                last_update_id = update["update_id"]
-                url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
-                if last_update_id is not None:
-                    url += f"?offset={last_update_id + 1}"
-                response = requests.get(url, timeout=10)
-
-                if "message" in update:
-                    chat_id_messages = update["message"]["chat"]["id"]  # ID del chat
-                    message_id = update["message"][
-                        "message_id"
-                    ]  # ID del mensaje recibido
-                    uvl_message = update["message"].get("text", "Mensaje sin texto")
-
-                    if int(chat_id) == int(chat_id_messages):
-                        # Llamar a la API de Flamapy con el mensaje
-                        response = requests.post(
-                            f"{BASE_URL}/flamapy/check_uvl",
-                            json={
-                                "text": uvl_message
-                            }, timeout=10)
-
-                        # Obtener el texto de respuesta de la API de Flamapy
-                        if response.status_code == 200:
-                            response_text = response.json().get(
-                                "message", "Modelo válido"
-                            )
-                        else:
-                            response_text = response.json().get(
-                                "error", "Error al validar el modelo"
-                            )
-
-                        data = {
-                            "chat_id": chat_id,
-                            "text": response_text,
-                            "reply_to_message_id": message_id,
-                        }
-
-                        # Enviar la respuesta
-                        send_response = requests.post(
-                            f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                            data=data, timeout=10)
-                        if send_response.status_code == 200:
-                            print(
-                                f"Respondido al mensaje {message_id} en el chat {chat_id}"
-                            )
-                        else:
-                            print(
-                                f"Error al responder al mensaje {message_id}: {send_response.text}"
-                            )
-        else:
-            # La URL del endpoint para obtener mensajes de un canal específico
-            url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
-
-            # Parámetros para obtener solo el mensaje más reciente
-            params = {"limit": 10}  # Limita la cantidad de mensajes a obtener
-
-            # Los headers incluyen el token de autorización del bot
-            headers = {"Authorization": f"Bot {bot_token}"}
-
-            # Realiza la solicitud GET para obtener los mensajes más recientes
-            response = requests.get(url, headers=headers, params=params, timeout=10)
-
-            # Verifica si la solicitud fue exitosa
-            if response.status_code == 200:
-                messages = response.json()
-
-                # Muestra los mensajes recientes
-                for message in messages:
-                    if not message['author'].get('bot', False):
-                        print(
-                            f"Autor: {message['author']['username']} - Contenido: {message['content']}"
-                        )
-
-                        # Realiza la solicitud POST a la API externa para verificar el mensaje
-                        external_api_url = f"{BASE_URL}/flamapy/check_uvl"
-                        response = requests.post(
-                            external_api_url,
-                            json={
-                                "text": message["content"]
-                            }, timeout=10)
-
-                        # Obtiene el texto de respuesta de la API externa
-                        response_text = response.json().get("error", "Valid Model")
-
-                        # Configuración de los headers para responder al mensaje en Discord
-                        headers = {
-                            "Authorization": f"Bot {bot_token}",
-                            "Content-Type": "application/json",
-                        }
-
-                        # Datos para enviar como respuesta al mensaje
-                        data = {
-                            "content": response_text,
-                            "message_reference": {
-                                "message_id": message['id']  # Referencia al mensaje original
-                            }
-                        }
-
-                        # Envia la respuesta al mensaje en Discord
-                        send_response = requests.post(
-                            url, data=json.dumps(data), headers=headers, timeout=10)
-
-                        if send_response.status_code == 200:
-                            print(
-                                f"Respondido al mensaje {message['id']} en el chat {chat_id}"
-                            )
-                        else:
-                            print(
-                                f"Error al responder al mensaje {message['id']}: {send_response.text}"
-                            )
+        if webhook_info["result"]["url"]:
+            delete_webhook_url = f"https://api.telegram.org/bot{bot_token}/deleteWebhook"
+            delete_response = requests.get(delete_webhook_url, timeout=10)
+            if delete_response.status_code == 200:
+                print("Webhook eliminado con éxito.")
             else:
-                print(f"Error al obtener los mensajes: {response.status_code}")
+                print(f"Error al eliminar el webhook: {delete_response.text}")
 
-    def send_message_bot(self, bot_token, chat_id, feature, formatted_message):
+    @staticmethod
+    def get_telegram_updates(bot_token, last_update_id=None):
         """
-        Envía un mensaje formateado a un bot de Telegram.
-        :param bot_token: Token del bot de Telegram.
-        :param chat_id: ID del chat de Telegram al que enviar el mensaje.
-        :param feature: La característica para la que se está enviando el mensaje.
-        :param formatted_message: Mensaje ya formateado con los datos correspondientes.
+        Obtiene actualizaciones del bot de Telegram.
         """
+        url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
+        if last_update_id:
+            url += f"?offset={last_update_id + 1}"
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("result", [])
+        print(f"Error al obtener actualizaciones: {response.text}")
+        return []
 
-        message = (
-            f"Message for {feature}:\n{formatted_message}\n\n"  # Título en negrita
-            + "*Para más información sobre este bot, visita:* \n"
+    @staticmethod
+    def respond_to_telegram_message(bot_token, chat_id, message_id, response_text):
+        """
+        Responde a un mensaje en Telegram.
+        """
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        data = {
+            "chat_id": chat_id,
+            "text": response_text,
+            "reply_to_message_id": message_id,
+        }
+        response = requests.post(url, data=data, timeout=10)
+        if response.status_code == 200:
+            print(f"Respondido al mensaje {message_id} en el chat {chat_id}")
+        else:
+            print(f"Error al responder al mensaje {message_id}: {response.text}")
+
+    @staticmethod
+    def get_discord_messages(bot_token, chat_id):
+        """
+        Obtiene mensajes recientes de un canal de Discord.
+        """
+        url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
+        headers = {"Authorization": f"Bot {bot_token}"}
+        params = {"limit": 10}
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        print(f"Error al obtener los mensajes: {response.status_code}")
+        return []
+
+    @staticmethod
+    def respond_to_discord_message(bot_token, chat_id, message_id, response_text):
+        """
+        Responde a un mensaje en Discord.
+        """
+        url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
+        headers = {
+            "Authorization": f"Bot {bot_token}",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "content": response_text,
+            "message_reference": {"message_id": message_id},
+        }
+        response = requests.post(url, data=json.dumps(data), headers=headers, timeout=10)
+        if response.status_code == 200:
+            print(f"Respondido al mensaje {message_id} en el chat {chat_id}")
+        else:
+            print(f"Error al responder al mensaje {message_id}: {response.text}")
+
+    def send_messages_flamapy(self, bot_token, chat_id):
+        """
+        Procesa mensajes de Telegram o Discord y responde a cada uno.
+        """
+        if len(bot_token.split(":")) == 2 and not len(bot_token) == 64:
+            self.handle_telegram_webhook(bot_token)
+            updates = self.get_telegram_updates(bot_token)
+
+            for update in updates:
+                chat_id_messages = update["message"]["chat"]["id"]
+                message_id = update["message"]["message_id"]
+                uvl_message = update["message"].get("text", "Mensaje sin texto")
+
+                if int(chat_id) == int(chat_id_messages):
+                    response_text = self.validate_uvl_model(uvl_message)
+                    self.respond_to_telegram_message(
+                        bot_token, chat_id, message_id, response_text
+                    )
+                    last_update_id = updates[-1]["update_id"]
+                    url = f"https://api.telegram.org/bot{bot_token}/getUpdates?offset={last_update_id + 1}"
+                    requests.get(url, timeout=10)
+        else:
+            messages = self.get_discord_messages(bot_token, chat_id)
+
+            for message in messages:
+                if not message["author"].get("bot", False):
+                    response_text = self.validate_uvl_model(message["content"])
+                    self.respond_to_discord_message(
+                        bot_token, chat_id, message["id"], response_text
+                    )
+
+    @staticmethod
+    def format_message(feature, formatted_message):
+        """
+        Formats a message to be sent.
+        """
+        return (
+            f"Message for {feature}:\n{formatted_message}\n\n"
+            + "*For more information about this bot, visit:* \n"
             + "[serranito-hub-dev](https://serranito-hub-dev.onrender.com/botintegration)"
         )
 
-        # Función para dividir el mensaje en fragmentos de menos de 2000 caracteres
-        def split_message(message, limit=2000):
-            """
-            Divide un mensaje largo en fragmentos de menos de `limit` caracteres.
-            """
-            lines = message.splitlines()  # Dividir el mensaje en líneas
-            chunks = []
-            current_chunk = ""
+    @staticmethod
+    def split_message(message, limit=2000):
+        """
+        Divide un mensaje largo en fragmentos respetando bloques de código y líneas relacionadas.
+        Los bloques de código se mantienen íntegros, incluso si sobrepasan el límite de caracteres.
 
-            for line in lines:
-                # Si añadir esta línea excede el límite, guardar el chunk actual y empezar uno nuevo
+        :param message: Mensaje completo a dividir.
+        :param limit: Límite de caracteres por fragmento.
+        :return: Lista de fragmentos de mensaje.
+        """
+        lines = message.splitlines()
+        chunks = []
+        current_chunk = ""
+        inside_code_block = False
+        current_code_block = ""
+
+        for line in lines:
+            if line.strip().startswith("```"):
+                if inside_code_block:
+                    inside_code_block = False
+                    current_code_block += line + "\n"
+                    if len(current_chunk) + len(current_code_block) > limit:
+                        if current_chunk.strip():
+                            chunks.append(current_chunk.strip())
+                        chunks.append(current_code_block.strip())
+                        current_chunk = ""
+                    else:
+                        current_chunk += current_code_block
+                    current_code_block = ""
+                else:
+                    inside_code_block = True
+                    if current_chunk.strip():
+                        chunks.append(current_chunk.strip())
+                    current_chunk = line + "\n"
+            elif inside_code_block:
+                current_code_block += line + "\n"
+            else:
                 if len(current_chunk) + len(line) + 1 > limit:
-                    chunks.append(current_chunk)
+                    chunks.append(current_chunk.strip())
                     current_chunk = line + "\n"
                 else:
                     current_chunk += line + "\n"
 
-            if current_chunk:  # Añadir el último chunk si no está vacío
-                chunks.append(current_chunk)
+        if current_chunk.strip():
+            chunks.append(current_chunk.strip())
+        if current_code_block.strip():
+            chunks.append(current_code_block.strip())
 
-            return chunks
+        return chunks
 
-        if (len(bot_token.split(":")) == 2 and not len(bot_token) == 64):
-            # Crear el mensaje con estilo Markdown
+    @staticmethod
+    def send_to_telegram(bot_token, chat_id, message):
+        """
+        Envía mensajes a Telegram en fragmentos, asegurando que cada uno se procese correctamente.
 
-            chunks = split_message(message)
+        :param bot_token: Token del bot de Telegram.
+        :param chat_id: ID del chat de Telegram.
+        :param chunks: Lista de fragmentos del mensaje a enviar.
+        """
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown",
+        }
 
-            # URL de la API de Telegram para enviar el mensaje
-            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            for chunk in chunks:
-                # Datos a enviar en la solicitud POST (con formato Markdown habilitado)
-                payload = {
-                    "chat_id": chat_id,
-                    "text": chunk,
-                    "parse_mode": "Markdown",
-                }
+        try:
+            response = requests.post(url, data=payload, timeout=10)
+            if response.status_code == 200:
+                print(f"Mensaje enviado exitosamente a {chat_id}.")
+            else:
+                print(f"Error al enviar el mensaje: {response.status_code}, {response.text}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error al enviar el mensaje: {e}")
 
-                # Realizar la solicitud POST a la API de Telegram
-                response = requests.post(url, data=payload, timeout=10)
+    @staticmethod
+    def send_to_discord(bot_token, chat_id, chunks):
+        """
+        Envía mensajes a Discord en fragmentos.
+        """
+        url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
+        headers = {
+            "Authorization": f"Bot {bot_token}",
+            "Content-Type": "application/json",
+        }
 
-                # Comprobar si la solicitud fue exitosa
-                if response.status_code == 200:
-                    print(f"Mensaje enviado a {chat_id} exitosamente para {feature}.")
-                else:
-                    print(
-                        f"Error al enviar mensaje para {feature}: {response.status_code}"
-                    )
+        for chunk in chunks:
+            data = {"content": chunk}
+            response = requests.post(
+                url, data=json.dumps(data), headers=headers, timeout=10
+            )
+            if response.status_code == 200:
+                print("Mensaje enviado exitosamente.")
+            else:
+                print(f"Error al enviar mensaje: {response.status_code}, {response.text}")
+
+    def send_message_bot(self, bot_token, chat_id, feature, formatted_message):
+        """
+        Envía un mensaje a Telegram o Discord dependiendo del formato del token.
+        """
+        message = self.format_message(feature, formatted_message)
+        chunks = self.split_message(message)
+
+        if len(bot_token.split(":")) == 2 and not len(bot_token) == 64:
+            self.send_to_telegram(bot_token, chat_id, message)
         else:
-            # Dividir el mensaje en fragmentos
-            chunks = split_message(message)
-            url = f"https://discord.com/api/v10/channels/{chat_id}/messages"
-            # Configuración de los headers
-            headers = {
-                "Authorization": f"Bot {bot_token}",
-                "Content-Type": "application/json",
-            }
-
-            # Enviar cada fragmento
-            for chunk in chunks:
-                data = {"content": chunk}
-                response = requests.post(url, data=json.dumps(data), headers=headers, timeout=10)
-
-                # Verificar la respuesta
-                if response.status_code == 200:
-                    print("Mensaje enviado exitosamente.")
-                else:
-                    print(
-                        f"Error al enviar el mensaje: {response.status_code}, {response.text}"
-                    )
+            self.send_to_discord(bot_token, chat_id, chunks)

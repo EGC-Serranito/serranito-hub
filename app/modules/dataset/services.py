@@ -7,6 +7,7 @@ import uuid
 
 
 from flask import request
+from sqlalchemy import or_
 
 from app.modules.auth.services import AuthenticationService
 from app.modules.dataset.models import DSViewRecord, DataSet, DSMetaData
@@ -154,6 +155,79 @@ class DataSetService(BaseService):
             raise exc
         return dataset
 
+    def update_from_form(self, form, current_user, last_dataset_id) -> DataSet:
+        main_author = {
+            "name": f"{current_user.profile.surname}, {current_user.profile.name}",
+            "affiliation": current_user.profile.affiliation,
+            "orcid": current_user.profile.orcid,
+        }
+        try:
+            if form.get_dsmetadata() is None:
+                raise TypeError("DsMetadata can't be None")
+            if last_dataset_id is None:
+                raise ValueError("If last_dataset_id is None, you must to do create")
+            logger.info(f"Creating dsmetadata...: {form.get_dsmetadata()}")
+            dsmetadata = self.dsmetadata_repository.create(**form.get_dsmetadata())
+            for author_data in [main_author] + form.get_authors():
+                author = self.author_repository.create(
+                    commit=False, ds_meta_data_id=dsmetadata.id, **author_data
+                )
+                dsmetadata.authors.append(author)
+
+            family_dataset = (
+                DataSet.query.filter(
+                    or_(
+                        DataSet.id == last_dataset_id,
+                        DataSet.last_version_id == last_dataset_id,
+                    )
+                )
+                .order_by(DataSet.version)
+                .all()
+            )
+            version = family_dataset[-1].version + 1
+            last_dataset_id = family_dataset[0].id
+
+            dataset = self.create(
+                commit=False,
+                version=version,
+                user_id=current_user.id,
+                ds_meta_data_id=dsmetadata.id,
+                last_version_id=last_dataset_id,
+            )
+            for feature_model in form.feature_models:
+                uvl_filename = feature_model.uvl_filename.data
+                fmmetadata = self.fmmetadata_repository.create(
+                    commit=False, **feature_model.get_fmmetadata()
+                )
+                for author_data in feature_model.get_authors():
+                    author = self.author_repository.create(
+                        commit=False, fm_meta_data_id=fmmetadata.id, **author_data
+                    )
+                    fmmetadata.authors.append(author)
+
+                fm = self.feature_model_repository.create(
+                    commit=False, data_set_id=dataset.id, fm_meta_data_id=fmmetadata.id
+                )
+
+                # associated files in feature model
+                file_path = os.path.join(current_user.temp_folder(), uvl_filename)
+                checksum, size = calculate_checksum_and_size(file_path)
+
+                file = self.hubfilerepository.create(
+                    commit=False,
+                    name=uvl_filename,
+                    checksum=checksum,
+                    size=size,
+                    feature_model_id=fm.id,
+                )
+                fm.files.append(file)
+            self.repository.session.commit()
+        except Exception as exc:
+            logger.info(f"Exception creating dataset from form...: {exc}")
+            self.repository.session.rollback()
+            raise exc
+        return dataset
+
     def update_dsmetadata(self, id, **kwargs):
         return self.dsmetadata_repository.update(id, **kwargs)
 
@@ -241,9 +315,9 @@ class DatasetRatingService(BaseService):
 
         existing_rating = self.repository.find_user_rating(dataset_id, user_id)
         if existing_rating:
-            self.repository.update_rating(existing_rating, rate)
+            return self.repository.update_rating(existing_rating, rate)
         else:
-            self.repository.add_rating(dataset_id, user_id, rate)
+            return self.repository.add_rating(dataset_id, user_id, rate)
 
     def get_average_rating(self, dataset_id):
         ratings = self.repository.get_all_ratings(dataset_id)
@@ -255,7 +329,7 @@ class DatasetRatingService(BaseService):
         return self.repository.find_user_rating(dataset_id, user_id)
 
     def update_rate(self, rating, rate):
-        self.repository.update_rating(rating, rate)
+        return self.repository.update_rating(rating, rate)
 
 
 class SizeService:

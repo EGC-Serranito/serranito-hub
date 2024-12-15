@@ -1,5 +1,6 @@
 import click
 
+from rosemary.commands.webpack_compile import webpack_compile
 from rosemary.commands.module_list import module_list
 from rosemary.commands.locust import locust, stop
 from rosemary.commands.compose_env import compose_env
@@ -19,8 +20,6 @@ from rosemary.commands.info import info, info2
 from rosemary.commands.make_module import make_module
 from rosemary.commands.env import env
 from rosemary.commands.test import test
-from rosemary.commands.run_app import run_app
-from rosemary.commands.coverage_all import coverage_all
 
 
 class RosemaryCLI(click.Group):
@@ -60,9 +59,7 @@ cli.add_command(locust)
 cli.add_command(stop)
 cli.add_command(selenium)
 cli.add_command(module_list)
-cli.add_command(run_app)
-cli.add_command(coverage_all)
-
+cli.add_command(webpack_compile)
 
 if __name__ == '__main__':
     cli()

@@ -1,0 +1,87 @@
+name: Auto Merge Ship PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install GitHub CLI and jq
+        run: |
+          sudo apt-get update && sudo apt-get install -y gh jq
+
+      - name: Authenticate GitHub CLI
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        run: |
+          echo "${ADMIN_TOKEN}" | gh auth login --with-token
+
+      - name: Check PR status and merge
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GITHUB_EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_EVENT_PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          PR_NUMBER=$GITHUB_EVENT_PR_NUMBER
+          PR_TITLE=$GITHUB_EVENT_PR_TITLE
+          # Extract PR number and title
+          PR_TITLE=$(echo "$PR_TITLE" | xargs)
+
+          if [[ "$PR_TITLE" == ship* ]]; then
+            echo "Processing PR #$PR_NUMBER with title: $PR_TITLE"
+
+            # Loop to check the status until there is exactly one failed workflow
+            while true; do
+              # Get PR details using GitHub CLI
+              pr_status=$(gh pr view "$PR_NUMBER" --json statusCheckRollup)
+              if [ $? -ne 0 ]; then
+                echo "Error fetching PR details. Retrying..."
+                sleep 10
+                continue
+              fi
+
+              # Count how many workflows have failed
+              FAILED_COUNT=$(echo "$pr_status" | jq -r '[.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | length')
+              echo "Total number of checks (failed or incomplete) for PR #$PR_NUMBER: $FAILED_COUNT"
+              
+              # Count how many workflows have failures
+              FAILURE_COUNT=$(echo "$pr_status" | jq -r '[.statusCheckRollup[] | select(.conclusion == "FAILURE")] | length')
+              echo "Number of failed checks (with FAILURE status) for PR #$PR_NUMBER: $FAILURE_COUNT"
+
+              if [ "$FAILURE_COUNT" -ge 1 ]; then
+                break
+              fi
+
+              if [ "$FAILED_COUNT" -eq 0 ] || [ "$FAILED_COUNT" -eq 1 ]; then
+                echo "All checks passed or exactly one failed. Verifying mergeable status for PR #$PR_NUMBER..."
+
+                # Check if the PR is mergeable
+                PR_MERGEABLE=$(gh pr view "$PR_NUMBER" --json mergeable -q '.mergeable')
+
+                if [ "$PR_MERGEABLE" = "MERGEABLE" ]; then
+                  echo "PR #$PR_NUMBER is mergeable. Proceeding to merge..."
+                  gh pr merge "$PR_NUMBER" --merge --auto
+                  if [ $? -eq 0 ]; then
+                    echo "PR #$PR_NUMBER merged successfully."
+                    break
+                  else
+                    echo "Failed to merge PR #$PR_NUMBER. Exiting."
+                    exit 1
+                  fi
+                else
+                  echo "PR #$PR_NUMBER is not mergeable. Exiting loop."
+                  break
+                fi
+              else
+                echo "Not all checks have passed for PR #$PR_NUMBER. Retrying in 10 seconds..."
+                sleep 10
+              fi
+            done
+          else
+            echo "PR title does not start with 'ship'. Skipping."
+          fi
