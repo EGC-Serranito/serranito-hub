@@ -208,11 +208,11 @@ Save the changes and restart with the USB drive connected.
     -   **Tags**  (separated by commas).
     -   **Authors' details**  (name, affiliation, ORCID).
     -   **UVL models**, which can be uploaded by dragging and dropping files into the interface.
--   **Syntactic validation**: Once a dataset is uploaded, users can validate the UVL file syntax by clicking the "Check" button. This process involves:
+    -   **Syntactic validation**: Once a dataset is uploaded, users can validate the UVL file syntax by clicking the "Check" button. This process involves:
     
-    -   Defining the UVL grammar and generating a parser.
-    -   Analysing the file to identify and display syntax errors.
-    -   Providing tools for error correction and revalidation (using  **Flamapy**).
+      -   Defining the UVL grammar and generating a parser (using **ANTLR**).
+      -   Analysing the file to identify and display syntax errors.
+      -   Providing tools for error correction and revalidation (using  **Flamapy**).
 
 This comprehensive approach ensures that datasets are properly validated and that any issues are efficiently identified and resolved, improving the overall reliability of UVL models.
 
@@ -297,7 +297,7 @@ These improvements ensure more intuitive and efficient navigation, along with a 
 
 The bot can interact with several features:
 
--   **Flatmapping**: The bot analyzes the latest messages and responds by checking if the model is correctly implemented. Specifically, if you send the bot a message containing the contents of a .uvl file, it can use Flamapy to validate whether the model is correct or not.
+-   **Flamapy**: The bot analyzes the latest messages and responds by checking if the model is correctly implemented. Specifically, if you send the bot a message containing the contents of a .uvl file, it can use Flamapy to validate whether the model is correct or not.
 -   **Hub Stats**: Users can access statistics related to UVLHub.
 -   **Fakenodo**: The bot checks if the connection to Fakenodo is active or not.
 -   **Dataset**: The bot fetches and provides detailed information about the user's datasets. The message includes dataset titles, descriptions, publication types, DOIs, and downloadable files in UVL format. Each dataset will be accompanied by a detailed list of features and constraints, with download links for each file. Additionally, the bot allows users to view the content of the .uvl files associated with their datasets.
