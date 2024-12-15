@@ -47,9 +47,14 @@ jobs:
             if [ "$STATUS_CHECKS_EMPTY" = "true" ]; then
               # Assume checks passed if no checks are present
               PR_STATUS_CHECKS="SUCCESS"
-            else
-              # Extract the state from statusCheckRollup
-              PR_STATUS_CHECKS=$(echo "$pr" | jq -r '.statusCheckRollup.state')
+            # Verify that all status checks have completed successfully
+              ALL_CHECKS_SUCCESS=$(echo "$pr" | jq '[.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | length == 0')
+              
+              if [ "$ALL_CHECKS_SUCCESS" = "true" ]; then
+                PR_STATUS_CHECKS="SUCCESS"
+              else
+                PR_STATUS_CHECKS="FAILED"
+              fi
             fi
             
             # Convert creation date to timestamp
