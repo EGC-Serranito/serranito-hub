@@ -66,8 +66,7 @@ RUN npx webpack --config ./modules/hubfile/assets/js/webpack.config.js
 
 # Compile webpack files
 RUN rosemary webpack:compile
-RUN rosemary db:migrate
-RUN rosemary db:seed
+
 
 # Expose port 80
 EXPOSE 80
