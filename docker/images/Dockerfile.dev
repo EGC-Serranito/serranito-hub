@@ -11,24 +11,26 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && apt-get install -y --no-install-recommends bash \
     && apt-get install -y --no-install-recommends openrc \
-    && apt-get install -y --no-install-recommends build-essential 
+    && apt-get install -y --no-install-recommends build-essential \
+    && apt-get install -y npm
 
 # Install Docker CLI
 RUN apt-get install -y --no-install-recommends ca-certificates gnupg lsb-release \
     && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends docker-ce-cli 
+    && apt-get install -y --no-install-recommends docker-ce-cli
 
 # Clean up
 RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-        
+
 # Set the working directory in the container to /app
 WORKDIR /app
 
 # Copy requirements.txt to the /app working directory
 COPY requirements.txt .
+COPY package*.json .
 
 # Removes cache at the build stage
 RUN find . -type d -name "__pycache__" -exec rm -r {} + && \
@@ -49,10 +51,16 @@ COPY docker/ ./docker
 RUN pip install --no-cache-dir --upgrade pip
 
 # Install any needed packages specified in requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt \
+    && npm install
 
 # Install Rosemary
 RUN pip install -e ./
+
+# Build the frontend
+COPY app/modules/hubfile/assets/js/webpack.config.js ./modules/hubfile/assets/js/
+COPY app/modules/hubfile/assets/js/scripts.js ./modules/hubfile/assets/js/
+RUN npx webpack --config ./modules/hubfile/assets/js/webpack.config.js
 
 # Expose port 5000 for the Flask app
 EXPOSE 5000
