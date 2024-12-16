@@ -15,6 +15,8 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+rosemary db:reset --yes
+
 # Initialize migrations only if the migrations directory doesn't exist
 if [ ! -d "migrations/versions" ]; then
     # Initialize the migration repository
@@ -54,8 +56,6 @@ fi
 # Start the application using Gunicorn, binding it to port 80
 # Set the logging level to info and the timeout to 3600 seconds
 
-rosemary db:reset --yes
-rosemary db:migrate
 rosemary db:seed
 
 exec gunicorn --bind 0.0.0.0:80 app:app --log-level info --timeout 3600

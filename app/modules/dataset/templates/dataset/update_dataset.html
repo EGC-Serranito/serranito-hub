@@ -152,13 +152,13 @@
 
                                     <div id="authors">
                                         {% for subform in form.authors %}
-                                        <div class="row author" {% if not loop.first %}
-                                            style="border:2px dotted #ccc;border-radius:10px;padding:10px;margin:10px 0; background-color: white"
-                                            {% endif %}
+                                        <div class="row author"
+                                            style="border:2px dotted #ccc;border-radius:10px;padding:10px;margin:10px 0;"
+                                            
                                         >
                                             <div class="col-lg-6 col-12 mb-3">
                                                 {{ subform.form.name.label(class="form-label") }}
-                                                {{ subform.form.name(class="form-control custom-search", disabled=loop.first) }}
+                                                {{ subform.form.name(class="form-control custom-search", disabled=true) }}
                                                 {% for error in subform.name.errors %}
                                                     <span style="color: red;">{{ error }}</span>
                                                 {% endfor %}
@@ -166,7 +166,7 @@
 
                                             <div class="col-lg-6 col-12 mb-3">
                                                 {{ subform.form.affiliation.label(class="form-label") }}
-                                                {{ subform.form.affiliation(class="form-control custom-search", disabled=loop.first) }}
+                                                {{ subform.form.affiliation(class="form-control custom-search", disabled=true) }}
                                                 {% for error in subform.name.errors %}
                                                     <span style="color: red;">{{ error }}</span>
                                                 {% endfor %}
@@ -174,7 +174,7 @@
 
                                             <div class="col-lg-6 col-12 mb-3">
                                                 {{ subform.orcid.label(class="form-label") }}
-                                                {{ subform.orcid(class="form-control custom-search", disabled=loop.first) }}
+                                                {{ subform.orcid(class="form-control custom-search", disabled=true) }}
                                                 {% for error in subform.orcid.errors %}
                                                     <span style="color: red;">{{ error }}</span>
                                                 {% endfor %}

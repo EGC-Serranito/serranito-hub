@@ -536,7 +536,23 @@
     function editFile(){
         const text = document.getElementById('fileEditContent').textContent
         localStorage.setItem("edit_file", JSON.stringify({file_id: currentFileId, content: text}))
-        window.location.href = "/dataset/update/{{ dataset.id }}"
+        fetch("/dataset/file/update/check", 
+            {
+                method:"POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: localStorage.getItem("edit_file")
+            })
+            .then(response => {
+                if (response.status !== 200){
+                    localStorage.removeItem("edit_file")
+                    alert("Error in UVL")
+                } else {
+                    window.location.href = "/dataset/update/{{ dataset.id }}"
+                }
+            })
+        
     }
 
     function openEditFile(fileId) {
