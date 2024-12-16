@@ -20,7 +20,7 @@ from flask import (
 )
 from flask_login import login_required, current_user
 
-from app.modules.dataset.forms import DataSetForm
+from app.modules.dataset.forms import DataSetForm, DataSetUpdateForm
 from app.modules.dataset.models import DSDownloadRecord
 from app.modules.dataset import dataset_bp
 from app.modules.dataset.services import (
@@ -32,12 +32,13 @@ from app.modules.dataset.services import (
     DOIMappingService,
     DatasetRatingService,
 )
+from app.modules.flamapy.services import FlamapyService
 from app.modules.hubfile.services import HubfileService
 from app.modules.zenodo.services import ZenodoService
 
 logger = logging.getLogger(__name__)
 
-
+flamapy_service = FlamapyService()
 dataset_service = DataSetService()
 author_service = AuthorService()
 dsmetadata_service = DSMetaDataService()
@@ -173,6 +174,47 @@ def upload():
     )
 
 
+@dataset_bp.route("/dataset/file/update/check", methods=["POST"])
+@login_required
+def check_upload_uvl():
+    # Obtener la carpeta temporal del usuario actual
+    temp_folder = current_user.temp_folder()
+
+    # En caso de que exista la carpeta temporal, se borra y se crea de nuevo
+    if os.path.exists(temp_folder):
+        shutil.rmtree(temp_folder)
+    os.makedirs(temp_folder)
+
+    file_path = os.path.join(temp_folder, "check_uvl.uvl")
+
+    try:
+        # Obtener el cuerpo de la solicitud y validar que tiene "content"
+        body = request.get_json()
+        content = body.get("content")
+        if content is None:
+            return jsonify({"error": "El contenido no fue proporcionado."}), 400
+
+        # Escribir el contenido en el archivo
+        with open(file_path, "w") as f:
+            f.write(content)
+
+        # Validar el archivo con el servicio flamapy
+        validation_result, status_code = flamapy_service.check_uvl(file_path)
+        
+        # Eliminar el archivo después de la validación
+        os.remove(file_path)
+
+        # Verificar el código de estado y retornar la respuesta correspondiente
+        if status_code != 200:
+            return jsonify(validation_result), status_code
+
+        return jsonify({"message": "UVL check successfully"}), 200
+
+    except Exception as e:
+        # Manejar errores inesperados
+        return jsonify({"error": str(e)}), 500
+
+
 @dataset_bp.route("/dataset/<int:dataset_id>/upload/files", methods=["POST"])
 @login_required
 def upload_update_files(dataset_id):
@@ -237,7 +279,10 @@ def upload_update_files(dataset_id):
 @login_required
 def update_dataset(dataset_id):
     dataset = dataset_service.get_or_404(dataset_id)
-    form = DataSetForm()
+    last_dataset_id = dataset.last_version_id
+    if last_dataset_id is None:
+        last_dataset_id = dataset_id
+    form = DataSetUpdateForm()
     if request.method == "POST":
         dataset = None
         if not form.validate_on_submit():
@@ -246,8 +291,9 @@ def update_dataset(dataset_id):
         try:
             logger.info("Creating dataset...")
             dataset = dataset_service.update_from_form(
-                form=form, current_user=current_user, last_dataset_id=dataset_id
+                form=form, current_user=current_user, last_dataset_id=last_dataset_id
             )
+        
             logger.info(f"Created dataset: {dataset}")
             dataset_service.move_feature_models(dataset)
         except Exception as exc:
