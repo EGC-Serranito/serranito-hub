@@ -11,9 +11,11 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential
 
 # Install Node.js and NPM
-RUN curl -fsSL https://deb.nodesource.com/setup_20.17.0 | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && npm install -g npm@latest
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl bash && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    npm install -g npm@latest
 
 # Clean up
 RUN apt-get clean \
