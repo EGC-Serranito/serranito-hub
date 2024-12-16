@@ -19,3 +19,4 @@ test_file.txt
 app.log.*
 migrations/versions/*
 node_modules/
+*bundle.js
