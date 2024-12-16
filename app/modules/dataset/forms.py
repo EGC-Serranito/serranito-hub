@@ -94,3 +94,45 @@ class DataSetForm(FlaskForm):
 
     def get_feature_models(self):
         return [fm.get_feature_model() for fm in self.feature_models]
+
+
+class DataSetUpdateForm(FlaskForm):
+    title = StringField("Title", validators=[DataRequired()])
+    desc = TextAreaField("Description", validators=[DataRequired()])
+    publication_type = SelectField(
+        "Publication type",
+        choices=[(pt.value, pt.name.replace("_", " ").title()) for pt in PublicationType],
+        validators=[DataRequired()],
+    )
+    publication_doi = StringField("Publication DOI", validators=[Optional(), URL()])
+    dataset_doi = StringField("Dataset DOI", validators=[Optional(), URL()])
+    tags = StringField("Tags (separated by commas)")
+    authors = FieldList(FormField(AuthorForm), validators=[Optional()])
+    feature_models = FieldList(FormField(FeatureModelForm), min_entries=1)
+
+    submit = SubmitField("Submit")
+
+    def get_dsmetadata(self):
+
+        publication_type_converted = self.convert_publication_type(self.publication_type.data)
+
+        return {
+            "title": self.title.data,
+            "description": self.desc.data,
+            "publication_type": publication_type_converted,
+            "publication_doi": self.publication_doi.data,
+            "dataset_doi": self.dataset_doi.data,
+            "tags": self.tags.data,
+        }
+
+    def convert_publication_type(self, value):
+        for pt in PublicationType:
+            if pt.value == value:
+                return pt.name
+        return "NONE"
+
+    def get_authors(self):
+        return [author.get_author() for author in self.authors]
+
+    def get_feature_models(self):
+        return [fm.get_feature_model() for fm in self.feature_models]
