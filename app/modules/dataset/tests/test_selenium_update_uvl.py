@@ -27,13 +27,12 @@ class TestSeleniumupdateuvl:
             EC.visibility_of_element_located((By.ID, "file-edit-modal"))
         )
         self.driver.find_element(By.ID, "file-edit-modal").click()
-        element = self.driver.find_element(By.ID, "fileEditContent")
-        self.driver.execute_script(
-            "if(arguments[0].contentEditable === 'true') {arguments[0].innerText = 'features\\n    Chat\\n\\n'}",
-            element,
-        )
+        self.driver.find_element(By.ID, "fileEditContent").click()
+
         self.driver.find_element(By.ID, "file-edit-buttom").click()
-        self.driver.find_element(By.CSS_SELECTOR, ".col-12 > .row:nth-child(2)").click()
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "publication_doi"))
+        )
         self.driver.find_element(By.ID, "publication_doi").clear()
 
         checkbox = self.driver.find_element(By.ID, "agree-checkbox")
@@ -47,6 +46,7 @@ class TestSeleniumupdateuvl:
         WebDriverWait(self.driver, 5).until(
             EC.element_to_be_clickable((By.ID, "agree-checkbox"))
         )
+        self.driver.find_element(By.ID, "publication_doi").clear()
         checkbox.click()
 
         upload_button = self.driver.find_element(By.ID, "upload_button")
