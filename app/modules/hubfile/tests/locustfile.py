@@ -20,6 +20,7 @@ class HubfileUser(HttpUser):
     max_wait = 9000
     host = get_host_for_locust_testing()
 
+
 class FileUploadBehavior(TaskSet):
     @task(1)
     def upload_valid_file(self):
@@ -39,6 +40,7 @@ class FileUploadBehavior(TaskSet):
         files = {'file': ('large.uvl', large_content, 'application/octet-stream')}
         response = self.client.post("/hubfile/upload", files=files)
         assert response.status_code == 413
+
 
 class FileUploadUser(HttpUser):
     tasks = [FileUploadBehavior]
